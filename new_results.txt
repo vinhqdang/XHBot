@@ -1,0 +1,11 @@
+--- Training Baseline (Standard Homophilic GCN) ---
+--- Training Proposed Method (XHBot) ---
+
+================ FINAL COMPARATIVE RESULTS ================
+Method       | F1 Score | AUC-ROC | Accuracy | MCC
+-------------|----------|---------|----------|-------
+Standard GCN | 0.6737   | 0.9279  | 0.9225   | 0.6310
+XHBot (Ours) | 0.9474   | 0.9879  | 0.9875   | 0.9420
+===========================================================
+Improvement: +27.37% F1, +6.00% AUC
+
