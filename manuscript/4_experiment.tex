@@ -3,8 +3,17 @@
 To empirically validate the superiority of XHBot against relation camouflage, we constructed a challenging evaluation dataset characterized by \textbf{High-Noise Planted Heterophily} and conducted a rigorous suite of ablation and sensitivity analyses.
 
 \subsection{Experimental Setup}
-The dataset simulates advanced bot camouflage, where malicious bot nodes strategically connect heavily to benign human users (heterophily). Massive random noise was injected into the base textual features to render bots and humans indistinguishable by profile characteristics alone, forcing the models to rely on structural representation learning. 
 
+\subsubsection{Dataset Construction}
+The evaluation dataset simulates advanced bot camouflage, where malicious bot nodes strategically connect heavily to benign human users. We planted heterophilic edges such that bots distribute up to 90\% of their outbound edges to non-bot accounts. Massive random Gaussian noise ($\mathcal{N}(0, 1.5)$) was injected into the 128-dimensional base textual features to render bots and humans indistinguishable by profile characteristics alone. The graph comprises 2,000 nodes and 34,000 edges, representing a highly dense, adversarial subgraph where models must rely purely on structural representation learning.
+
+\subsubsection{Evaluation Metrics}
+To provide a holistic evaluation, we utilize four standard classification metrics: F1 Score, Area Under the Receiver Operating Characteristic Curve (AUC-ROC), Accuracy, and the Matthews Correlation Coefficient (MCC). Because bot detection datasets are often imbalanced, F1 Score and MCC serve as our primary comparative metrics, as they severely penalize false positives and false negatives equivalently.
+
+\subsubsection{Hyperparameter Settings}
+All models were implemented using PyTorch Geometric and trained on an NVIDIA A100 GPU. The hidden channel dimension was standardized to $d_h = 64$. We optimized the models using the Adam optimizer with a learning rate of $0.01$ and a weight decay of $10^{-4}$. Models were trained for 200 epochs using full-batch gradient descent. For XHBot, the spectral pruning threshold was initialized at $\tau = 0.5$, and the contrastive loss temperature was set to $\tau_{nce} = 0.1$.
+
+\subsubsection{Baselines}
 We benchmark our proposed XHBot against a comprehensive suite of State-of-the-Art (SOTA) graph-based bot detection frameworks and fraud detectors:
 \begin{itemize}
     \item \textbf{BotRGCN (2021)}: A foundational relational GCN.
