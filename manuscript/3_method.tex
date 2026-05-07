@@ -1,0 +1,23 @@
+\section{Methodology}
+The XHBot framework comprises four distinct operational modules designed to progressively refine the graph structure, aggregate heterophilic signals, disentangle behavioral traits, and generate actionable explanations.
+
+\subsection{Module 1: Spectral-Guided Topology Refinement (SGTR)}
+To mitigate relation camouflage prior to message passing, we deploy a learnable spectral edge filter. High spectral energy $s_r(u,v)$ indicates a cross-class (heterophilic) connection. Edges exceeding a learned threshold $\tau_r$ are soft-pruned, preventing human neighbor features from washing out bot representations.
+
+\subsection{Module 2: Tri-Channel Heterophily-Aware Aggregation (THCA)}
+A single message-passing channel cannot capture both homophilic bot communities and heterophilic bot-human interactions. We partition the local neighborhood into three channels:
+1. \textbf{Homophilic Channel ($N^H$):} Aggregated via mean pooling for community-driven bots.
+2. \textbf{Heterophilic Channel ($N^X$):} Aggregated via max pooling to isolate exposure signals.
+3. \textbf{Self Channel ($N^S$):} Explicit linear projection to preserve identity against over-smoothing.
+These channels are fused via a learned cross-channel attention mechanism.
+
+\subsection{Module 3: Contrastive Prototype Disentanglement (CPD)}
+To ensure the model classifies based on behavioral anomalies rather than purely social positioning artifacts, the output representation is projected into a bot-signature code ($z_v^b$) and a social-behavior code ($z_v^s$). We minimize their mutual information while enforcing a prototype contrastive loss to cluster $z_v^b$ tightly around class prototypes.
+
+\subsection{Module 4: Hierarchical Forensic Explanation (HFE)}
+To support platform moderation, XHBot yields three levels of evidence:
+\begin{itemize}
+    \item \textbf{Level 1 (Instance):} GNNExplainer applied directly to $z_v^b$ highlights critical interaction edges.
+    \item \textbf{Level 2 (Community):} Louvain detection on the bot-induced subgraph surfaces coordinated botnet rings.
+    \item \textbf{Level 3 (Motifs):} Structural heuristic counting flags specific diagnostic patterns (e.g., star topologies).
+\end{itemize}

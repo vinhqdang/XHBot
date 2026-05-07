@@ -1,0 +1,10 @@
+\section{Related Work}
+
+\subsection{GNN-Based Bot Detection}
+The application of GNNs to bot detection was pioneered by architectures such as BotRGCN and RGT, which utilized relational graph convolutional networks and multi-relation transformers to capture the heterogeneity of user-user and user-tweet interactions. Recent advancements have focused on dynamic neighborhood perceivable networks and multi-source feature fusion. However, these works largely ignore the specific adversarial structural dynamics of heterophilic camouflage.
+
+\subsection{Graph Fraud Detection and Heterophily}
+In the broader domain of graph-based fraud detection, frameworks like CARE-GNN highlighted the danger of relation camouflage in financial networks. Dual-channel heterophilic message passing approaches have been proposed to separate homophilic and heterophilic signals, but such methods have rarely been adapted to the distinct topological constraints of multi-relational social bot networks. 
+
+\subsection{Explainable Graph Neural Networks}
+Instance-level explainers, such as GNNExplainer, formulate explanation generation as mutual information maximization to identify crucial explanatory subgraphs. While powerful, instance-level explanations fail to capture the coordinated, multi-account nature of social botnets. Our work bridges this gap by proposing a hierarchical approach combining GNNExplainer with community detection algorithms to surface both instance and network-level forensic evidence.
