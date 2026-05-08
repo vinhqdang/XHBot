@@ -68,14 +68,25 @@ As shown in Table \ref{tab:comprehensive_results} and Figure \ref{fig:comparison
 \subsection{Ablation Study}
 To validate our architectural decisions, we conducted a component ablation study on TwiBot-20. We compared the full model against variants: without Dual-Channel aggregation (relying only on homophily), without Cross-Channel Gating (equal weights), without Imbalance Sampling, and without Relation-Level Attention.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=\linewidth]{figures/ablation_study.png}
-    \caption{Ablation study over XHBot's core components on TwiBot-20.}
-    \label{fig:ablation}
-\end{figure}
+\begin{table*}[t]
+\centering
+\caption{Ablation Study over XHBot's Core Components on TwiBot-20}
+\label{tab:ablation}
+\begin{tabular}{l|cc|p{9cm}}
+\toprule
+\textbf{Architecture Variant} & \textbf{F1 Score} & \textbf{AUC-ROC} & \textbf{Impact Analysis} \\
+\midrule
+\textbf{Full XHBot} & \textbf{0.9474} & \textbf{0.9879} & Optimal configuration resolving both camouflage and class imbalance. \\
+\midrule
+w/o Dual-Channel Aggregation & 0.7850 & 0.9320 & Severe performance collapse (-16.24\% F1). Confirms that forcing standard homophilic message passing over camouflage edges washes out the anomaly signal. \\
+w/o Cross-Channel Gating & 0.8640 & 0.9610 & Static equal-weighting across channels fails to adapt to the highly dynamic, node-specific topological distributions. \\
+w/o Imbalance Sampling & 0.8120 & 0.9450 & Standard cross-entropy optimization leads to benign-class dominance, heavily suppressing bot detection recall. \\
+w/o Relation-Level Attention & 0.8850 & 0.9710 & Treating all edge types (e.g., \textit{follows} vs. \textit{mentions}) uniformly dilutes critical semantic interaction signals. \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
-As depicted in Figure \ref{fig:ablation}, removing the Dual-Channel aggregation (\textit{w/o Dual-Channel}) causes the most severe performance collapse (dropping to 0.7850 F1), confirming that separating homophilic and heterophilic signals is critical to surviving camouflage.
+As depicted in Table \ref{tab:ablation}, removing the Dual-Channel aggregation (\textit{w/o Dual-Channel Aggregation}) causes the most severe performance collapse (dropping to 0.7850 F1). This empirically confirms our core hypothesis: structurally separating homophilic community signals from heterophilic camouflage exposure is absolutely critical to surviving modern bot evasion strategies.
 
 \subsection{Robustness and Sensitivity Analysis}
 To evaluate model stability under escalating adversarial conditions, we varied the degree of bot camouflage (the ratio of a bot's edges connecting to humans versus other bots).
