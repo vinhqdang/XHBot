@@ -1,9 +1,78 @@
-\begin{abstract}
+% icstdoc.tex V1.12 6 May 2011
+
+\documentclass[fonts]{icst}
+
+\usepackage{moreverb}
+
+\usepackage[breaklinks,colorlinks,bookmarksopen,bookmarksnumbered,linkcolor=ICSTblue,citecolor=blue,urlcolor=ICSTblue]{hyperref}
+\usepackage{breakurl}
+\usepackage{doi}
+\usepackage{subfiles}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{svg}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{multirow}
+\usepackage{xcolor}
+
+\newcommand\BibTeX{{\rmfamily B\kern-.05em \textsc{i\kern-.025em b}\kern-.08em
+T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\def\volumeyear{YYYY}
+
+\journalname{XXXXXX}
+\articletype{Research Article/Editorial}
+\setcounter{page}{01}
+
+  \def\copyrightholder{Author Name\textit{ et al.}, licensed to EAI}
+  \copyrightnote{This is an open access article distributed under the terms of the \href{https://creativecommons.org/licenses/by-nc-sa/4.0/}{CC BY-NC-SA 4.0}, which permits copying, redistributing, remixing, transformation, and building upon the material in any medium so long as the original work is properly cited.}
+  \def\articledoi{10.4108/XX.X.X.XX}
+\received{XXXX}
+  \accepted{XXXX}
+  \published{XXXX}
+
+\begin{document}
+
+\runningheads{Anonymous}{XHBot: eXplainable Heterophily-aware Graph Neural Networks for Social Bot Detection}
+
+\title{XHBot: eXplainable Heterophily-aware Graph Neural Networks for Social Bot Detection}
+
+% \author{Alistair Smith\affil{1}, Joseph Rushton Wakeling\affil{2}\fnoteref{1}}
+
+% \address{\affilnum{1}Sunrise Setting Ltd, 12a Fore Street, St. Marychurch, Torquay, Devon, TQ1~4NE, UK\\
+% \affilnum{2}European Alliance for Innovation (EAI), Gent, Belgium}
+
+\abstract{
 \textbf{INTRODUCTION:} Social bots pose a severe threat to the integrity of online ecosystems, engaging in coordinated opinion manipulation. While Graph Neural Networks (GNNs) have emerged as the dominant paradigm for bot detection, modern camouflaged bots strategically follow benign users to evade detection—creating structural heterophily that mathematically degrades standard homophilic GNN aggregators. Furthermore, existing detectors operate as black boxes, lacking forensic explainability. \\
 \textbf{OBJECTIVES:} The primary objective of this paper is to design a bot detection framework that is simultaneously robust against heterophilic relation camouflage and capable of providing transparent, multi-level forensic evidence for platform moderation decisions. \\
 \textbf{METHODS:} We propose XHBot (eXplainable Heterophily-aware Bot detector). Techniques derived from advanced graph spectral filtering and representation learning are employed to conduct this research. Specifically, we introduce Spectral-Guided Topology Refinement (SGTR) to prune camouflage edges, Tri-Channel Heterophily-Aware Aggregation (THCA), and Contrastive Prototype Disentanglement (CPD). \\
 \textbf{RESULTS:} The main results obtained in this paper demonstrate that XHBot successfully isolates camouflaged bot signals. Evaluated on challenging high-noise planted heterophily graphs, XHBot achieves an F1 score of 0.9474, outperforming a comprehensive suite of State-of-the-Art baselines (including RGT, NeighborSense, and HW-GNN) by over 9.6\%. Furthermore, our Hierarchical Forensic Explanation (HFE) module successfully extracts both instance-level subgraphs and community-level diagnostic motifs. \\
 \textbf{CONCLUSION:} These results confirm that decoupling behavioral signatures from adversarial social positioning is critical for modern bot detection. XHBot provides both the quantitative accuracy and the qualitative transparency required for deployment in real-world moderation environments.
-\end{abstract}
+
+}
 
 \keywords{Social Bot Detection, Graph Neural Networks, Heterophily, Explainable AI, \emph{XHBot}}
+
+\tnotetext[1]{Anonymous Author for Review}
+
+
+\fnotetext[1]{Corresponding author.  Email: \email{author@emailaddress.com}}
+
+\maketitle
+
+% \bibliography{ref.bib}
+\subfile{1_intro}
+\subfile{2_related_work}
+\subfile{3_method}
+\subfile{4_experiment}
+\subfile{5_discussion}
+\subfile{6_conclusion}
+
+\bibliographystyle{icstnum}
+\bibliography{ref}
+\end{document}

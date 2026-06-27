@@ -104,7 +104,7 @@ Figure \ref{fig:sensitivity} illustrates that while baseline performances collap
 
 Given that forensic transparency is a primary objective of XHBot, we rigorously evaluate the Hierarchical Forensic Explanation (HFE) module against standard graph explainer baselines. We compare our integrated HFE against GNNExplainer~\cite{ying2019gnnexplainer} and PGExplainer~\cite{luo2020pgexplainer} applied directly over the RGT baseline model.
 
-\begin{table}[h]
+\begin{table*}[h]
 \centering
 \caption{Quantitative Evaluation of Explanation Quality on TwiBot-20}
 \label{tab:explainability}
@@ -118,7 +118,7 @@ RGT + PGExplainer & 0.224 & 0.410 & 0.710 \\
 \textbf{XHBot + HFE (Ours)} & \textbf{0.415} & \textbf{0.112} & \textbf{0.895} \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 As shown in Table \ref{tab:explainability}, the HFE module significantly outperforms post-hoc explainers applied to standard baselines. The high \textbf{Fidelity+} (0.415) indicates that when HFE's identified forensic subgraph is masked, the model's confidence in predicting a ``bot'' drops drastically, proving the subgraph contains the true causal anomaly. Conversely, the exceptionally low \textbf{Fidelity-} (0.112) demonstrates that the isolated subgraph alone is highly sufficient to maintain the correct prediction. Furthermore, HFE achieves an impressive \textbf{Sparsity} score of 0.895, meaning it successfully prunes away nearly 90\% of irrelevant neighborhood noise edges to return a highly concise, human-readable rationale to the platform moderator. 
 
