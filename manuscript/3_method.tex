@@ -9,8 +9,58 @@ The task is to learn a mapping function $f: (\mathcal{G}, X) \rightarrow \mathca
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=\textwidth]{figures/xhbot_architecture.png}
-    \caption{The overall architecture of the XHBot framework, illustrating the flow from Spectral-Guided Topology Refinement (SGTR) through Tri-Channel Aggregation (THCA) and Contrastive Disentanglement (CPD), culminating in the Hierarchical Forensic Explanation (HFE) module.}
+    \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        font=\footnotesize,
+        >={Stealth[length=2mm]},
+        io/.style={rectangle, rounded corners, draw, thick, align=center,
+                   minimum height=1.05cm, minimum width=2.1cm, fill=gray!12},
+        block/.style={rectangle, rounded corners, draw, thick, align=center,
+                      minimum height=1.05cm, minimum width=2.1cm, fill=blue!10},
+        chan/.style={rectangle, rounded corners, draw, align=center,
+                     minimum height=0.78cm, minimum width=2.7cm, fill=orange!16},
+        result/.style={rectangle, rounded corners, draw, thick, align=center,
+                    minimum height=1.05cm, minimum width=2.0cm, fill=green!12},
+        arr/.style={->, thick},
+        darr/.style={->, thick, dashed}
+    ]
+        % main pipeline anchors
+        \node[io] (input) {Heterogeneous\\Interaction\\Graph\\$\mathcal{G}=(\mathcal{V},\mathcal{E},\mathcal{R},X)$};
+        \node[block, right=1.0cm of input] (sgtr) {\textbf{SGTR}\\Spectral-Guided\\Topology\\Refinement\\$A\!\rightarrow\!\tilde{A}$};
+
+        % THCA three channels
+        \node[chan, right=1.5cm of sgtr] (het) {Heterophilic Channel\\(max-pooling on $A$)};
+        \node[chan, above=0.28cm of het] (hom) {Homophilic Channel\\(smoothing on $\tilde{A}$)};
+        \node[chan, below=0.28cm of het] (self) {Self-Identity Channel\\(residual)};
+
+        \node[block, right=1.4cm of het] (fuse) {Attention\\Fusion\\$\sum_k \alpha_k \mathbf{h}^k_v$};
+        \node[block, right=1.0cm of fuse] (cpd) {\textbf{CPD}\\Behavioural\\code $\mathbf{z}^b$ /\\Social code $\mathbf{z}^s$};
+        \node[result, right=1.0cm of cpd] (clf) {Classifier\\bot / human};
+        \node[result, below=0.9cm of cpd] (hfe) {\textbf{HFE}\\Forensic\\Explanation};
+
+        % THCA grouping box (drawn behind)
+        \begin{scope}[on background layer]
+            \node[draw, dashed, rounded corners, fill=orange!5, inner sep=0.28cm,
+                  fit=(hom)(het)(self)] (thca) {};
+        \end{scope}
+        \node[anchor=south] at (thca.north) {\textbf{THCA} (Tri-Channel Heterophily-Aware Aggregation)};
+
+        % edges
+        \draw[arr] (input) -- (sgtr);
+        \draw[arr] (sgtr.east) -- (hom.west);
+        \draw[arr] (sgtr.east) -- (self.west);
+        \draw[arr] (sgtr) -- (het);
+        \draw[darr] (input.south) to[out=-90,in=180] node[below, pos=0.62] {raw $A$} (self.west);
+        \draw[arr] (hom.east) -- (fuse.west);
+        \draw[arr] (het) -- (fuse);
+        \draw[arr] (self.east) -- (fuse.west);
+        \draw[arr] (fuse) -- (cpd);
+        \draw[arr] (cpd) -- (clf);
+        \draw[arr] (cpd) -- (hfe);
+        \draw[darr] (clf.south) to[out=-90,in=0] (hfe.east);
+    \end{tikzpicture}%
+    }
+    \caption{Overall architecture of the XHBot framework. The raw graph is first refined by Spectral-Guided Topology Refinement (SGTR), which down-weights high-energy camouflage edges ($A\!\rightarrow\!\tilde{A}$). Tri-Channel Heterophily-Aware Aggregation (THCA) then processes the graph through three explicit channels---a homophilic channel (smoothing on the refined graph $\tilde{A}$), a heterophilic channel (max-pooling on the unrefined graph $A$), and a self-identity residual channel---which are combined by node-specific attention fusion. Contrastive Prototype Disentanglement (CPD) separates the behavioural code $\mathbf{z}^b$ from the social-positioning code $\mathbf{z}^s$ before classification, and the Hierarchical Forensic Explanation (HFE) module produces instance- and community-level evidence for each decision.}
     \label{fig:architecture}
 \end{figure*}
 

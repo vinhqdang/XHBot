@@ -81,23 +81,32 @@ def generate_ablation_figure():
 # 3. Parameter Sensitivity (Camouflage Ratio vs F1)
 def generate_sensitivity_figure():
     camouflage_ratios = [0.1, 0.3, 0.5, 0.7, 0.9]
-    botrgcn_f1 = [0.88, 0.79, 0.68, 0.55, 0.45]
-    rgt_f1 = [0.89, 0.81, 0.71, 0.59, 0.48]
-    hwgnn_f1 = [0.92, 0.87, 0.82, 0.75, 0.68]
-    xhbot_f1 = [0.97, 0.96, 0.94, 0.92, 0.89]
+    # Each curve is the F1 score of one detector as the fraction of a bot's edges
+    # directed to benign humans (heterophily / camouflage degree) increases.
+    series = [
+        ('XHBot (Ours)',  [0.97, 0.96, 0.94, 0.92, 0.89], 'o', '-',  2.6, '#d62728'),
+        ('HW-GNN',        [0.92, 0.87, 0.82, 0.75, 0.68], '^', '--', 1.6, '#ff7f0e'),
+        ('RGT',           [0.89, 0.81, 0.71, 0.59, 0.48], 's', '--', 1.6, '#2ca02c'),
+        ('BotRGCN',       [0.88, 0.79, 0.68, 0.55, 0.45], 'D', '--', 1.6, '#1f77b4'),
+    ]
 
     fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
-    ax.plot(camouflage_ratios, xhbot_f1, marker='o', linewidth=2.5, color='#d62728', label='XHBot (Ours)')
-    ax.plot(camouflage_ratios, hwgnn_f1, marker='^', linewidth=1.5, color='#ff7f0e', linestyle='--', label='HW-GNN')
-    ax.plot(camouflage_ratios, rgt_f1, marker='s', linewidth=1.5, color='#2ca02c', linestyle='--', label='RGT')
-    ax.plot(camouflage_ratios, botrgcn_f1, marker='x', linewidth=1.5, color='#1f77b4', linestyle='--', label='BotRGCN')
+    for label, y, marker, ls, lw, color in series:
+        ax.plot(camouflage_ratios, y, marker=marker, linestyle=ls, linewidth=lw,
+                markersize=8, color=color, label=label)
+        # annotate the end point so each curve is identifiable without the legend
+        ax.annotate(f'{y[-1]:.2f}', xy=(camouflage_ratios[-1], y[-1]),
+                    xytext=(6, 0), textcoords='offset points',
+                    va='center', fontsize=9, color=color, fontweight='bold')
 
-    ax.set_xlabel('Camouflage Degree (Heterophily Ratio)')
-    ax.set_ylabel('F1 Score')
-    ax.set_title('Robustness Against Increasing Bot Camouflage (TwiBot-20)')
-    ax.set_ylim([0.4, 1.05])
-    ax.grid(True, linestyle='--', alpha=0.7)
-    ax.legend()
+    ax.set_xlabel('Camouflage degree (fraction of bot edges to benign humans)', fontsize=12)
+    ax.set_ylabel('F1 Score', fontsize=12)
+    ax.set_title('Robustness Against Increasing Bot Camouflage (TwiBot-20)', fontsize=13)
+    ax.set_xticks(camouflage_ratios)
+    ax.set_xlim([0.05, 0.98])
+    ax.set_ylim([0.4, 1.02])
+    ax.grid(True, linestyle='--', alpha=0.6)
+    ax.legend(title='Detector', loc='lower left', frameon=True, fontsize=11, title_fontsize=11)
 
     fig.tight_layout()
     plt.savefig('manuscript/figures/parameter_sensitivity.png', bbox_inches='tight', dpi=300)
