@@ -38,11 +38,11 @@ heterophilic communities in bot networks exhibit distinct frequency distribution
 and introduces learnable Gaussian-window polynomial basis functions that target
 bot-specific spectral bands, achieving an average improvement of 4.3\% in F1
 across multiple benchmarks.
-At the community level, \cite{fu2026heterogeneous} combine multi-dimensional
+At the community level, Fu et al.~\cite{fu2026heterogeneous} combine multi-dimensional
 interaction graphs with explicit class-imbalance mitigation via sample balancing,
 addressing both the heterogeneous relational structure and the severe bot-prevalence
 imbalance jointly.
-\cite{he2025bothp} propose BotHP, a dual-encoder framework evaluated at
+He et al.~\cite{he2025bothp} propose BotHP, a dual-encoder framework evaluated at
 KDD~2025 that separates ego and neighbour embeddings to mitigate interaction
 camouflage while leveraging self-supervised pre-training for generalisation.
 
@@ -79,7 +79,7 @@ BotRGCN~\cite{feng2021botrgcn} in the bot detection context and for many fraud
 detection models.
 
 An empirical study directly relevant to our design choices is presented by
-\cite{dang2022evaluating}, who evaluate the contribution of each relation type
+Dang and Nguyen~\cite{dang2022evaluating}, who evaluate the contribution of each relation type
 to GNN-based fraud detection on the Amazon-Fraud and Yelp-Fraud benchmarks.
 Using a permutation-importance workflow---repeatedly replacing one relation's
 adjacency with uniform random values and re-evaluating AUC and F1---they find
@@ -106,7 +106,7 @@ aggregation process and provide no mechanism for handling camouflage-by-dilution
 the dominant failure mode identified in recent work~\cite{li2026neighborsense,
 liu2025hwgnn}.
 
-The work of ~\cite{qiao2026mgdil} proposes MGDIL, a unified framework for cross-domain social
+Qiao et al.~\cite{qiao2026mgdil} propose MGDIL, a unified framework for cross-domain social
 bot detection that addresses two persistent limitations of prior work: brittleness
 to incomplete or missing user modalities, and poor generalisation to out-of-distribution
 bot populations.
