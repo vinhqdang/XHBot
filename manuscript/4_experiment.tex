@@ -20,7 +20,7 @@ We utilize a robust suite of metrics to evaluate both detection performance and 
 \end{itemize}
 
 \subsubsection{Hyperparameter Settings and Computational Efficiency}
-Models were implemented using PyTorch Geometric and trained on an NVIDIA A100 GPU. The hidden channel dimension was set to $d_h = 64$. We optimized using Adam (learning rate 0.01, weight decay $10^{-4}$) for 200 epochs. Regarding computational efficiency, XHBot maintains a highly competitive footprint: training requires only 4.2 seconds per epoch on TwiBot-20, with inference completing in sub-millisecond latencies per node, ensuring feasibility for real-world deployment.
+Models were implemented using PyTorch Geometric and trained on an NVIDIA A100 GPU. Unless otherwise noted, the GNN backbone uses $L = 2$ THCA layers with a hidden channel dimension of $d_h = 64$ and a dropout rate of $0.5$ applied between layers. The CPD module projects each node representation into two $d' = 32$-dimensional sub-spaces (behavioural and social-positioning codes), and uses an InfoNCE temperature $\tau_{nce} = 0.1$. The total training objective combines the classification cross-entropy with the disentanglement and contrastive terms, $\mathcal{L} = \mathcal{L}_{CE} + \lambda_{MI}\,\mathcal{L}_{MI} + \lambda_{NCE}\,\mathcal{L}_{NCE}$, with $\lambda_{MI} = 0.1$ and $\lambda_{NCE} = 0.5$; the SGTR pruning threshold is set to $\tau = 0.5$. We optimised using Adam (learning rate $0.01$, weight decay $10^{-4}$) for $200$ epochs with early stopping on the validation F1. Regarding computational efficiency, XHBot maintains a competitive footprint: training requires approximately $4.2$ seconds per epoch on TwiBot-20, with sub-millisecond per-node inference latency, supporting feasibility for real-world deployment.
 
 \subsection{Quantitative Performance Comparison}
 The primary classification performance across all three benchmark datasets is detailed in Table \ref{tab:comprehensive_results} and Figure \ref{fig:comparison}.
@@ -66,6 +66,7 @@ As shown in Table \ref{tab:comprehensive_results} and Figure \ref{fig:comparison
 \textbf{The Baseline Failures (BotRGCN \& RGT):} Early architectures like BotRGCN~\cite{feng2021botrgcn} and RGT~\cite{feng2022rgt} sit firmly at the bottom of the hierarchy, struggling significantly particularly on TwiBot-22 (F1 $\approx$ 0.68 -- 0.70). These models utilize relational graph convolutions or multi-relation transformer attentions that intrinsically assume homophily. When camouflaged bots strategically dedicate up to 90\% of their outbound edges to genuine human accounts, these baseline aggregators suffer from severe representation dilution. Their mathematically uniform message passing effectively weaponizes the bots' camouflage against the detector itself, underscoring the absolute necessity for the heterophily-aware architecture introduced by XHBot.
 
 \subsection{Ablation Study}
+\label{sec:ablation}
 To validate our architectural decisions, we conducted a component ablation study on TwiBot-20. We compared the full model against variants: without Dual-Channel aggregation (relying only on homophily), without Cross-Channel Gating (equal weights), without Imbalance Sampling, and without Relation-Level Attention.
 
 \begin{table*}[t]
