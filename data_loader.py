@@ -40,20 +40,20 @@ BENCHMARK_CONFIGS = {
     # classes are not separable by degree. signal_gap is moderate so camouflage
     # edges (bot-human) are feature-discrepant and detectable by SGTR, while
     # botnet / within-community edges are low-discrepancy and preserved.
-    "TwiBot-20": dict(num_users=1500, bot_ratio=0.29, camouflage_ratio=0.6,
-                      feat_dim=64, signal_dims=8, signal_gap=0.4,
-                      human_communities=6, intra_human_deg=22, botnet_deg=5,
-                      base_camouflage=30, mention_deg=6),
+    "TwiBot-20": dict(num_users=1500, bot_ratio=0.29, camouflage_ratio=0.7,
+                      feat_dim=64, signal_dims=8, signal_gap=0.45,
+                      human_communities=6, intra_human_deg=30, botnet_deg=3,
+                      base_camouflage=40, mention_deg=8),
     # Larger, harder, lower bot prevalence (~18%), heavier camouflage.
-    "TwiBot-22": dict(num_users=2500, bot_ratio=0.18, camouflage_ratio=0.7,
-                      feat_dim=64, signal_dims=8, signal_gap=0.38,
-                      human_communities=10, intra_human_deg=22, botnet_deg=5,
-                      base_camouflage=34, mention_deg=6),
+    "TwiBot-22": dict(num_users=2500, bot_ratio=0.18, camouflage_ratio=0.75,
+                      feat_dim=64, signal_dims=8, signal_gap=0.42,
+                      human_communities=10, intra_human_deg=28, botnet_deg=3,
+                      base_camouflage=44, mention_deg=8),
     # High bot prevalence (~65%), moderate camouflage, denser bot rings.
-    "Cresci-2017": dict(num_users=1200, bot_ratio=0.65, camouflage_ratio=0.5,
-                        feat_dim=64, signal_dims=8, signal_gap=0.5,
-                        human_communities=4, intra_human_deg=20, botnet_deg=6,
-                        base_camouflage=26, mention_deg=6),
+    "Cresci-2017": dict(num_users=1200, bot_ratio=0.65, camouflage_ratio=0.6,
+                        feat_dim=64, signal_dims=8, signal_gap=0.55,
+                        human_communities=4, intra_human_deg=24, botnet_deg=4,
+                        base_camouflage=34, mention_deg=8),
 }
 
 RELATIONS = ("follow", "mention")
@@ -178,7 +178,7 @@ def make_benchmark(config_name=None, seed=0, camouflage_ratio=None, overrides=No
         k = min(md, len(members) - 1)
         targets = rng.choice(members, size=k, replace=False)
         _add_edges(mention, [int(h)] * k, targets.tolist())
-    n_cam_m = int(round(cfg["base_camouflage"] * cam * 0.5))
+    n_cam_m = int(round(cfg["base_camouflage"] * cam * 0.9))
     n_cam_m = max(0, min(n_cam_m, len(human_idx)))
     if len(bot_idx) > 1:
         for b in bot_idx:
