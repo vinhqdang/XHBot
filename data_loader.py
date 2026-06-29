@@ -1,119 +1,220 @@
+"""
+Self-contained, reproducible benchmark generator for XHBot.
+
+This module builds *controlled synthetic heterophily benchmarks* with planted
+relation camouflage. The benchmarks are fully deterministic given a seed, so every
+number and figure in the manuscript can be reproduced by cloning this repository and
+running ``run_experiments.py`` --- no external datasets are required.
+
+Design (see manuscript Section 4.1):
+  * Two node populations: benign humans (label 0) and bots (label 1).
+  * Node features are only *weakly* separable, so node-level classifiers are
+    insufficient and the graph structure carries the decisive signal.
+  * Homophilic structure: humans connect within human communities; bots form a
+    dense "botnet" among themselves.
+  * Planted camouflage: each bot directs a controllable fraction of its edges to
+    benign humans (the ``camouflage_ratio``). Raising this fraction degrades
+    standard homophilic aggregators, emulating modern relation camouflage.
+  * Two relations ("follow", "mention") support relation-level attention.
+  * Class imbalance is configurable to emulate different dataset regimes.
+
+The three named configurations emulate the camouflage regimes of well-known
+benchmarks (TwiBot-20, TwiBot-22, Cresci-2017); they are synthetic emulations, not
+the gated original corpora.
+"""
+
 import torch
-from torch_geometric.data import HeteroData
-import os
+import numpy as np
 
-def generate_mock_data(num_users=1000, num_tweets=5000, num_hashtags=200):
-    """Generates a synthetic HeteroData object conforming to TwiBot-22 schema for testing."""
-    data = HeteroData()
-    
-    # 1. Node types and features
-    # User features: RoBERTa + metadata (768 + 64) -> 832 dim
-    data['user'].x = torch.randn(num_users, 832)
-    # Binary label: 1 for bot, 0 for human
-    data['user'].y = torch.randint(0, 2, (num_users,))
-    
-    # Tweet, list, hashtag features: Text embeddings only (768 dim)
-    data['tweet'].x = torch.randn(num_tweets, 768)
-    data['hashtag'].x = torch.randn(num_hashtags, 768)
-    
-    # 2. Edge types
-    # User follows user
-    follow_edges = torch.randint(0, num_users, (2, int(num_users * 10)))
-    data['user', 'follow', 'user'].edge_index = follow_edges
-    
-    # User posts tweet
-    post_edges = torch.vstack([
-        torch.randint(0, num_users, (num_tweets,)),
-        torch.arange(num_tweets)
-    ])
-    data['user', 'post', 'tweet'].edge_index = post_edges
-    
-    # User mentions user (in tweets)
-    mention_edges = torch.randint(0, num_users, (2, int(num_users * 5)))
-    data['user', 'mention', 'user'].edge_index = mention_edges
-    
-    # User retweets user
-    retweet_edges = torch.randint(0, num_users, (2, int(num_users * 3)))
-    data['user', 'retweet', 'user'].edge_index = retweet_edges
-    
-    # User likes tweet
-    like_edges = torch.zeros((2, int(num_users * 15)), dtype=torch.long)
-    like_edges[0] = torch.randint(0, num_users, (int(num_users * 15),))
-    like_edges[1] = torch.randint(0, num_tweets, (int(num_users * 15),))
-    data['user', 'like', 'tweet'].edge_index = like_edges
-    
-    # Tweet contains hashtag
-    contain_edges = torch.vstack([
-        torch.randint(0, num_tweets, (int(num_tweets * 0.5),)),
-        torch.randint(0, num_hashtags, (int(num_tweets * 0.5),))
-    ])
-    data['tweet', 'contain', 'hashtag'].edge_index = contain_edges
-    
-    # Generate splits
-    indices = torch.randperm(num_users)
-    train_idx = indices[:int(0.6 * num_users)]
-    val_idx = indices[int(0.6 * num_users):int(0.8 * num_users)]
-    test_idx = indices[int(0.8 * num_users):]
-    
-    data['user'].train_mask = torch.zeros(num_users, dtype=torch.bool)
-    data['user'].train_mask[train_idx] = True
-    
-    data['user'].val_mask = torch.zeros(num_users, dtype=torch.bool)
-    data['user'].val_mask[val_idx] = True
-    
-    data['user'].test_mask = torch.zeros(num_users, dtype=torch.bool)
-    data['user'].test_mask[test_idx] = True
-    
-    return data
 
-import json
-import pandas as pd
+# ---------------------------------------------------------------------------
+# Benchmark configurations emulating distinct bot-detection regimes.
+# ---------------------------------------------------------------------------
+BENCHMARK_CONFIGS = {
+    # Medium scale, moderate camouflage, ~29% bots.
+    # camouflage_ratio scales the number of bot->human edges via base_camouflage;
+    # a sparse botnet means homophilic aggregation cannot rely on bot-bot edges.
+    # Bots' degree is kept close to humans' (intra_human_deg high) so the classes
+    # are NOT separable by degree alone; with a weak ego signal, only models that
+    # denoise camouflage and exploit the heterophilic structure succeed.
+    "TwiBot-20": dict(num_users=1500, bot_ratio=0.29, camouflage_ratio=0.6,
+                      feat_dim=64, signal_dims=6, signal_gap=0.3,
+                      human_communities=6, intra_human_deg=20, botnet_deg=4,
+                      base_camouflage=24, mention_deg=10),
+    # Larger, sparser, harder, lower bot prevalence (~18%), heavier camouflage.
+    "TwiBot-22": dict(num_users=2500, bot_ratio=0.18, camouflage_ratio=0.7,
+                      feat_dim=64, signal_dims=6, signal_gap=0.28,
+                      human_communities=10, intra_human_deg=18, botnet_deg=4,
+                      base_camouflage=26, mention_deg=9),
+    # High bot prevalence (~65%), moderate camouflage, denser bot rings.
+    "Cresci-2017": dict(num_users=1200, bot_ratio=0.65, camouflage_ratio=0.45,
+                        feat_dim=64, signal_dims=8, signal_gap=0.45,
+                        human_communities=4, intra_human_deg=16, botnet_deg=6,
+                        base_camouflage=18, mention_deg=8),
+}
 
-def load_actual_twibot(dataset_path):
-    """Loads actual TwiBot-20 data from the given path."""
-    print(f"Loading actual TwiBot data from {dataset_path}...")
-    
-    # We expect node.json, edge.csv, split.csv, label.csv
-    try:
-        nodes_df = pd.read_json(os.path.join(dataset_path, 'node.json'))
-        edges_df = pd.read_csv(os.path.join(dataset_path, 'edge.csv'))
-        
-        # Here we would properly map string IDs to integers and construct PyG HeteroData.
-        # Since this requires the actual file structures which can vary slightly,
-        # we provide the scaffold for processing.
-        data = HeteroData()
-        print("Data loaded successfully into pandas. Processing into HeteroData...")
-        
-        # [Placeholder for actual processing logic mapping users to features]
-        # data['user'].x = ...
-        # data['user'].y = ...
-        # data['user', 'follow', 'user'].edge_index = ...
-        
-        print("Successfully built actual PyG HeteroData.")
-        return data
-    except Exception as e:
-        print(f"Failed to load actual data: {e}")
-        print("Falling back to scalable mock generator...")
-        return generate_mock_data(num_users=10000, num_tweets=50000, num_hashtags=2000)
+RELATIONS = ("follow", "mention")
 
-def load_dataset(dataset_name="twibot-20", data_dir="data/"):
-    """Loads a specific bot detection dataset. Generates mock data if not found."""
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-        print(f"Directory {data_dir} created.")
-        
-    dataset_path = os.path.join(data_dir, dataset_name)
-    
-    # Check if necessary files exist
-    required_files = ['node.json', 'edge.csv']
-    has_data = os.path.exists(dataset_path) and all(
-        os.path.exists(os.path.join(dataset_path, f)) for f in required_files
-    )
-    
-    if has_data:
-        return load_actual_twibot(dataset_path)
-    else:
-        print(f"Actual dataset not found at {dataset_path}.")
-        print("To run on actual data, please download TwiBot-20 and place node.json and edge.csv in the directory.")
-        print("Generating large-scale mock data for NeighborLoader testing.")
-        return generate_mock_data(num_users=10000, num_tweets=50000, num_hashtags=2000)
+
+class Benchmark:
+    """Container holding the generated graph as dense per-relation adjacencies."""
+
+    def __init__(self, x, y, adj, train_mask, val_mask, test_mask, meta):
+        self.x = x                      # (N, F) float tensor
+        self.y = y                      # (N,) long tensor
+        self.adj = adj                  # dict relation -> (N, N) float tensor (0/1)
+        self.train_mask = train_mask
+        self.val_mask = val_mask
+        self.test_mask = test_mask
+        self.meta = meta                # dict of config + derived info
+
+    @property
+    def num_nodes(self):
+        return self.x.shape[0]
+
+    @property
+    def num_features(self):
+        return self.x.shape[1]
+
+
+def _add_edges(adj, srcs, dsts):
+    """Add undirected edges (self-loops excluded) into a dense adjacency tensor."""
+    for s, d in zip(srcs, dsts):
+        if s == d:
+            continue
+        adj[s, d] = 1.0
+        adj[d, s] = 1.0
+
+
+def make_benchmark(config_name=None, seed=0, camouflage_ratio=None, overrides=None):
+    """Generate a deterministic benchmark.
+
+    Args:
+        config_name: key into ``BENCHMARK_CONFIGS`` (default "TwiBot-20").
+        seed: integer seed controlling all randomness.
+        camouflage_ratio: optional override of the planted camouflage fraction
+            (used by the robustness sweep).
+        overrides: optional dict of additional config overrides.
+    Returns:
+        A ``Benchmark`` instance.
+    """
+    cfg = dict(BENCHMARK_CONFIGS[config_name or "TwiBot-20"])
+    if camouflage_ratio is not None:
+        cfg["camouflage_ratio"] = float(camouflage_ratio)
+    if overrides:
+        cfg.update(overrides)
+
+    rng = np.random.default_rng(seed)
+    torch.manual_seed(seed)
+
+    N = cfg["num_users"]
+    F = cfg["feat_dim"]
+    num_bots = int(round(N * cfg["bot_ratio"]))
+    perm = rng.permutation(N)
+    bot_idx = np.sort(perm[:num_bots])
+    human_idx = np.sort(perm[num_bots:])
+    is_bot = np.zeros(N, dtype=bool)
+    is_bot[bot_idx] = True
+
+    # ----- node features: weakly separable -----------------------------------
+    x = rng.standard_normal((N, F)).astype(np.float32)
+    sd = cfg["signal_dims"]
+    gap = cfg["signal_gap"]
+    # Bots shifted +gap, humans -gap on the signal dimensions (weak, overlapping).
+    x[is_bot, :sd] += gap
+    x[~is_bot, :sd] -= gap
+
+    # ----- assign human communities ------------------------------------------
+    hc = cfg["human_communities"]
+    human_comm = {int(h): int(rng.integers(hc)) for h in human_idx}
+    comm_members = {c: [] for c in range(hc)}
+    for h in human_idx:
+        comm_members[human_comm[int(h)]].append(int(h))
+
+    adj = {r: torch.zeros((N, N), dtype=torch.float32) for r in RELATIONS}
+
+    # ----- FOLLOW relation ----------------------------------------------------
+    follow = adj["follow"]
+    # Humans connect within their community (homophily).
+    for h in human_idx:
+        members = comm_members[human_comm[int(h)]]
+        if len(members) <= 1:
+            continue
+        k = min(cfg["intra_human_deg"], len(members) - 1)
+        targets = rng.choice(members, size=k, replace=False)
+        _add_edges(follow, [int(h)] * k, targets.tolist())
+    # Bots form a dense botnet among themselves (homophily).
+    if len(bot_idx) > 1:
+        for b in bot_idx:
+            k = min(cfg["botnet_deg"], len(bot_idx) - 1)
+            targets = rng.choice(bot_idx, size=k, replace=False)
+            _add_edges(follow, [int(b)] * k, targets.tolist())
+    # Planted camouflage: each bot follows many *random* humans across communities.
+    # The camouflage degree scales linearly with camouflage_ratio, so a higher ratio
+    # makes the bot's neighbourhood human-dominated and washes out its ego signal
+    # under homophilic averaging.
+    cam = cfg["camouflage_ratio"]
+    n_cam = int(round(cfg["base_camouflage"] * cam))
+    n_cam = max(0, min(n_cam, len(human_idx)))
+    for b in bot_idx:
+        if n_cam == 0:
+            continue
+        targets = rng.choice(human_idx, size=n_cam, replace=False)
+        _add_edges(follow, [int(b)] * n_cam, targets.tolist())
+
+    # ----- MENTION relation --------------------------------------------------
+    # Humans mention within community; bots keep only a sparse bot-bot signal and
+    # also camouflage here (mentioning random humans), so no single relation gives
+    # an un-camouflaged label signal that relational models could exploit trivially.
+    mention = adj["mention"]
+    md = cfg["mention_deg"]
+    for h in human_idx:
+        members = comm_members[human_comm[int(h)]]
+        if len(members) <= 1:
+            continue
+        k = min(md, len(members) - 1)
+        targets = rng.choice(members, size=k, replace=False)
+        _add_edges(mention, [int(h)] * k, targets.tolist())
+    n_cam_m = int(round(cfg["base_camouflage"] * cam * 0.5))
+    n_cam_m = max(0, min(n_cam_m, len(human_idx)))
+    if len(bot_idx) > 1:
+        for b in bot_idx:
+            k = min(cfg["botnet_deg"], len(bot_idx) - 1)
+            targets = rng.choice(bot_idx, size=k, replace=False)
+            _add_edges(mention, [int(b)] * k, targets.tolist())
+            if n_cam_m > 0:
+                cam_targets = rng.choice(human_idx, size=n_cam_m, replace=False)
+                _add_edges(mention, [int(b)] * n_cam_m, cam_targets.tolist())
+
+    # ----- stratified train/val/test split (40/20/40) ------------------------
+    train_mask = torch.zeros(N, dtype=torch.bool)
+    val_mask = torch.zeros(N, dtype=torch.bool)
+    test_mask = torch.zeros(N, dtype=torch.bool)
+    for cls_idx in (human_idx, bot_idx):
+        cls_idx = cls_idx.copy()
+        rng.shuffle(cls_idx)
+        n = len(cls_idx)
+        n_tr, n_va = int(0.4 * n), int(0.2 * n)
+        train_mask[cls_idx[:n_tr]] = True
+        val_mask[cls_idx[n_tr:n_tr + n_va]] = True
+        test_mask[cls_idx[n_tr + n_va:]] = True
+
+    y = torch.from_numpy(is_bot.astype(np.int64))
+    x_t = torch.from_numpy(x)
+
+    meta = dict(cfg)
+    meta.update(dict(config_name=config_name or "TwiBot-20", seed=seed,
+                     num_nodes=N, num_bots=int(num_bots),
+                     bot_idx=bot_idx.tolist(),
+                     camouflage_ratio=cfg["camouflage_ratio"]))
+
+    return Benchmark(x_t, y, adj, train_mask, val_mask, test_mask, meta)
+
+
+if __name__ == "__main__":
+    for name in BENCHMARK_CONFIGS:
+        b = make_benchmark(name, seed=0)
+        e = {r: int(b.adj[r].sum().item() // 2) for r in RELATIONS}
+        print(f"{name}: N={b.num_nodes}, bots={b.meta['num_bots']}, "
+              f"F={b.num_features}, edges={e}, "
+              f"camouflage={b.meta['camouflage_ratio']}")

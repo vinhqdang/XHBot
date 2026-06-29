@@ -229,3 +229,6 @@ __marimo__/
 *.fdb_latexmk
 *.synctex.gz
 manuscript/*.pdf
+
+# Generated experiment results (regenerate via run_experiments.py)
+results/
