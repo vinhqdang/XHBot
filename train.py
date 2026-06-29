@@ -1,82 +1,94 @@
+"""Unified training / evaluation protocol shared by all models.
+
+Every model (baselines and XHBot) is trained identically: same splits, same
+optimiser, same imbalance handling, same number of epochs, with model selection on
+validation F1. This guarantees a fair comparison (manuscript Section 4.1.4).
+"""
+
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from data_loader import load_dataset
+import torch.nn.functional as Fn
+from sklearn.metrics import f1_score
+
 from model.xhbot import XHBot
 from utils.metrics import compute_classification_metrics
 
-def train_epoch_full(model, data, optimizer, edge_types, lambda_weights, device):
-    model.train()
-    optimizer.zero_grad()
-    
-    outputs = model(data.x_dict, data.edge_index_dict, edge_types)
-    logits = outputs['logits']
-    
-    train_mask = data['user'].train_mask
-    labels = data['user'].y
-    
-    criterion = nn.CrossEntropyLoss()
-    loss_cls = criterion(logits[train_mask], labels[train_mask])
-    
-    loss_proto, loss_disent, loss_recon, loss_infonce = model.get_loss(
-        outputs, labels, data['user'].x
-    )
-    
-    l1, l2, l3, l4 = lambda_weights
-    loss = loss_cls + l1 * loss_proto + l2 * loss_infonce + l3 * loss_recon + l4 * loss_disent
-    
-    loss.backward()
-    optimizer.step()
-    return loss.item(), loss_cls.item()
 
-def evaluate_full(model, data, edge_types, mask_name, device):
+def _class_weights(y, train_mask, use_imbalance):
+    if not use_imbalance:
+        return None
+    yt = y[train_mask]
+    counts = torch.bincount(yt, minlength=2).float()
+    w = counts.sum() / (2.0 * counts.clamp(min=1))
+    return w
+
+
+def train_model(model, data, lr=0.01, weight_decay=1e-4, epochs=200,
+                lambda_mi=0.1, lambda_nce=0.5, use_imbalance=True,
+                patience=40, verbose=False, seed=0):
+    torch.manual_seed(seed)
+    x, y, adj = data.x, data.y, data.adj
+    tr, va, te = data.train_mask, data.val_mask, data.test_mask
+    opt = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    cw = _class_weights(y, tr, use_imbalance)
+
+    is_xhbot = isinstance(model, XHBot)
+    best_val, best_state, best_wait = -1.0, None, 0
+
+    def _best_threshold(prob, labels):
+        """Pick the decision threshold maximizing F1 on the given split."""
+        order = torch.argsort(prob)
+        cand = torch.unique(prob[order])
+        if cand.numel() > 50:                      # subsample candidate thresholds
+            cand = cand[torch.linspace(0, cand.numel() - 1, 50).long()]
+        best_t, best_f = 0.5, -1.0
+        lab = labels.cpu()
+        for t in cand.tolist():
+            f = f1_score(lab, (prob >= t).long().cpu(), zero_division=0)
+            if f > best_f:
+                best_f, best_t = f, t
+        return best_t
+
+    for ep in range(epochs):
+        model.train()
+        opt.zero_grad()
+        out = model(x, adj) if is_xhbot else {"logits": model(x, adj)}
+        logits = out["logits"]
+        loss = Fn.cross_entropy(logits[tr], y[tr], weight=cw)
+        if is_xhbot:
+            loss_mi, loss_nce = model.aux_losses(out, y, tr)
+            loss = loss + lambda_mi * loss_mi + lambda_nce * loss_nce
+        loss.backward()
+        opt.step()
+
+        # validation model selection
+        model.eval()
+        with torch.no_grad():
+            out = model(x, adj) if is_xhbot else {"logits": model(x, adj)}
+            pred = out["logits"].argmax(1)
+            vf1 = f1_score(y[va].cpu(), pred[va].cpu(), zero_division=0)
+        if vf1 > best_val:
+            best_val, best_state, best_wait = vf1, \
+                {k: v.detach().clone() for k, v in model.state_dict().items()}, 0
+        else:
+            best_wait += 1
+            if best_wait >= patience:
+                break
+        if verbose and ep % 25 == 0:
+            print(f"  epoch {ep:3d}  loss {loss.item():.4f}  val F1 {vf1:.4f}")
+
+    if best_state is not None:
+        model.load_state_dict(best_state)
+
+    # final test metrics, using a validation-selected decision threshold (applied
+    # identically to every model for a fair comparison)
     model.eval()
     with torch.no_grad():
-        outputs = model(data.x_dict, data.edge_index_dict, edge_types)
-        logits = outputs['logits']
-        
-        mask = getattr(data['user'], mask_name)
-        probs = torch.softmax(logits[mask], dim=-1)[:, 1]
-        preds = logits[mask].argmax(dim=-1)
-        
-        y_true = data['user'].y[mask].cpu().numpy()
-        y_pred = preds.cpu().numpy()
-        y_prob = probs.cpu().numpy()
-        
-        return compute_classification_metrics(y_true, y_pred, y_prob)
-
-def main():
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"Using device: {device}")
-    
-    print("Loading dataset...")
-    data = load_dataset()
-    data = data.to(device)
-    
-    edge_types = list(data.edge_index_dict.keys())
-    
-    in_channels = data['user'].x.shape[1]
-    hidden_channels = 128
-    out_channels = 64
-    num_relations = len(edge_types)
-    
-    model = XHBot(in_channels, hidden_channels, out_channels, num_relations).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
-    
-    lambda_weights = (0.1, 0.1, 0.1, 0.1) # proto, infonce, recon, disent
-    
-    print("Starting full-batch training (NeighborLoader requires pyg-lib which is unavailable on this Py3.13 env)...")
-    for epoch in range(1, 6):
-        loss, loss_cls = train_epoch_full(model, data, optimizer, edge_types, lambda_weights, device)
-        val_metrics = evaluate_full(model, data, edge_types, 'val_mask', device)
-        print(f"Epoch {epoch:03d} | Total Loss: {loss:.4f} | Val F1: {val_metrics['f1']:.4f} | Val AUC: {val_metrics['auc']:.4f}")
-            
-    # Final Test
-    print("Evaluating on test set...")
-    test_metrics = evaluate_full(model, data, edge_types, 'test_mask', device)
-    print("\nFinal Test Results:")
-    for k, v in test_metrics.items():
-        print(f"{k}: {v:.4f}")
-
-if __name__ == "__main__":
-    main()
+        out = model(x, adj) if is_xhbot else {"logits": model(x, adj)}
+        prob = torch.softmax(out["logits"], dim=1)[:, 1]
+        thr = _best_threshold(prob[va], y[va])
+        pred = (prob >= thr).long()
+        m = compute_classification_metrics(
+            y[te].cpu().numpy(), pred[te].cpu().numpy(), prob[te].cpu().numpy())
+    m["threshold"] = float(thr)
+    return m

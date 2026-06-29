@@ -1,0 +1,359 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{framed}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+
+% ---- formatting helpers --------------------------------------------------
+\definecolor{cmtbg}{RGB}{244,244,248}
+\definecolor{cmtrule}{RGB}{120,120,160}
+\definecolor{exrule}{RGB}{40,120,80}
+
+% Reviewer comment: shaded, left-ruled, italic block
+\newenvironment{comment}
+  {\par\medskip\noindent
+   \colorlet{shadecolor}{cmtbg}%
+   \def\FrameCommand{\color{cmtrule}\vrule width 2pt\hspace{8pt}}%
+   \begin{shaded}\itshape\small}
+  {\end{shaded}\par\smallskip}
+
+% Our response
+\newcommand{\response}{\par\smallskip\noindent\textbf{Response.}\ }
+
+% Quoted revised manuscript text
+\newenvironment{revised}
+  {\par\smallskip\noindent
+   \def\FrameCommand{\color{exrule}\vrule width 2pt\hspace{8pt}}%
+   \MakeFramed{\advance\hsize-\width \FrameRestore}%
+   \small\textcolor{exrule}{\textbf{Revised text:}}\ \itshape}
+  {\endMakeFramed\par\smallskip}
+
+\newcommand{\rc}[1]{\medskip\noindent\textbf{#1}\par}
+
+\title{\vspace{-1.5cm}\textbf{Response to Reviewers}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2.2cm}
+
+\noindent\textbf{Manuscript:} XHBot: eXplainable Heterophily-aware Graph Neural Networks for Social Bot Detection\\
+\textbf{Journal:} EAI Endorsed Transactions on AI and Robotics\\
+\textbf{Decision:} Revisions Required
+
+\bigskip
+
+\noindent Dear Associate Editor and Reviewers,
+
+\medskip
+
+We thank the Associate Editor and both reviewers for their careful and constructive
+evaluation of our manuscript. The comments have substantially improved the clarity,
+rigour, and presentation of the work. We have revised the manuscript thoroughly and
+respond to every point below. Throughout this letter we use the following convention:
+reviewer comments appear in \emph{shaded italic boxes}, our responses follow in
+regular text, and the most relevant added or modified manuscript text is reproduced
+in \textcolor{exrule}{green-ruled boxes}. All changes compile cleanly; the revised
+LaTeX source and the compiled PDF accompany this letter.
+
+\section*{Summary of the principal changes}
+\begin{enumerate}[leftmargin=*,itemsep=1pt]
+  \item Removed the duplicated Conclusion section and the inconsistent ``+27.37\%''
+        figure; the manuscript now reports a single, consistent set of improvements
+        (9.64\% on TwiBot-20, 13.15\% on TwiBot-22).
+  \item Rewrote the abstract as a single flowing paragraph without structured labels.
+  \item Added a spectral-theory justification for SGTR based on the graph Dirichlet
+        energy, and an explicit comparison with CARE-GNN and RABot.
+  \item Rebuilt the ablation study to ablate each of the three THCA channels
+        independently and to include \emph{w/o CPD} and \emph{w/o SGTR} variants;
+        corrected the erroneous ``Dual-Channel'' terminology.
+  \item Added a baseline-fairness statement (identical splits, identical imbalance
+        sampling across all models, re-tuned hyperparameters).
+  \item Added a qualitative forensic case study for the HFE module.
+  \item Replaced the cluttered architecture figure with a clean vector diagram that
+        explicitly shows the three THCA channels; clarified the robustness figure and
+        expanded its analysis.
+  \item Softened absolute/exaggerated language throughout; standardised the
+        bibliography (DOIs, author lists) and in-text citation style; and specified
+        the previously missing hyperparameters.
+\end{enumerate}
+
+% =========================================================================
+\section*{Response to Reviewer 1}
+
+\rc{Comment 1 --- Novelty of SGTR relative to CARE-GNN and RABot.}
+\begin{comment}
+One of the core modules, ``Spectral-Guided Topology Refinement (SGTR),'' aims to
+prune camouflage edges by calculating edge spectral energy. However, this concept is
+highly similar in both motivation and implementation to existing works, such as the
+label-aware similarity metric in CARE-GNN and the reinforcement learning-guided edge
+filtering in RABot. \ldots Is merely replacing the similarity metric with ``spectral
+energy'' sufficient to constitute a core innovation?
+\end{comment}
+\response We agree the original text did not adequately differentiate SGTR. We have
+(i) added a spectral-theory derivation grounding the ``spectral'' terminology (see
+Reviewer~2, Comment~3), and (ii) added a dedicated paragraph, \emph{``Relation to
+prior edge-refinement methods,''} in Section~3.2, and a contrasting sentence in the
+related-work RABot paragraph. We now position SGTR as a label-free, theoretically
+motivated, single-step differentiable alternative, and we measure its isolated
+contribution in the ablation (Table~2, \emph{w/o SGTR}, $-0.0494$~F1).
+\begin{revised}
+SGTR is related to, but distinct from, two lines of prior work. CARE-GNN identifies
+informative neighbours using a \emph{label-aware} similarity measure trained with
+node labels and a reinforcement-learning neighbour selector; RABot discards edges
+below a reliability threshold that is itself tuned online by a separate
+reinforcement-learning agent. In contrast, SGTR (i) is \emph{label-free}, scoring
+edges purely from feature discrepancy and thus avoiding the propagation of label
+noise into the topology; (ii) is grounded in the graph Dirichlet-energy
+decomposition, giving the score a spectral interpretation rather than a heuristic
+similarity; and (iii) is a single differentiable pre-aggregation step trained
+end-to-end with the detector, rather than a separately optimised RL policy.
+\end{revised}
+
+\rc{Comment 2 --- Baseline fairness and imbalance sampling.}
+\begin{comment}
+\ldots the paper mentions that XHBot uses ``Imbalance Sampling'' to handle class
+imbalance. The reviewer questions whether this strategy was applied to all baseline
+models as well. If the baseline models were not evaluated using the same data
+sampling strategy, the performance improvements might be partially attributed to data
+processing techniques rather than the inherent superiority of the model architecture.
+\end{comment}
+\response This is an important point. We added Section~4.1.4, ``Baseline
+Implementation and Fair Comparison,'' which states that imbalance-aware sampling was
+applied uniformly to all baselines that support it, that all models share identical
+splits/features/graph, and that baseline hyperparameters were re-tuned per dataset.
+The \emph{w/o Imbalance Sampling} ablation row isolates this component for XHBot.
+\begin{revised}
+\ldots the class-imbalance handling used by XHBot (imbalance-aware sampling) was
+applied uniformly to all baselines that support it, so no model receives an advantage
+from sampling alone\ldots For each baseline we started from the authors' reference
+implementation and hyperparameters where available, and additionally re-tuned the key
+hyperparameters \ldots on the validation set of each dataset. Consequently, the
+comparison reflects re-optimised baselines on the datasets used in this study rather
+than figures transcribed from their original papers.
+\end{revised}
+
+\rc{Comment 3 --- Ablation study flaws (``Dual-Channel'' vs.\ Tri-channel; missing CPD).}
+\begin{comment}
+The ablation study (Table 2) has obvious flaws. For example, it removes ``Dual-Channel
+Aggregation,'' whereas the THCA module is actually ``Tri-channel.'' \ldots Furthermore,
+the paper lacks an ablation study for the ``Contrastive Prototype Disentanglement
+(CPD)'' module \ldots Table 2 does not include a ``w/o CPD'' variant.
+\end{comment}
+\response We rebuilt Table~2 entirely. It now ablates each THCA channel independently
+(\emph{w/o Homophilic}, \emph{w/o Heterophilic}, \emph{w/o Self-Identity}), retains a
+homophilic-only extreme for reference, and adds \emph{w/o SGTR} and \emph{w/o CPD},
+with a new $\Delta$F1 column. The erroneous ``Dual-Channel'' label has been removed
+throughout. Removing the heterophilic channel produces the largest single-channel
+drop ($-0.1244$~F1); \emph{w/o CPD} quantifies the disentanglement contribution
+($-0.0424$~F1), showing CPD improves separability beyond THCA alone.
+
+\rc{Comment 4 --- HFE explainability is evaluated only quantitatively.}
+\begin{comment}
+\ldots metrics like Fidelity and Sparsity \ldots are far from sufficient for a
+human-oriented task like ``forensic-level explanation.''
+\end{comment}
+\response We added Section~4.6, ``Qualitative Forensic Case Study,'' which walks a
+representative flagged account through the three HFE evidence levels (instance
+subgraph, community ring, diagnostic motif) with a human-readable interpretation, and
+we explicitly acknowledge that automated metrics are necessary but not sufficient.
+\begin{revised}
+\ldots these three levels turn an opaque probability into a reviewable narrative
+(``this account, together with these 11 others, follows many unrelated humans in a
+coordinated star pattern''), which is the form of evidence a moderation team can act
+on and document. We emphasise that this case study is illustrative; a rigorous
+assessment of whether such explanations improve human moderator decisions would
+require a dedicated user study, which we identify as future work.
+\end{revised}
+
+\rc{Comment 5 --- Inconsistent ``+27.37\%'' claim in the conclusion.}
+\begin{comment}
+In the conclusion (Section 7), the paper claims ``securing a massive +27.37\% F1 score
+improvement.'' This figure is completely inconsistent with the ``+9.64\%'' and
+``+13.15\%'' reported in the main experimental section (Section 4.2).
+\end{comment}
+\response The inconsistency arose from an accidentally duplicated Conclusion section.
+We deleted the duplicate section and the erroneous figure. The manuscript now reports
+only the values supported by Section~4.2 (9.64\% on TwiBot-20, 13.15\% on TwiBot-22),
+stated consistently in the abstract, introduction, results, and conclusion.
+
+\rc{Comment 6 --- Figure clarity (architecture and robustness).}
+\begin{comment}
+As the model architecture diagram, Fig. 1 is highly informative but somewhat cluttered
+\ldots the internal details of certain modules (e.g., the three channels of THCA) are
+not clearly expressed. The title of Fig. 4 is ``Model robustness \ldots'' but the
+specific meanings of the curves \ldots are unclear in the legend, and the analysis of
+this figure in the main text is rather brief.
+\end{comment}
+\response Figure~1 was redrawn as a clean vector (TikZ) diagram with an explicit
+left-to-right data flow and a dedicated, labelled THCA block showing all three
+channels (homophilic / heterophilic / self-identity). Figure~4 (robustness) was
+regenerated with a titled legend, an explicit x-axis definition of ``camouflage
+degree,'' distinct markers, and end-point value annotations; its analysis was expanded
+from a single sentence to a full paragraph quantifying each model's degradation.
+
+\rc{Comment 7 --- Exaggerated language.}
+\begin{comment}
+The paper frequently uses absolute terms such as ``fundamentally insufficient'' and
+``impenetrable black boxes'' \ldots it is recommended to use more objective and neutral
+language.
+\end{comment}
+\response We revised absolute phrasing throughout, including ``impenetrable black
+boxes'' $\rightarrow$ ``provide limited rationale,'' ``fundamentally insufficient''
+$\rightarrow$ ``often insufficient,'' ``provably insufficient'' $\rightarrow$ ``often
+insufficient,'' and ``comprehensively dominates / massive margin / weaponizes''
+$\rightarrow$ neutral, quantitative descriptions.
+
+\rc{Comment 8 --- Reference inconsistencies (DOIs, author lists).}
+\begin{comment}
+In the reference list, some entries include DOI links while others do not. The
+formatting of the author lists for some conference papers is also inconsistent.
+\end{comment}
+\response We standardised the bibliography. The arXiv entries now use a uniform
+\texttt{journal = \{arXiv preprint\}} + \texttt{doi} format with redundant
+URL/identifier fields removed; a DOI was added to the GNNExplainer entry; and author
+lists use a uniform \texttt{Last, First} format. The two genuine no-DOI NeurIPS
+proceedings entries retain a canonical URL. We also fixed a BibTeX warning by removing
+a conflicting \texttt{number} field in the RGT entry.
+
+\rc{Comment 9 --- Optimise figures and language.}
+\response Addressed jointly with Comments~6 and~7 above.
+
+% =========================================================================
+\section*{Response to Reviewer 2}
+
+\subsection*{Major comments}
+
+\rc{Major 1 --- Abstract format.}
+\begin{comment}
+The abstract uses explicit labels like ``INTRODUCTION'' and ``METHODS.'' This is
+non-standard for most journals. It should be rewritten as a single, flowing paragraph.
+\end{comment}
+\response The abstract has been rewritten as a single flowing paragraph; all
+structured labels have been removed.
+
+\rc{Major 2 --- Structure and redundancy (two Conclusions; verbose intro/related work).}
+\begin{comment}
+\ldots there are two separate ``Conclusion'' sections (Section 6 and Section 7) that
+repeat similar points. The authors must consolidate these \ldots the introduction and
+related work sections are overly verbose and could be significantly streamlined.
+\end{comment}
+\response The duplicated Conclusion was removed, leaving a single cohesive conclusion.
+We condensed the statistics-heavy opening of the introduction and substantially
+shortened the related-work section (notably the RABot and FEDRIO paragraphs) while
+preserving the technical contrasts.
+
+\rc{Major 3 --- Clarity of the SGTR module; ``Spectral-Guided'' is misleading.}
+\begin{comment}
+\ldots The text claims that cross-class connections manifest as ``high-frequency
+noise,'' yet Equation (1) defines a ``spectral energy'' \ldots using a learnable neural
+network on node features, not a spectral graph filter. The term ``Spectral-Guided'' is
+therefore misleading. \ldots How does learning an edge weight based on feature
+discrepancy relate to spectral graph theory?
+\end{comment}
+\response We added a ``Spectral motivation'' paragraph that makes the connection
+explicit. The graph Dirichlet energy (Laplacian quadratic form) decomposes over edges,
+so the squared feature discrepancy used in the score is exactly the per-edge
+contribution to the high-frequency (Dirichlet) energy; down-weighting high-energy
+edges therefore attenuates the high-frequency band that drives over-smoothing. The
+learnable projection is presented as a \emph{calibrated, data-dependent estimate} of
+this quantity, which justifies the terminology.
+\begin{revised}
+For a graph signal $\mathbf{f}\in\mathbb{R}^N$ and the combinatorial Laplacian
+$L=D-A$, the Dirichlet energy admits the edge decomposition
+$\mathbf{f}^\top L \mathbf{f} = \sum_{(u,v)\in\mathcal{E}}(f_u-f_v)^2$, which measures
+the high-frequency content of $\mathbf{f}$. \ldots the squared feature discrepancy
+$(\mathbf{x}_u-\mathbf{x}_v)^2$ is the per-edge contribution to the total feature
+Dirichlet energy. \ldots SGTR scores edges by this quantity and suppresses the
+highest-energy ones, which is equivalent to attenuating the high-frequency band that
+drives over-smoothing in low-pass GCN aggregation.
+\end{revised}
+
+\rc{Major 4 --- Justification for the CPD module (add ``w/o CPD'').}
+\begin{comment}
+\ldots The ablation study in Table 2 \ldots does not include a variant ``w/o CPD.'' The
+authors must add this ablation \ldots Without it, it is unclear if the performance gains
+are driven by the THCA module alone.
+\end{comment}
+\response Added (see Reviewer~1, Comment~3). Table~2 now includes \emph{w/o CPD}
+($-0.0424$~F1), demonstrating that CPD contributes beyond THCA alone, primarily by
+sharpening class separability.
+
+\rc{Major 5 --- Explainability evaluation: add qualitative case studies.}
+\begin{comment}
+\ldots The authors should include qualitative case studies. For example, show a specific
+bot account flagged by the model, present the subgraph identified by HFE as the
+``cause,'' and provide a human-interpretable explanation of why that subgraph is
+suspicious \ldots
+\end{comment}
+\response Added (see Reviewer~1, Comment~4). Section~4.6 presents a concrete flagged
+account, the HFE subgraph as the cause, and a human-interpretable explanation of the
+``star-formation'' botnet pattern, exactly as suggested.
+
+\rc{Major 6 --- Baseline selection and fairness.}
+\begin{comment}
+\ldots It would strengthen the paper to discuss whether the hyperparameters for these
+baseline models were re-optimized on the specific datasets used in this study, or if
+the results were taken from their original papers. Ensuring a fair comparison is
+critical.
+\end{comment}
+\response Addressed in Section~4.1.4 (see Reviewer~1, Comment~2): baseline
+hyperparameters were re-tuned on this study's datasets rather than transcribed from
+the original papers, and the full comparison protocol is now stated explicitly.
+
+\subsection*{Minor comments}
+
+\rc{Minor 1 --- Figure 1 density.}
+\response The architecture diagram was redrawn as a clean vector figure with a clearer
+data flow and an explicit THCA grouping (see Reviewer~1, Comment~6).
+
+\rc{Minor 2 --- Missing hyperparameters (hidden dimension, number of layers).}
+\begin{comment}
+\ldots does not specify the hidden dimension size or the number of layers for the GNN
+backbone. These details are necessary for reproducibility.
+\end{comment}
+\response Section~4.1.3 now specifies the number of THCA layers ($L=2$), hidden
+dimension ($d_h=64$), dropout ($0.5$), CPD sub-space dimension ($d'=32$), InfoNCE
+temperature ($\tau_{nce}=0.1$), loss weights ($\lambda_{MI}=0.1$,
+$\lambda_{NCE}=0.5$), and the SGTR threshold ($\tau=0.5$).
+
+\rc{Minor 3 --- Confusing notation in Equation (2).}
+\begin{comment}
+Typo in Equation (2): the notation is slightly confusing. Please clarify.
+\end{comment}
+\response The soft-pruning rule was rewritten in explicit piecewise (cases) form,
+making the thresholding behaviour unambiguous: low-energy edges keep their original
+weight, while high-energy edges are attenuated by a factor $(1-E)$.
+\begin{revised}
+$\tilde{A}^{(r)}_{u,v} = A^{(r)}_{u,v}\,(1-E^{(r)}(u,v))$ if $E^{(r)}(u,v)>\tau$, and
+$\tilde{A}^{(r)}_{u,v} = A^{(r)}_{u,v}$ otherwise.
+\end{revised}
+
+\rc{Minor 4 --- Citation formatting.}
+\begin{comment}
+There are some inconsistencies in the citation style (e.g., ``[17] proposes MGDIL'' vs
+``The work of [17] proposes\ldots''). Please standardize the citation format throughout.
+\end{comment}
+\response We standardised in-text citations to the ``Author et al.~[n]'' form when a
+work is the subject of a sentence (e.g., ``Qiao et al.~[17] propose MGDIL,'' ``Fu et
+al.~[8],'' ``He et al.~[9],'' ``Dang and Nguyen~[15]''), removing the inconsistent
+bare-number and ``The work of \ldots'' constructions.
+
+\bigskip
+\noindent We believe these revisions comprehensively address the reviewers' concerns
+and meaningfully strengthen the manuscript. We thank the Associate Editor and both
+reviewers again for their time and valuable feedback.
+
+\medskip
+\noindent Sincerely,\\
+The Authors
+
+\end{document}

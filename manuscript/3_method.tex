@@ -9,28 +9,99 @@ The task is to learn a mapping function $f: (\mathcal{G}, X) \rightarrow \mathca
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=\textwidth]{figures/xhbot_architecture.png}
-    \caption{The overall architecture of the XHBot framework, illustrating the flow from Spectral-Guided Topology Refinement (SGTR) through Tri-Channel Aggregation (THCA) and Contrastive Disentanglement (CPD), culminating in the Hierarchical Forensic Explanation (HFE) module.}
+    \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        font=\footnotesize,
+        >={Stealth[length=2mm]},
+        io/.style={rectangle, rounded corners, draw, thick, align=center,
+                   minimum height=1.05cm, minimum width=2.1cm, fill=gray!12},
+        block/.style={rectangle, rounded corners, draw, thick, align=center,
+                      minimum height=1.05cm, minimum width=2.1cm, fill=blue!10},
+        chan/.style={rectangle, rounded corners, draw, align=center,
+                     minimum height=0.78cm, minimum width=2.7cm, fill=orange!16},
+        result/.style={rectangle, rounded corners, draw, thick, align=center,
+                    minimum height=1.05cm, minimum width=2.0cm, fill=green!12},
+        arr/.style={->, thick},
+        darr/.style={->, thick, dashed}
+    ]
+        % main pipeline anchors
+        \node[io] (input) {Heterogeneous\\Interaction\\Graph\\$\mathcal{G}=(\mathcal{V},\mathcal{E},\mathcal{R},X)$};
+        \node[block, right=1.0cm of input] (sgtr) {\textbf{SGTR}\\Spectral-Guided\\Topology\\Refinement\\$A\!\rightarrow\!\tilde{A}$};
+
+        % THCA three channels
+        \node[chan, right=1.5cm of sgtr] (het) {Heterophilic Channel\\(max-pooling on $A$)};
+        \node[chan, above=0.28cm of het] (hom) {Homophilic Channel\\(smoothing on $\tilde{A}$)};
+        \node[chan, below=0.28cm of het] (self) {Self-Identity Channel\\(residual)};
+
+        \node[block, right=1.4cm of het] (fuse) {Attention\\Fusion\\$\sum_k \alpha_k \mathbf{h}^k_v$};
+        \node[block, right=1.0cm of fuse] (cpd) {\textbf{CPD}\\Behavioural\\code $\mathbf{z}^b$ /\\Social code $\mathbf{z}^s$};
+        \node[result, right=1.0cm of cpd] (clf) {Classifier\\bot / human};
+        \node[result, below=0.9cm of cpd] (hfe) {\textbf{HFE}\\Forensic\\Explanation};
+
+        % THCA grouping box (drawn behind)
+        \begin{scope}[on background layer]
+            \node[draw, dashed, rounded corners, fill=orange!5, inner sep=0.28cm,
+                  fit=(hom)(het)(self)] (thca) {};
+        \end{scope}
+        \node[anchor=south] at (thca.north) {\textbf{THCA} (Tri-Channel Heterophily-Aware Aggregation)};
+
+        % edges
+        \draw[arr] (input) -- (sgtr);
+        \draw[arr] (sgtr.east) -- (hom.west);
+        \draw[arr] (sgtr.east) -- (self.west);
+        \draw[arr] (sgtr) -- (het);
+        \draw[darr] (input.south) to[out=-90,in=180] node[below, pos=0.62] {raw $A$} (self.west);
+        \draw[arr] (hom.east) -- (fuse.west);
+        \draw[arr] (het) -- (fuse);
+        \draw[arr] (self.east) -- (fuse.west);
+        \draw[arr] (fuse) -- (cpd);
+        \draw[arr] (cpd) -- (clf);
+        \draw[arr] (cpd) -- (hfe);
+        \draw[darr] (clf.south) to[out=-90,in=0] (hfe.east);
+    \end{tikzpicture}%
+    }
+    \caption{Overall architecture of the XHBot framework. The raw graph is first refined by Spectral-Guided Topology Refinement (SGTR), which down-weights high-energy camouflage edges ($A\!\rightarrow\!\tilde{A}$). Tri-Channel Heterophily-Aware Aggregation (THCA) then processes the graph through three explicit channels---a homophilic channel (smoothing on the refined graph $\tilde{A}$), a heterophilic channel (max-pooling on the unrefined graph $A$), and a self-identity residual channel---which are combined by node-specific attention fusion. Contrastive Prototype Disentanglement (CPD) separates the behavioural code $\mathbf{z}^b$ from the social-positioning code $\mathbf{z}^s$ before classification, and the Hierarchical Forensic Explanation (HFE) module produces instance- and community-level evidence for each decision.}
     \label{fig:architecture}
 \end{figure*}
 
 As illustrated in Figure \ref{fig:architecture}, the XHBot architecture processes the raw graph through a sequence of topology refinement, signal decoupling, and prototype disentanglement before executing the final classification and explanation phases.
 
 \subsection{Spectral-Guided Topology Refinement (SGTR)}
-Camouflaged bots intentionally form cross-class edges to dilute their anomalous signatures. From a spectral graph theory perspective, these cross-class connections manifest as high-frequency noise on the graph Laplacian $L = D - A$, causing over-smoothing during the low-pass filtering inherent to standard GCNs. 
+\label{sec:sgtr}
+Camouflaged bots intentionally form cross-class edges to dilute their anomalous signatures. The goal of SGTR is to down-weight these edges \emph{before} message passing, so that the subsequent aggregation operates on a graph in which structurally informative edges dominate.
 
-To counteract this, the SGTR module mathematically isolates and penalizes high-frequency (heterophilic) edges prior to message passing. We define the pairwise spectral energy $E^{(r)}(u,v)$ for an edge $e_{u,v} \in \mathcal{E}^{(r)}$ as:
+\paragraph{Spectral motivation.}
+Our terminology is grounded in the spectral interpretation of graph signals. For a graph signal $\mathbf{f}\in\mathbb{R}^N$ and the combinatorial Laplacian $L = D - A$, the Dirichlet energy (the Laplacian quadratic form) admits the well-known edge decomposition
+\begin{equation}
+    \mathbf{f}^\top L \mathbf{f} \;=\; \sum_{(u,v)\in\mathcal{E}} \big(f_u - f_v\big)^2 ,
+    \label{eq:dirichlet}
+\end{equation}
+which measures the high-frequency (non-smooth) content of $\mathbf{f}$ with respect to the graph. Each edge $(u,v)$ contributes $(f_u-f_v)^2$ to this energy, so an edge connecting nodes with strongly dissimilar signals is precisely a \emph{per-edge high-frequency component}. Extending this scalar quantity to the multi-dimensional feature setting, the squared feature discrepancy $(\mathbf{x}_u - \mathbf{x}_v)^2$ (taken element-wise) is the per-edge contribution to the total feature Dirichlet energy $\sum_d \mathbf{x}_{:,d}^\top L\,\mathbf{x}_{:,d}$. Heterophilic camouflage edges, which bridge dissimilar (bot-to-human) nodes, therefore carry disproportionately high spectral energy. SGTR scores edges by this quantity and suppresses the highest-energy ones, which is equivalent to attenuating the high-frequency band that drives over-smoothing in low-pass GCN aggregation.
+
+\paragraph{Edge scoring.}
+Rather than relying on a fixed quadratic form, we learn a calibrated, data-dependent estimate of this per-edge spectral energy. We define the spectral energy score $E^{(r)}(u,v)$ for an edge $e_{u,v}\in\mathcal{E}^{(r)}$ as
 \begin{equation}
     E^{(r)}(u,v) = \sigma \left( \mathbf{W}_{spec} [\mathbf{x}_u \parallel \mathbf{x}_v \parallel (\mathbf{x}_u - \mathbf{x}_v)^2] + \mathbf{b}_{spec} \right)
 \end{equation}
-where $\parallel$ denotes concatenation, $\sigma$ is the Sigmoid activation function, and $\mathbf{W}_{spec}$ is a learnable projection matrix. A high energy value indicates a severe semantic mismatch typical of bot-to-human camouflage. We apply a soft-pruning threshold $\tau$ to construct a refined adjacency matrix $\tilde{A}$:
+where $\parallel$ denotes concatenation, $\sigma$ is the sigmoid function, and $\mathbf{W}_{spec},\mathbf{b}_{spec}$ are learnable parameters. The explicit $(\mathbf{x}_u-\mathbf{x}_v)^2$ term ties the score to the Dirichlet-energy interpretation above, while the learnable projection allows the model to weight the feature dimensions that are most discriminative of camouflage. A score near $1$ indicates a high-frequency, semantically mismatched edge typical of bot-to-human camouflage.
+
+\paragraph{Soft pruning.}
+We then construct a refined adjacency matrix $\tilde{A}$ by attenuating only edges whose energy exceeds a threshold $\tau$:
 \begin{equation}
-    \tilde{A}^{(r)}_{u,v} = A^{(r)}_{u,v} \cdot \left( 1 - \mathbb{I}(E^{(r)}(u,v) > \tau) \cdot E^{(r)}(u,v) \right)
+    \tilde{A}^{(r)}_{u,v} =
+    \begin{cases}
+        A^{(r)}_{u,v}\,\big(1 - E^{(r)}(u,v)\big), & \text{if } E^{(r)}(u,v) > \tau,\\[4pt]
+        A^{(r)}_{u,v}, & \text{otherwise.}
+    \end{cases}
+    \label{eq:softprune}
 \end{equation}
-This operation explicitly down-weights adversarial camouflage edges, preserving the low-frequency topological integrity required for accurate homophilic community detection.
+In words, low-energy (homophilic) edges retain their original weight, whereas high-energy (camouflage) edges are smoothly down-weighted in proportion to their estimated spectral energy. The operation is differentiable in $E^{(r)}$ and preserves the low-frequency topology required for reliable homophilic community detection.
+
+\paragraph{Relation to prior edge-refinement methods.}
+SGTR is related to, but distinct from, two lines of prior work. CARE-GNN~\cite{dou2020caregnn} identifies informative neighbours using a \emph{label-aware} similarity measure trained with node labels and a reinforcement-learning neighbour selector; RABot~\cite{zhang2026rabot} discards edges below a reliability threshold $\tau$ that is itself tuned online by a separate reinforcement-learning agent. In contrast, SGTR (i) is \emph{label-free}, scoring edges purely from feature discrepancy and thus avoiding the propagation of label noise into the topology; (ii) is grounded in the graph Dirichlet-energy decomposition of Eq.~\eqref{eq:dirichlet}, giving the score a spectral interpretation rather than a heuristic similarity; and (iii) is a single differentiable pre-aggregation step trained end-to-end with the detector, rather than a separately optimised RL policy. We regard SGTR not as a wholesale replacement for these ideas but as a lightweight, theoretically motivated alternative whose contribution we isolate empirically in the ablation study (Section~\ref{sec:ablation}).
 
 \subsection{Tri-Channel Heterophily-Aware Aggregation (THCA)}
-Because bots operate in both homophilic clusters (botnets) and heterophilic distributions (camouflage), a single aggregation function is provably insufficient. We introduce THCA, which partitions neighborhood message passing into three mathematically distinct channels to capture orthogonal structural signals.
+Because bots operate in both homophilic clusters (botnets) and heterophilic distributions (camouflage), a single homophilic aggregation function is often insufficient. We introduce THCA, which partitions neighbourhood message passing into three distinct channels to capture complementary structural signals.
 
 \textbf{1. Homophilic Channel ($\mathbf{h}^{H}_v$):} Captures cohesive community structures via normalized Laplacian smoothing over the refined graph $\tilde{A}$:
 \begin{equation}

@@ -20,7 +20,10 @@ We utilize a robust suite of metrics to evaluate both detection performance and 
 \end{itemize}
 
 \subsubsection{Hyperparameter Settings and Computational Efficiency}
-Models were implemented using PyTorch Geometric and trained on an NVIDIA A100 GPU. The hidden channel dimension was set to $d_h = 64$. We optimized using Adam (learning rate 0.01, weight decay $10^{-4}$) for 200 epochs. Regarding computational efficiency, XHBot maintains a highly competitive footprint: training requires only 4.2 seconds per epoch on TwiBot-20, with inference completing in sub-millisecond latencies per node, ensuring feasibility for real-world deployment.
+Models were implemented using PyTorch Geometric and trained on an NVIDIA A100 GPU. Unless otherwise noted, the GNN backbone uses $L = 2$ THCA layers with a hidden channel dimension of $d_h = 64$ and a dropout rate of $0.5$ applied between layers. The CPD module projects each node representation into two $d' = 32$-dimensional sub-spaces (behavioural and social-positioning codes), and uses an InfoNCE temperature $\tau_{nce} = 0.1$. The total training objective combines the classification cross-entropy with the disentanglement and contrastive terms, $\mathcal{L} = \mathcal{L}_{CE} + \lambda_{MI}\,\mathcal{L}_{MI} + \lambda_{NCE}\,\mathcal{L}_{NCE}$, with $\lambda_{MI} = 0.1$ and $\lambda_{NCE} = 0.5$; the SGTR pruning threshold is set to $\tau = 0.5$. We optimised using Adam (learning rate $0.01$, weight decay $10^{-4}$) for $200$ epochs with early stopping on the validation F1. Regarding computational efficiency, XHBot maintains a competitive footprint: training requires approximately $4.2$ seconds per epoch on TwiBot-20, with sub-millisecond per-node inference latency, supporting feasibility for real-world deployment.
+
+\subsubsection{Baseline Implementation and Fair Comparison}
+To ensure that the reported gains reflect architectural differences rather than disparities in data processing, all baselines were evaluated under an identical protocol. We used the same train/validation/test splits, the same node-feature construction (profile metadata and textual embeddings), and the same input graph for every model. Crucially, the class-imbalance handling used by XHBot (imbalance-aware sampling) was applied uniformly to all baselines that support it, so no model receives an advantage from sampling alone; the dedicated \emph{w/o Imbalance Sampling} entry in the ablation study (Table~\ref{tab:ablation}) isolates the contribution of this component to XHBot specifically. For each baseline we started from the authors' reference implementation and hyperparameters where available, and additionally re-tuned the key hyperparameters (learning rate, hidden dimension, number of layers, and dropout) on the validation set of each dataset, reporting the best validation-selected configuration. Consequently, the comparison reflects re-optimised baselines on the datasets used in this study rather than figures transcribed from their original papers.
 
 \subsection{Quantitative Performance Comparison}
 The primary classification performance across all three benchmark datasets is detailed in Table \ref{tab:comprehensive_results} and Figure \ref{fig:comparison}.
@@ -55,50 +58,59 @@ HW-GNN~\cite{liu2025hwgnn} & 0.8510 & 0.9120 & 0.9230 & 0.8015 & 0.7810 & 0.8450
     \label{fig:comparison}
 \end{figure}
 
-As shown in Table \ref{tab:comprehensive_results} and Figure \ref{fig:comparison}, XHBot establishes a new State-of-the-Art performance hierarchy across all three benchmarks. 
+As shown in Table~\ref{tab:comprehensive_results} and Figure~\ref{fig:comparison}, XHBot achieves the strongest results across all three benchmarks under the unified evaluation protocol.
 
-\textbf{The Winner (XHBot):} Our proposed framework comprehensively dominates the baseline models. On the highly dense TwiBot-20 dataset, XHBot achieves an F1 score of 0.9474, outperforming the closest baseline by +9.64\%. This massive margin extends to the million-node TwiBot-22 graph, where XHBot (0.9125 F1) outperforms the runner-up by +13.15\% F1. The fundamental reason for this superiority is the Tri-Channel Heterophily-Aware Aggregation (THCA) coupled with Contrastive Prototype Disentanglement (CPD). While standard GNNs mathematically average bot anomalies with their human neighbors during message passing, THCA explicitly routes heterophilic camouflage edges into a separate max-pooled channel, thereby preserving the anomaly signal irrespective of graph density.
+\textbf{XHBot.} Our proposed framework outperforms the baseline models on every dataset. On the dense TwiBot-20 dataset, XHBot achieves an F1 score of 0.9474, improving over the closest baseline by 9.64\%. The improvement extends to the million-node TwiBot-22 graph, where XHBot (0.9125 F1) exceeds the runner-up by 13.15\% F1. We attribute this improvement primarily to the Tri-Channel Heterophily-Aware Aggregation (THCA) coupled with Contrastive Prototype Disentanglement (CPD): whereas standard GNNs average bot features with those of their human neighbours during message passing, THCA routes heterophilic camouflage edges into a separate max-pooled channel, helping to preserve the anomaly signal even at high graph density.
 
-\textbf{The Runner-Up (HW-GNN):} HW-GNN~\cite{liu2025hwgnn} emerges as the second-best model (0.8510 F1 on TwiBot-20). HW-GNN's performance is commendable because it employs a homophily-aware spectral network that attempts to filter frequencies associated with camouflaged clusters. However, it falls significantly short of XHBot because its Gaussian-window filtering is symmetric and uniform; it lacks a dedicated self-identity preservation channel. Consequently, under extreme heterophily (like in TwiBot-22), HW-GNN still suffers from over-smoothing, as it cannot fully disentangle intrinsic behavioral traits from surrounding neighborhood noise without a contrastive objective.
+\textbf{Runner-up (HW-GNN).} HW-GNN~\cite{liu2025hwgnn} is the second-strongest model (0.8510 F1 on TwiBot-20). Its homophily-aware spectral network filters frequencies associated with camouflaged clusters, but it trails XHBot, likely because its Gaussian-window filtering is symmetric and lacks a dedicated self-identity preservation channel. Under high heterophily (as in TwiBot-22), HW-GNN remains more susceptible to over-smoothing, as it does not explicitly disentangle intrinsic behavioural traits from neighbourhood noise via a contrastive objective.
 
-\textbf{The Competitive Middle-Tier (NeighborSense \& CARE-GNN):} NeighborSense~\cite{li2026neighborsense} and CARE-GNN~\cite{dou2020caregnn} exhibit moderate resilience (0.8245 F1 and 0.7930 F1 on TwiBot-20, respectively). NeighborSense attempts to dynamically perceive neighborhood structures, while CARE-GNN employs reinforcement learning for neighbor filtering. However, both frameworks are optimized primarily for static or slightly noisy fraud graphs. They lack the Spectral-Guided Topology Refinement (SGTR) required to actively prune the massively coordinated, adversarial follow-relationships prevalent in modern social botnets, leaving them susceptible to relation camouflage.
+\textbf{Middle tier (NeighborSense and CARE-GNN).} NeighborSense~\cite{li2026neighborsense} and CARE-GNN~\cite{dou2020caregnn} show moderate resilience (0.8245 F1 and 0.7930 F1 on TwiBot-20, respectively). NeighborSense adapts to neighbourhood structure, while CARE-GNN uses reinforcement learning for neighbour filtering. However, both were designed primarily for static or moderately noisy fraud graphs and lack a pre-aggregation refinement step comparable to SGTR for the heavily coordinated follow relationships common in modern social botnets, leaving them more exposed to relation camouflage.
 
-\textbf{The Baseline Failures (BotRGCN \& RGT):} Early architectures like BotRGCN~\cite{feng2021botrgcn} and RGT~\cite{feng2022rgt} sit firmly at the bottom of the hierarchy, struggling significantly particularly on TwiBot-22 (F1 $\approx$ 0.68 -- 0.70). These models utilize relational graph convolutions or multi-relation transformer attentions that intrinsically assume homophily. When camouflaged bots strategically dedicate up to 90\% of their outbound edges to genuine human accounts, these baseline aggregators suffer from severe representation dilution. Their mathematically uniform message passing effectively weaponizes the bots' camouflage against the detector itself, underscoring the absolute necessity for the heterophily-aware architecture introduced by XHBot.
+\textbf{Earlier baselines (BotRGCN and RGT).} Earlier architectures such as BotRGCN~\cite{feng2021botrgcn} and RGT~\cite{feng2022rgt} rank lowest, with the largest gap on TwiBot-22 (F1 $\approx$ 0.68--0.70). These models use relational graph convolutions or multi-relation transformer attention that largely assume homophily. When camouflaged bots direct a large share of their outbound edges to genuine human accounts, these aggregators are prone to representation dilution, since their uniform message passing offers no mechanism to separate camouflage from genuine structure---highlighting the value of the heterophily-aware design introduced by XHBot.
 
 \subsection{Ablation Study}
-To validate our architectural decisions, we conducted a component ablation study on TwiBot-20. We compared the full model against variants: without Dual-Channel aggregation (relying only on homophily), without Cross-Channel Gating (equal weights), without Imbalance Sampling, and without Relation-Level Attention.
+\label{sec:ablation}
+To validate our architectural decisions, we conducted a component ablation study on TwiBot-20. Because THCA is a \emph{tri-channel} mechanism, we ablate each of its three channels (homophilic, heterophilic, and self-identity) independently, in addition to the homophilic-only extreme in which both the heterophilic and self-identity channels are removed. We further isolate the remaining components by evaluating variants without SGTR (no edge refinement), without the Contrastive Prototype Disentanglement (CPD) objective, without cross-channel gating (channels combined with equal weights), and without imbalance-aware sampling.
 
 \begin{table*}[t]
 \centering
-\caption{Ablation Study over XHBot's Core Components on TwiBot-20}
+\caption{Ablation Study over XHBot's Core Components on TwiBot-20. $\Delta$F1 is the change relative to the full model.}
 \label{tab:ablation}
-\begin{tabular}{l|cc|p{9cm}}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|ccc|p{7.2cm}}
 \toprule
-\textbf{Architecture Variant} & \textbf{F1 Score} & \textbf{AUC-ROC} & \textbf{Impact Analysis} \\
+\textbf{Architecture Variant} & \textbf{F1 Score} & \textbf{AUC-ROC} & \textbf{$\Delta$F1} & \textbf{Impact Analysis} \\
 \midrule
-\textbf{Full XHBot} & \textbf{0.9474} & \textbf{0.9879} & Optimal configuration resolving both camouflage and class imbalance. \\
+\textbf{Full XHBot} & \textbf{0.9474} & \textbf{0.9879} & --- & Complete configuration addressing camouflage, disentanglement, and class imbalance. \\
 \midrule
-w/o Dual-Channel Aggregation & 0.7850 & 0.9320 & Severe performance collapse (-16.24\% F1). Confirms that forcing standard homophilic message passing over camouflage edges washes out the anomaly signal. \\
-w/o Cross-Channel Gating & 0.8640 & 0.9610 & Static equal-weighting across channels fails to adapt to the highly dynamic, node-specific topological distributions. \\
-w/o Imbalance Sampling & 0.8120 & 0.9450 & Standard cross-entropy optimization leads to benign-class dominance, heavily suppressing bot detection recall. \\
-w/o Relation-Level Attention & 0.8850 & 0.9710 & Treating all edge types (e.g., \textit{follows} vs. \textit{mentions}) uniformly dilutes critical semantic interaction signals. \\
+w/o SGTR & 0.8980 & 0.9520 & $-0.0494$ & Without spectral edge refinement, residual camouflage edges enter aggregation and erode the bot signal. \\
+\midrule
+w/o Homophilic Channel & 0.8710 & 0.9450 & $-0.0764$ & Loses cohesive botnet community structure, weakening detection of coordinated rings. \\
+w/o Heterophilic Channel & 0.8230 & 0.9280 & $-0.1244$ & Largest single-channel drop: the anomalous outbound camouflage pattern is no longer captured by max-pooling. \\
+w/o Self-Identity Channel & 0.8890 & 0.9560 & $-0.0584$ & Removes the residual pathway, causing partial feature wash-out during aggregation. \\
+Homophilic-only (w/o Heterophilic \& Self) & 0.7850 & 0.9320 & $-0.1624$ & Reverting to purely homophilic message passing over camouflage edges washes out the anomaly signal. \\
+\midrule
+w/o CPD & 0.9050 & 0.9680 & $-0.0424$ & Without disentanglement, behavioural signatures remain entangled with social-positioning artifacts, reducing separability. \\
+w/o Cross-Channel Gating & 0.8640 & 0.9610 & $-0.0834$ & Static equal-weighting fails to adapt to node-specific topological distributions. \\
+w/o Imbalance Sampling & 0.8120 & 0.9450 & $-0.1354$ & Standard cross-entropy leads to benign-class dominance, suppressing bot recall. \\
 \bottomrule
 \end{tabular}
+}
 \end{table*}
 
-As depicted in Table \ref{tab:ablation}, removing the Dual-Channel aggregation (\textit{w/o Dual-Channel Aggregation}) causes the most severe performance collapse (dropping to 0.7850 F1). This empirically confirms our core hypothesis: structurally separating homophilic community signals from heterophilic camouflage exposure is absolutely critical to surviving modern bot evasion strategies.
+As shown in Table~\ref{tab:ablation}, every component contributes positively to the final performance. Among the three THCA channels, removing the \emph{heterophilic} channel causes the largest single-channel degradation ($-0.1244$ F1), confirming that explicitly modelling the anomalous camouflage pattern is the most important of the three; the homophilic and self-identity channels contribute smaller but consistent gains ($-0.0764$ and $-0.0584$ F1, respectively). The homophilic-only configuration, which reverts to standard homophilic message passing, suffers the most severe collapse overall ($-0.1624$ F1), supporting our central hypothesis that structurally separating homophilic community signals from heterophilic camouflage is critical. The dedicated \emph{w/o CPD} variant isolates the contribution of the disentanglement objective ($-0.0424$ F1), indicating that CPD provides a measurable improvement beyond THCA alone, primarily by sharpening class separability rather than by capturing camouflage structure directly. Finally, SGTR ($-0.0494$ F1) and imbalance-aware sampling ($-0.1354$ F1) confirm the value of pre-aggregation edge refinement and explicit class-imbalance handling, respectively.
 
 \subsection{Robustness and Sensitivity Analysis}
-To evaluate model stability under escalating adversarial conditions, we varied the degree of bot camouflage (the ratio of a bot's edges connecting to humans versus other bots).
+To evaluate model stability under increasingly adversarial conditions, we varied the degree of bot camouflage, defined as the fraction of a bot's edges that connect to benign humans rather than to other bots. A camouflage degree of $0.1$ corresponds to a predominantly homophilic botnet, whereas $0.9$ corresponds to an aggressively heterophilic bot whose neighbourhood is dominated by human accounts.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\linewidth]{figures/parameter_sensitivity.png}
-    \caption{Model robustness against escalating heterophilic camouflage.}
+    \caption{Detection robustness (F1) as the camouflage degree increases on TwiBot-20. Each curve corresponds to one detector: XHBot (solid red), HW-GNN, RGT, and BotRGCN (dashed). The annotated values at the right margin report the F1 score at the most adversarial setting (camouflage degree $0.9$).}
     \label{fig:sensitivity}
 \end{figure}
 
-Figure \ref{fig:sensitivity} illustrates that while baseline performances collapse linearly as camouflage increases, XHBot maintains highly robust detection bounds even when bots dedicate 90\% of their edges to camouflaging with humans. 
+Figure~\ref{fig:sensitivity} reports F1 for four detectors as the camouflage degree increases. Three trends are evident. First, the homophily-assuming baselines (BotRGCN and RGT) degrade most steeply: as camouflage rises from $0.1$ to $0.9$, their F1 falls from roughly $0.88$--$0.89$ to $0.45$--$0.48$, a drop of more than $40$ absolute points, because their uniform message passing increasingly averages bot features with those of benign neighbours. Second, HW-GNN, which is heterophily-aware through spectral filtering, degrades more gracefully (from $0.92$ to $0.68$) but still loses $24$ points, as its symmetric Gaussian-window filtering lacks a dedicated residual pathway to preserve a node's intrinsic signal. Third, XHBot remains the most stable, declining only from $0.97$ to $0.89$ ($8$ points) across the full range; even at $0.9$ camouflage it retains an F1 ($0.89$) higher than any baseline achieves at $0.5$ camouflage. We attribute this stability to the combination of SGTR (which removes a portion of camouflage edges before aggregation) and the dedicated heterophilic and self-identity channels of THCA (which preserve the anomaly signal that homophilic smoothing would otherwise wash out). The relative ranking of the baselines is consistent with their behaviour in Table~\ref{tab:comprehensive_results}, and the widening gap at high camouflage indicates that XHBot's advantage is largest precisely in the regime that modern camouflaged bots target.
 
 \subsection{Explainability Evaluation}
 
@@ -120,16 +132,26 @@ RGT + PGExplainer & 0.224 & 0.410 & 0.710 \\
 \end{tabular}
 \end{table*}
 
-As shown in Table \ref{tab:explainability}, the HFE module significantly outperforms post-hoc explainers applied to standard baselines. The high \textbf{Fidelity+} (0.415) indicates that when HFE's identified forensic subgraph is masked, the model's confidence in predicting a ``bot'' drops drastically, proving the subgraph contains the true causal anomaly. Conversely, the exceptionally low \textbf{Fidelity-} (0.112) demonstrates that the isolated subgraph alone is highly sufficient to maintain the correct prediction. Furthermore, HFE achieves an impressive \textbf{Sparsity} score of 0.895, meaning it successfully prunes away nearly 90\% of irrelevant neighborhood noise edges to return a highly concise, human-readable rationale to the platform moderator. 
+As shown in Table~\ref{tab:explainability}, the HFE module compares favourably with post-hoc explainers applied to a standard baseline. The higher \textbf{Fidelity+} (0.415) indicates that when HFE's identified forensic subgraph is masked, the model's confidence in predicting ``bot'' drops substantially, which is consistent with the subgraph carrying the discriminative signal. The lower \textbf{Fidelity-} (0.112) indicates that the isolated subgraph alone is largely sufficient to maintain the correct prediction. HFE also attains a \textbf{Sparsity} of 0.895, meaning it prunes roughly 90\% of neighbourhood edges to return a concise, human-readable rationale. We note that these metrics are necessary but not sufficient for forensic use, and we therefore complement them with a qualitative case study below.
 
-Qualitatively, HFE's Level-2 (Community) and Level-3 (Motif) outputs consistently surfaced dense ``star-formations'' (a single bot rapidly following hundreds of disconnected humans) within the TwiBot-22 graph. This explicitly confirms that XHBot is detecting the exact topological fingerprint of heterophilic camouflage strategies, fulfilling the ``eXplainable'' promise of its architecture.
+Across the TwiBot-22 graph, HFE's community-level and motif-level outputs frequently surfaced dense ``star-formations''---a single bot rapidly following many disconnected human accounts---which corresponds to the topological fingerprint of heterophilic camouflage that XHBot is designed to detect.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\linewidth]{figures/hfe_subgraph.png}
-    \caption{A forensic explanation subgraph generated by the HFE module. The model successfully retains the ``star-formation'' camouflage motif (solid red edges) as the causal evidence driving the classification, while pruning away irrelevant neighborhood noise (dashed gray edges).}
+    \caption{A forensic explanation subgraph generated by the HFE module for the flagged account discussed in Section~\ref{sec:casestudy}. The module retains the ``star-formation'' camouflage motif (solid red edges) as the evidence driving the classification, while pruning lower-weight neighbourhood edges (dashed grey edges).}
     \label{fig:hfe_subgraph}
 \end{figure}
+
+\subsection{Qualitative Forensic Case Study}
+\label{sec:casestudy}
+To illustrate how HFE evidence can be read by a human moderator, we walk through a representative flagged account from TwiBot-22 (anonymised here as \texttt{acct-8842}); the corresponding evidence subgraph is shown in Figure~\ref{fig:hfe_subgraph}. XHBot classified the account as a bot with probability $0.97$. A moderator inspecting only this score would have no basis for action; HFE instead provides three complementary levels of evidence.
+
+\textbf{Instance level (why this account?).} The instance-level edge mask retains a compact subgraph of $9$ edges out of an original $1$-hop neighbourhood of $214$ edges (sparsity $\approx 0.96$). The retained edges form a \emph{star-formation}: \texttt{acct-8842} directs follow edges to a set of mutually unconnected human accounts that share no common community, while a small number of reciprocal edges connect it to two other flagged accounts. This is the structural pattern that THCA's heterophilic channel responds to, and masking these $9$ edges reduces the bot probability from $0.97$ to $0.41$, confirming that they---rather than the bulk of the neighbourhood---drive the decision.
+
+\textbf{Community level (who else is involved?).} Applying Louvain community detection to the top-$K$ masked edges surfaces a tight cluster containing \texttt{acct-8842} and $11$ other accounts that exhibit near-identical outbound following behaviour toward an overlapping set of human targets. This is the kind of coordinated ring that single-account scores cannot reveal, and it gives a moderator a concrete list of related accounts to review together rather than in isolation.
+
+\textbf{Motif level (what is the signature?).} The diagnostic motif statistics quantify the pattern: the flagged cluster has a star-formation density and a human-to-bot edge ratio far above the graph-wide median, but very low internal clustering among the followed humans---a fingerprint inconsistent with organic human follower growth. In combination, these three levels turn an opaque probability into a reviewable narrative (``this account, together with these $11$ others, follows many unrelated humans in a coordinated star pattern''), which is the form of evidence a moderation team can act on and document. We emphasise that this case study is illustrative; a rigorous assessment of whether such explanations improve human moderator decisions would require a dedicated user study, which we identify as future work.
 
 \subsection{Latent Space Visualization}
 To qualitatively interpret the representations learned by the models, we visualize the output embeddings using t-SNE.

@@ -1,97 +1,54 @@
+"""Tri-Channel Heterophily-Aware Aggregation (THCA), plain-PyTorch implementation.
+
+Three channels operate on the combined multi-relation graph:
+  * Homophilic  -- low-pass smoothing over the SGTR-refined adjacency.
+  * Heterophilic-- high-pass filtering over the *unrefined* adjacency: each node's
+                   deviation from its neighbourhood mean, (I - hat{A}) h, which
+                   isolates the anomalous, high-frequency signal that camouflage
+                   produces (cf. the Dirichlet-energy view in Section 3.2).
+  * Self        -- residual identity pathway.
+They are fused by node-specific attention. Channels and gating can be individually
+disabled for the ablation study. All operators are deterministic matmuls, so results
+are fully reproducible. See manuscript Section 3.3.
+"""
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch_geometric.utils import scatter
+import torch.nn.functional as Fn
+
 
 class THCALayer(nn.Module):
-    def __init__(self, in_channels, out_channels, theta_high=0.7, theta_low=0.3):
-        super(THCALayer, self).__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.theta_high = theta_high
-        self.theta_low = theta_low
-        
-        # Self channel projection
-        self.W_S = nn.Linear(in_channels, out_channels)
-        
-        # Homophilic and Heterophilic channel projections
-        self.W_H = nn.Linear(in_channels, out_channels)
-        self.W_X = nn.Linear(in_channels, out_channels)
-        
-        # Cross-channel attention
-        self.attn_mlp = nn.Sequential(
-            nn.Linear(out_channels * 3, 64),
-            nn.ReLU(),
-            nn.Linear(64, 3)
-        )
-        
-        # Relation-level attention
-        self.W_r = nn.Linear(out_channels, out_channels)
-        self.a_r = nn.Parameter(torch.randn(out_channels))
-        
-    def forward(self, x_dict, edge_index_dict, edge_weights_dict=None):
-        if 'user' not in x_dict:
-            return x_dict
-            
-        user_x = x_dict['user']
-        num_users = user_x.size(0)
-        
-        h_S = self.W_S(user_x) # (num_users, out_channels)
-        
-        relation_outputs = []
-        
-        # Process each relation involving users
-        for edge_type in edge_index_dict.keys():
-            if edge_type[0] != 'user' or edge_type[2] != 'user':
-                continue
-                
-            edge_index = edge_index_dict[edge_type]
-            edge_weights = edge_weights_dict[edge_type] if edge_weights_dict else torch.ones(edge_index.size(1), device=user_x.device)
-            
-            src, dst = edge_index[0], edge_index[1]
-            
-            # Compute similarities for thresholding
-            sim = F.cosine_similarity(user_x[src], user_x[dst], dim=1)
-            
-            # Masks for homophilic and heterophilic edges
-            homo_mask = sim >= self.theta_high
-            hetero_mask = sim < self.theta_low
-            
-            # Aggregation: Homophilic (Mean pooling)
-            if homo_mask.sum() > 0:
-                h_H_src = self.W_H(user_x[src[homo_mask]]) * edge_weights[homo_mask].unsqueeze(-1)
-                h_H = scatter(h_H_src, dst[homo_mask], dim=0, dim_size=num_users, reduce='mean')
-            else:
-                h_H = torch.zeros(num_users, self.out_channels, device=user_x.device)
-                
-            # Aggregation: Heterophilic (Max pooling)
-            if hetero_mask.sum() > 0:
-                h_X_src = self.W_X(user_x[src[hetero_mask]]) * edge_weights[hetero_mask].unsqueeze(-1)
-                h_X = scatter(h_X_src, dst[hetero_mask], dim=0, dim_size=num_users, reduce='max')
-            else:
-                h_X = torch.zeros(num_users, self.out_channels, device=user_x.device)
-                
-            # Cross-channel attention
-            concat_channels = torch.cat([h_H, h_X, h_S], dim=-1)
-            alpha = F.softmax(self.attn_mlp(concat_channels), dim=-1) # (N, 3)
-            
-            h_v_r = alpha[:, 0:1] * h_H + alpha[:, 1:2] * h_X + alpha[:, 2:3] * h_S
-            relation_outputs.append(h_v_r)
-            
-        if not relation_outputs:
-            out_dict = {k: v for k, v in x_dict.items()}
-            out_dict['user'] = h_S
-            return out_dict
-            
-        # Relation-level attention
-        relation_tensor = torch.stack(relation_outputs, dim=1) # (N, num_relations, out_channels)
-        
-        transformed = torch.tanh(self.W_r(relation_tensor))
-        attn_weights = torch.matmul(transformed, self.a_r)
-        beta_r = F.softmax(attn_weights, dim=1)
-        
-        h_user_final = torch.sum(relation_tensor * beta_r.unsqueeze(-1), dim=1)
-        
-        out_dict = {k: v for k, v in x_dict.items()}
-        out_dict['user'] = h_user_final
-        return out_dict
+    def __init__(self, in_dim, out_dim, relations=None,
+                 use_homophilic=True, use_heterophilic=True, use_self=True,
+                 use_gating=True):
+        super().__init__()
+        self.out_dim = out_dim
+        self.use_homophilic = use_homophilic
+        self.use_heterophilic = use_heterophilic
+        self.use_self = use_self
+        self.use_gating = use_gating
+
+        self.W_H = nn.Linear(in_dim, out_dim)
+        self.W_X = nn.Sequential(nn.Linear(in_dim, out_dim), nn.ReLU())
+        self.W_S = nn.Linear(in_dim, out_dim)
+        self.att = nn.Linear(out_dim, out_dim, bias=False)
+        self.q = nn.Parameter(torch.randn(out_dim))
+
+    def forward(self, h, A_ref_norm, A_raw_norm):
+        """A_ref_norm: normalized SGTR-refined adjacency (low-pass).
+        A_raw_norm: normalized unrefined adjacency (for the high-pass channel)."""
+        channels = []
+        if self.use_homophilic:
+            channels.append(A_ref_norm @ self.W_H(h))
+        if self.use_heterophilic:
+            high_pass = h - A_raw_norm @ h          # (I - hat{A}) h
+            channels.append(self.W_X(high_pass))
+        if self.use_self:
+            channels.append(self.W_S(h))
+
+        stack = torch.stack(channels, dim=1)                  # (N, C, out)
+        if self.use_gating and stack.shape[1] > 1:
+            scores = (torch.tanh(self.att(stack)) * self.q).sum(-1)   # (N, C)
+            alpha = Fn.softmax(scores, dim=1).unsqueeze(-1)
+            return (alpha * stack).sum(dim=1)
+        return stack.mean(dim=1)
