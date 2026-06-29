@@ -59,6 +59,7 @@ def train_model(model, data, lr=0.01, weight_decay=1e-4, epochs=200,
             loss_mi, loss_nce = model.aux_losses(out, y, tr)
             loss = loss + lambda_mi * loss_mi + lambda_nce * loss_nce
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=2.0)
         opt.step()
 
         # validation model selection

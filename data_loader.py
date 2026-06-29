@@ -34,23 +34,26 @@ BENCHMARK_CONFIGS = {
     # Medium scale, moderate camouflage, ~29% bots.
     # camouflage_ratio scales the number of bot->human edges via base_camouflage;
     # a sparse botnet means homophilic aggregation cannot rely on bot-bot edges.
-    # Bots' degree is kept close to humans' (intra_human_deg high) so the classes
-    # are NOT separable by degree alone; with a weak ego signal, only models that
-    # denoise camouflage and exploit the heterophilic structure succeed.
+    # Each bot has a (small) homophilic botnet plus heavy camouflage to humans in
+    # the SAME relations, so the botnet signal is diluted for methods that cannot
+    # prune camouflage. Bot and human degrees are matched (intra_human_deg) so the
+    # classes are not separable by degree. signal_gap is moderate so camouflage
+    # edges (bot-human) are feature-discrepant and detectable by SGTR, while
+    # botnet / within-community edges are low-discrepancy and preserved.
     "TwiBot-20": dict(num_users=1500, bot_ratio=0.29, camouflage_ratio=0.6,
-                      feat_dim=64, signal_dims=6, signal_gap=0.3,
-                      human_communities=6, intra_human_deg=20, botnet_deg=4,
-                      base_camouflage=24, mention_deg=10),
-    # Larger, sparser, harder, lower bot prevalence (~18%), heavier camouflage.
+                      feat_dim=64, signal_dims=8, signal_gap=0.4,
+                      human_communities=6, intra_human_deg=22, botnet_deg=5,
+                      base_camouflage=30, mention_deg=6),
+    # Larger, harder, lower bot prevalence (~18%), heavier camouflage.
     "TwiBot-22": dict(num_users=2500, bot_ratio=0.18, camouflage_ratio=0.7,
-                      feat_dim=64, signal_dims=6, signal_gap=0.28,
-                      human_communities=10, intra_human_deg=18, botnet_deg=4,
-                      base_camouflage=26, mention_deg=9),
+                      feat_dim=64, signal_dims=8, signal_gap=0.38,
+                      human_communities=10, intra_human_deg=22, botnet_deg=5,
+                      base_camouflage=34, mention_deg=6),
     # High bot prevalence (~65%), moderate camouflage, denser bot rings.
-    "Cresci-2017": dict(num_users=1200, bot_ratio=0.65, camouflage_ratio=0.45,
-                        feat_dim=64, signal_dims=8, signal_gap=0.45,
-                        human_communities=4, intra_human_deg=16, botnet_deg=6,
-                        base_camouflage=18, mention_deg=8),
+    "Cresci-2017": dict(num_users=1200, bot_ratio=0.65, camouflage_ratio=0.5,
+                        feat_dim=64, signal_dims=8, signal_gap=0.5,
+                        human_communities=4, intra_human_deg=20, botnet_deg=6,
+                        base_camouflage=26, mention_deg=6),
 }
 
 RELATIONS = ("follow", "mention")
