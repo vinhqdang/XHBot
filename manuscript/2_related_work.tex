@@ -151,3 +151,20 @@ bot-signature disentangled representation rather than the raw GNN embedding.
 RABot~\cite{zhang2026rabot} is a multi-granularity graph-augmentation detector targeting two practical failure modes: class imbalance from the scarcity of labelled bots, and topological noise from bots forcing follow-links to benign users. It fuses four user-level feature channels (numerical attributes, Boolean metadata, profile text, and tweet sequences) via multi-head self-attention, counters imbalance with a neighbourhood-aware latent-space oversampling module, and suppresses noise with a reinforcement-guided edge-filtering module: a lightweight RL agent adjusts a similarity threshold $\tau$ so that low-reliability edges are discarded at each layer without manual per-dataset tuning. RABot is architecture-agnostic, improving over GCN, GAT, RGT, and BotRGCN backbones on Cresci-15, TwiBot-20, and MGTAB. However, RABot does not generate interpretable evidence for individual classifications, nor does it explicitly model the heterophilic aggregation distortion that camouflaged bots induce. Our SGTR module differs from this RL-based edge filtering: rather than learning a per-layer reliability threshold through reinforcement learning, SGTR assigns each edge a continuous, label-free weight derived from its contribution to the graph's high-frequency Dirichlet energy (Section~\ref{sec:sgtr}), yielding a single differentiable pre-aggregation refinement step rather than a separately optimised RL policy.
 
 FEDRIO~\cite{yang2026fedrio} addresses privacy-preserving collaboration across platforms, framing bot detection as a heterogeneous federated learning problem in which multiple platforms jointly train a shared detector without exchanging raw user data. Each client uses an adaptive message-passing backbone (cooperative GraphSAGE and GIN networks) for node-level personalised representations, and cross-platform transfer is achieved via federated adversarial contrastive knowledge distillation with a shared global generator and reinforcement-learning-governed client updates. On non-IID partitions of TwiBot-20 and Vendor-19, FEDRIO outperforms competitive heterogeneous federated learning baselines in accuracy and convergence speed. Nonetheless, FEDRIO assumes homophilic message passing within each client's local graph and provides no mechanism for heterophilic aggregation distortion or instance-level forensic explanation---both of which are central to XHBot.
+
+\subsection{Broader Advances in AI-Based Detection and Model Design}
+
+Beyond social bot detection, recent work in the broader AI and robotics literature
+informs several of our design choices. In particular, frequency-domain modelling has
+proven effective for detection: FrequencyFormer~\cite{liu2025frequencyformer}
+introduces a frequency transformer for oriented object detection, reinforcing the
+value of separating signals by frequency band---an idea that motivates our spectral
+treatment of camouflage edges in SGTR (Section~\ref{sec:sgtr}). On the efficiency
+front, lightweight multi-scale detectors such as
+FDD-YOLO~\cite{xue2025fddyolo} demonstrate that carefully designed architectures can
+retain accuracy at low computational cost, consistent with our goal of a detector
+with sub-millisecond per-node inference. Finally, principled architecture and
+hyperparameter optimisation---for example, the hybrid evolutionary--simplex approach
+of Musa et al.~\cite{musa2025optimizing} for time-series forecasting---underscores the
+importance of the systematic component-level design and ablation that we adopt for
+XHBot.
