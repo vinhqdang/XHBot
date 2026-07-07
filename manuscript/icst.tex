@@ -22,6 +22,12 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, fit, backgrounds, calc}
 
+% Allow \url{} to break at hyphens, needed for long hyphenated URLs (e.g. news
+% press-release slugs) that contain no slashes to break at otherwise.
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\do\-}
+\makeatother
+
 \newcommand\BibTeX{{\rmfamily B\kern-.05em \textsc{i\kern-.025em b}\kern-.08em
 T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
@@ -68,6 +74,92 @@ Social bots threaten the integrity of online ecosystems by engaging in coordinat
 \subfile{5_discussion}
 \subfile{6_conclusion}
 
-\bibliographystyle{icstnum}
-\bibliography{ref}
+% References are formatted per the Vancouver (ICMJE) citation style, as required by
+% the journal. Entries are numbered in order of first citation in the text; natbib's
+% [numbers,sort&compress] option (set in icst.cls) renders in-text \cite{} calls as
+% bracketed numbers matching this order. See ref.bib for the underlying source data.
+\begin{thebibliography}{99}
+
+\bibitem{ng2025socialbots}
+Ng LHX, Carley KM. A global comparison of social media bot and human characteristics. Sci Rep [Internet]. 2025 [cited 2026 Jul 7];15(1):10973. Available from: \url{https://doi.org/10.1038/s41598-025-96372-1}
+
+\bibitem{ftc2026scams}
+Federal Trade Commission. New FTC data show people have lost billions to social media scams [Internet]. Washington (DC): Federal Trade Commission; 2026 Apr 27 [cited 2026 Jul 7]. Available from: \url{https://www.ftc.gov/news-events/news/press-releases/2026/04/new-ftc-data-show-people-have-lost-billions-social-media-scams}
+
+\bibitem{quang2026integrating}
+Quang BHD, Trinh TT, Dang QV. Integrating graph features for social bot detection. In: Intelligence of Things: Technologies and Applications (ICIT 2025). Lecture Notes on Data Engineering and Communications Technologies, vol. 282. Springer; 2026. doi:10.1007/978-3-032-13254-3\_6
+
+\bibitem{cresci2020decade}
+Cresci S. A decade of social bot detection. Commun ACM. 2020;63(10):72-83. doi:10.1145/3409116
+
+\bibitem{cresci2017paradigm}
+Cresci S, Di Pietro R, Petrocchi M, Spognardi A, Tesconi M. The paradigm-shift of social spambots: evidence, theories, and tools for the arms race. In: Proceedings of the 26th International Conference on World Wide Web Companion (WWW 2017 Companion). ACM; 2017. p. 963-72. doi:10.1145/3041021.3055135
+
+\bibitem{feng2021twibot20}
+Feng S, Wan H, Wang N, Li J, Luo M. TwiBot-20: a comprehensive Twitter bot detection benchmark. In: Proceedings of the 30th ACM International Conference on Information and Knowledge Management (CIKM 2021). ACM; 2021. p. 4485-94. doi:10.1145/3459637.3482019
+
+\bibitem{feng2022twibot22}
+Feng S, Tan Z, Wan H, Wang N, Chen Z, Zhang B, et al. TwiBot-22: towards graph-based Twitter bot detection [Internet]. In: Advances in Neural Information Processing Systems 35 (NeurIPS 2022), Datasets and Benchmarks Track. 2022 [cited 2026 Jul 7]. Available from: \url{https://proceedings.neurips.cc/paper_files/paper/2022/hash/e4fd610b1d77699a02df07ae97de992a-Abstract-Datasets_and_Benchmarks.html}
+
+\bibitem{li2026neighborsense}
+Li Y, Lu H, Chen W. Neighborhood perceivable graph neural network for relational heterogeneous Twitter bot detection. PLoS One. 2026;21. doi:10.1371/journal.pone.0342686
+
+\bibitem{cheng2025cbmte}
+Cheng M, Xiao Y, Huang T, Lei C, Zhang C. CB-MTE: social bot detection via multi-source heterogeneous feature fusion. Sensors. 2025;25(11):3549. doi:10.3390/s25113549
+
+\bibitem{liu2025hwgnn}
+Liu Z, Gao J, Ji Z, Zhao L. HW-GNN: homophily-aware Gaussian-window constrained graph spectral network for social network bot detection. arXiv preprint. 2025. doi:10.48550/arXiv.2511.22493
+
+\bibitem{fu2026heterogeneous}
+Fu C, Chen K, Pan X, Yu S, Ni J, Min Y. Social bot detection via heterogeneous graph learning and sample balancing strategies. In: Big Data and Social Computing (BDSC 2025). Communications in Computer and Information Science, vol. 2622. Springer; 2026. doi:10.1007/978-981-95-0880-8\_18
+
+\bibitem{he2025bothp}
+He B, Jiang X, Wu Q, Liu H, Yang Y, Liao Y. Boosting bot detection via heterophily-aware representation learning and prototype-guided cluster discovery. In: Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2025). ACM; 2025. doi:10.1145/3711896.3736862
+
+\bibitem{dou2020caregnn}
+Dou Y, Liu Z, Sun L, Deng Y, Peng H, Yu PS. Enhancing graph neural network-based fraud detectors against camouflaged fraudsters. In: Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM 2020). ACM; 2020. doi:10.1145/3340531.3411903
+
+\bibitem{zhang2025dhmp}
+Zhang W, Zhong J, Yao G, Han R, Lin X, Zhang Z, et al. Dual-channel heterophilic message passing for graph fraud detection. In: 2025 International Joint Conference on Neural Networks (IJCNN); 2025. doi:10.48550/arXiv.2504.14205
+
+\bibitem{li2025drhgnn}
+Li E, Ouyang J, Xiang S, Yang M, Chen Y. Efficient relation-aware heterogeneous graph neural network for fraud detection. World Wide Web. 2025;28:55. doi:10.1007/s11280-025-01369-5
+
+\bibitem{schlichtkrull2018rgcn}
+Schlichtkrull M, Kipf TN, Bloem P, van den Berg R, Titov I, Welling M. Modeling relational data with graph convolutional networks. In: The Semantic Web -- 15th International Conference (ESWC 2018). Lecture Notes in Computer Science, vol. 10843. Springer; 2018. p. 593-607. doi:10.1007/978-3-319-93417-4\_38
+
+\bibitem{feng2021botrgcn}
+Feng S, Wan H, Wang N, Luo M. BotRGCN: Twitter bot detection with relational graph convolutional networks. In: Proceedings of the 2021 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining (ASONAM 2021). ACM; 2021. p. 236-9. doi:10.1145/3487351.3488336
+
+\bibitem{dang2022evaluating}
+Dang QV, Nguyen NSA. Evaluating the contribution of relationship information in detecting fraud using graph neural networks. In: Inventive Communication and Computational Technologies: Proceedings of ICICCT 2022. Springer; 2022. p. 865-75. doi:10.1007/978-981-19-4960-9\_65
+
+\bibitem{feng2022rgt}
+Feng S, Tan Z, Li R, Luo M. Heterogeneity-aware Twitter bot detection with relational graph transformers. In: Proceedings of the 36th AAAI Conference on Artificial Intelligence (AAAI 2022). 2022;36:3977-85. doi:10.1609/aaai.v36i4.20314
+
+\bibitem{qiao2026mgdil}
+Qiao B, Chen Y, Li K, Zhou W, Hu S, Song Y. MGDIL: multi-granularity summarization and domain-invariant learning for cross-domain social bot detection. arXiv preprint. 2026. doi:10.48550/arXiv.2603.27928
+
+\bibitem{ying2019gnnexplainer}
+Ying R, Bourgeois D, You J, Zitnik M, Leskovec J. GNNExplainer: generating explanations for graph neural networks. In: Advances in Neural Information Processing Systems 32 (NeurIPS 2019); 2019. doi:10.48550/arXiv.1903.03894
+
+\bibitem{luo2020pgexplainer}
+Luo D, Cheng W, Xu D, Yu W, Zong B, Chen H, et al. Parameterized explainer for graph neural network [Internet]. In: Advances in Neural Information Processing Systems 33 (NeurIPS 2020). 2020 [cited 2026 Jul 7]. Available from: \url{https://proceedings.neurips.cc/paper/2020/hash/e37b08dd3015330dcbb5d6663667b8b8-Abstract.html}
+
+\bibitem{zhang2026rabot}
+Zhang L, Wang X, Du H, Xu Y, Liu Z, Liu Y. RABot: reinforcement-guided graph augmentation for imbalanced and noisy social bot detection. arXiv preprint. 2026. doi:10.48550/arXiv.2602.21749
+
+\bibitem{yang2026fedrio}
+Yang Y, Liu H, Zhang X, Liu Y, Xia Y, Wu Q, et al. FedRio: personalized federated social bot detection via cooperative reinforced contrastive adversarial distillation. arXiv preprint. 2026. doi:10.48550/arXiv.2604.10678
+
+\bibitem{liu2025frequencyformer}
+Liu S, Wang H, Li Z, Wei P. FrequencyFormer: oriented object detection with frequency transformer. EAI Endorsed Transactions on AI and Robotics. 2025;4. doi:10.4108/airo.10701
+
+\bibitem{xue2025fddyolo}
+Xue Z, Wang B, Xie Y, Li Z, Fan X, Lin C, et al. FDD-YOLO: a lightweight multi-scale prohibited items detection model. EAI Endorsed Transactions on AI and Robotics. 2025;4. doi:10.4108/airo.10277
+
+\bibitem{musa2025optimizing}
+Musa W, Katili MR, Ridwan W. Optimizing machine learning architectures for time series forecasting: a hybrid rvGA-eNM approach. EAI Endorsed Transactions on AI and Robotics. 2025;4. doi:10.4108/airo.9976
+
+\end{thebibliography}
 \end{document}
