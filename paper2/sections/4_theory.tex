@@ -243,6 +243,31 @@ $\rho_{\mathrm{eff}} \to 1$ as $\rho \to 1$ for any fixed $\bar e_c < 1$, no
 pruning rule with imperfect discrimination defeats a maximally camouflaged
 adversary; SGTR buys operating range, not immunity.
 
+\begin{remark}[What is new here, and what is not]
+\label{rem:sgtr-priority}
+The \emph{mechanism} in~\eqref{eq:rhoeff}---that edge reweighting acts by rescaling
+the effective inter-class edge share, so that weights enter only through the products
+of weight and edge rate---is not new. Weiss~\cite[Thm.~2]{weiss2026cost} proves the
+corresponding statement for cost-sensitive aggregation with within- and
+cross-class weights $w_+ > w_-$, and shows the class-mean direction is preserved iff
+$w_+/w_- > q/p$; our~\eqref{eq:rhoeff} is that identity with $w_+ = 1-\bar e_w$ and
+$w_- = 1-\bar e_c$. The observation that only a perfect discriminator tolerates
+arbitrary heterophily is the contrapositive of the same condition. The related
+guarantee for graph attention in~\cite{fountoulakis2023graph} is qualitative but
+similar in spirit.
+
+What~\eqref{eq:rhostarsgtr} adds is the \emph{inversion}: composing that rescaling
+with the finite-$D$ threshold of Corollary~\ref{cor:critical} to obtain a bound on the
+\emph{adversary's} budget as an explicit function of pruner quality $\bar e_c$. This
+is a short derivation, and we present it as a corollary of two known ingredients
+rather than as an independent discovery. Its value is operational: $\bar e_c$ is
+measurable for a deployed pruner, so~\eqref{eq:rhostarsgtr} turns a component
+ablation into a quantitative operating-range claim. We note also
+that~\cite{weiss2026cost} works in the dense regime where degree effects are absorbed
+into $O(1/n)$, which removes the $D^{-1/2}$ term that our threshold depends on; the
+finite-$D$ setting is therefore necessary for a statement of this form.
+\end{remark}
+
 \subsection{Why a non-mean channel is needed}
 
 The expressivity argument for tri-channel aggregation is a direct application of the

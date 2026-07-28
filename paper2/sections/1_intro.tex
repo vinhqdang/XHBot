@@ -89,10 +89,12 @@ far edge pruning shifts the threshold.
     by exactly $\|\Delta\|^2$ in expectation (Lemma~\ref{lem:energy}), and prove
     that soft pruning raises the tolerated camouflage to
     $\rho^\star_{\mathrm{SGTR}} = \rho^\star / (\rho^\star + (1-\bar e_c)(1-\rho^\star))$
-    for a pruner of quality $\bar e_c$ (Theorem~\ref{thm:sgtr}). The qualitative
-    version of this guarantee is known for graph
-    attention~\cite{fountoulakis2023graph}; the contribution here is the rate. It
-    converts an ablation delta into a statement about the operating regime, and makes
+    for a pruner of quality $\bar e_c$ (Theorem~\ref{thm:sgtr}). The underlying
+    reweighting identity is known~\cite{weiss2026cost,fountoulakis2023graph}; what we
+    add is its composition with the finite-$D$ threshold to bound the
+    \emph{adversary's} budget, which requires a regime those analyses do not work in
+    (Remark~\ref{rem:sgtr-priority}). Because $\bar e_c$ is measurable for a deployed
+    pruner, this converts an ablation delta into an operating-range claim, and makes
     explicit that no imperfect pruner attains immunity.
 
     \item \textbf{An honest account of the disentanglement objective.} We show the
