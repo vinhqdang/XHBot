@@ -1,0 +1,338 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Theory}
+\label{sec:theory}
+
+\subsection{Camouflage deflates the signal}
+
+We first quantify what aggregation does to the class signal.
+
+\begin{proposition}[Signal deflation]
+\label{prop:deflation}
+Under Definition~\ref{def:ccsbm} with mean aggregation~\eqref{eq:meanagg}, the
+expected post-aggregation separation along the discriminant direction is
+\begin{equation}
+    \delta(\rho) \;=\; \mathbb{E}[t_v \mid y_v = \mathrm{B}]
+                     - \mathbb{E}[t_u \mid y_u = \mathrm{H}]
+                \;=\; \bigl(1 - \rho - \eta(\rho)\bigr)\,\|\Delta\| ,
+    \label{eq:deflation}
+\end{equation}
+and with the edge-balance identity~\eqref{eq:balance},
+$\delta(\rho) = \bigl(1 - (1+c)\rho\bigr)\|\Delta\|$.
+\end{proposition}
+
+\begin{proof}
+Centre the projection so that $\mathbf{w}^\top\boldsymbol{\mu}_{\mathrm{B}} =
++\|\Delta\|/2$ and $\mathbf{w}^\top\boldsymbol{\mu}_{\mathrm{H}} = -\|\Delta\|/2$.
+For a bot $v$, each of its $D$ neighbours is human with probability $\rho$, so by
+linearity
+$\mathbb{E}[t_v] = (1-\rho)\tfrac{\|\Delta\|}{2} + \rho\bigl(-\tfrac{\|\Delta\|}{2}\bigr)
+= \tfrac{\|\Delta\|}{2}(1-2\rho)$.
+Symmetrically $\mathbb{E}[t_u] = -\tfrac{\|\Delta\|}{2}(1-2\eta)$ for a human $u$.
+Subtracting gives $\tfrac{\|\Delta\|}{2}\bigl[(1-2\rho)+(1-2\eta)\bigr] =
+(1-\rho-\eta)\|\Delta\|$. Substituting~\eqref{eq:balance} yields the second form.
+\end{proof}
+
+Two consequences are worth stating. The signal vanishes entirely at
+$\rho_{\mathrm{null}} = 1/(1+c)$, at which point the two classes have identical
+post-aggregation means and \emph{no} classifier acting on aggregated features
+alone can do better than chance. And the deflation is linear in $\rho$ with slope
+$(1+c)\|\Delta\|$, so higher bot prevalence makes the detector more fragile, not
+less---a counterintuitive point, since prevalence is usually treated as a
+class-imbalance nuisance rather than a robustness parameter.
+
+The noise term requires more care than the signal term.
+
+\begin{theorem}[Post-aggregation error]
+\label{thm:error}
+Under Definition~\ref{def:ccsbm}, the projected statistics are asymptotically
+Gaussian with separation $\delta(\rho)$ from~\eqref{eq:deflation} and per-class
+variances
+\begin{equation}
+    s_{\mathrm{B}}^2 = \frac{\sigma^2 + \rho(1-\rho)\|\Delta\|^2}{D},
+    \qquad
+    s_{\mathrm{H}}^2 = \frac{\sigma^2 + \eta(1-\eta)\|\Delta\|^2}{D}.
+    \label{eq:variances}
+\end{equation}
+Defining the post-aggregation signal-to-noise ratio
+\begin{equation}
+    \mathrm{SNR}(\rho) \;=\; \frac{\delta(\rho)}{s_{\mathrm{B}} + s_{\mathrm{H}}},
+    \label{eq:snr}
+\end{equation}
+the Bayes error of the equal-prior two-class problem is $\Phi(-\mathrm{SNR}(\rho))$,
+with equality exact when $s_{\mathrm{B}} = s_{\mathrm{H}}$.
+\end{theorem}
+
+\begin{proof}
+Condition on a single neighbour of a bot. Its projected feature equals
+$\pm\|\Delta\|/2$ according to a Bernoulli$(\rho)$ draw, plus independent
+$\mathcal{N}(0,\sigma^2)$ noise. By the law of total variance, the mean component
+contributes $\|\Delta\|^2\rho(1-\rho)$ and the noise contributes $\sigma^2$, so each
+neighbour has variance $\sigma^2 + \rho(1-\rho)\|\Delta\|^2$. The $D$ neighbours are
+independent, so averaging divides the variance by $D$, giving $s_{\mathrm{B}}^2$;
+the human case is identical with $\eta$ in place of $\rho$. Asymptotic normality of
+$t_v$ follows from the central limit theorem as $D$ grows. For two equal-prior
+Gaussians with common standard deviation $s$ and mean gap $\delta$, the
+likelihood-ratio test thresholds at the midpoint and attains error
+$\Phi(-\delta/2s)$, which is~\eqref{eq:snr} when $s_{\mathrm{B}} = s_{\mathrm{H}} = s$.
+\end{proof}
+
+\begin{remark}
+The mixture term $\rho(1-\rho)\|\Delta\|^2$ is easy to miss: a calculation that
+models only the additive noise obtains $\sigma^2/D$ and therefore
+\emph{under}-estimates the post-aggregation error, most severely at intermediate
+$\rho$ where the mixture variance peaks. Section~\ref{sec:validation} confirms
+the corrected form matches simulation to four decimal places.
+\end{remark}
+
+\subsection{The critical camouflage ratio}
+
+We can now answer the deployment question directly.
+
+\begin{corollary}[Critical camouflage ratio]
+\label{cor:critical}
+Mean aggregation yields a lower Bayes error than the graph-free
+classifier~\eqref{eq:rawerr} if and only if $\mathrm{SNR}(\rho) > \|\Delta\|/(2\sigma)$.
+Writing $\rho^\star$ for the value of $\rho$ at which equality holds, aggregation
+helps precisely when $\rho < \rho^\star$. In the noise-dominated regime
+$\sigma^2 \gg \rho(1-\rho)\|\Delta\|^2$ this takes the closed form
+\begin{equation}
+    \rho^\star \;=\; \frac{1 - D^{-1/2}}{1+c}.
+    \label{eq:critical}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+The ``if and only if'' is immediate from monotonicity of $\Phi$. In the
+noise-dominated regime the mixture terms in~\eqref{eq:variances} are negligible, so
+$s_{\mathrm{B}} \approx s_{\mathrm{H}} \approx \sigma/\sqrt{D}$ and
+$\mathrm{SNR}(\rho) \approx (1-\rho-\eta)\|\Delta\|\sqrt{D}/(2\sigma)$. Setting this
+equal to $\|\Delta\|/(2\sigma)$ gives $(1-\rho-\eta)\sqrt{D} = 1$; substituting
+$\eta = c\rho$ and solving for $\rho$ yields~\eqref{eq:critical}.
+\end{proof}
+
+Equation~\eqref{eq:critical} is the paper's most directly actionable result, and it
+says three things. First, at $\rho = 0$ the condition reduces to
+$\mathrm{SNR}_{\mathrm{agg}}/\mathrm{SNR}_{\mathrm{raw}} = \sqrt{D}$: aggregation
+improves separability by $\sqrt{D}$, recovering the $1/\sqrt{D}$ gain established
+by Baranwal et al.~\cite{baranwal2021graph} and confirming our model is calibrated
+against the known homophilic baseline. Second, $\rho^\star$ increases with $D$, so
+detectors operating on densely connected accounts tolerate more camouflage---the
+graph is a genuine asset for hub accounts long after it has become a liability for
+sparse ones. Third, $\rho^\star$ decreases in $c$: as bots become more prevalent,
+the camouflage budget they need in order to break the detector shrinks.
+
+\begin{remark}[Practical reading]
+For a detector with typical $D = 16$ and bot prevalence $\pi_B = 0.3$
+($c \approx 0.43$), \eqref{eq:critical} gives $\rho^\star \approx 0.53$ in the
+noise-dominated regime and $0.46$ once the mixture variance is included. A bot that
+directs roughly half its edges at genuine users has therefore neutralised the graph
+entirely. This is not an extreme adversary; it is a modest one, which is why
+architectural mitigation is necessary rather than optional.
+\end{remark}
+
+\subsection{Spectral edge pruning provably extends the operating regime}
+\label{sec:sgtr-theory}
+
+SGTR~\cite{dang2026xhbot} scores each edge by a learned function of the feature
+discrepancy $(\mathbf{x}_u - \mathbf{x}_v)^2$, motivated by the per-edge
+decomposition of the Dirichlet energy $\mathbf{f}^\top L \mathbf{f} =
+\sum_{(u,v)\in\mathcal{E}} (f_u-f_v)^2$. The following lemma shows this quantity is
+the right statistic: it separates camouflage from genuine edges by exactly the
+squared class gap, independently of the feature dimension.
+
+\begin{lemma}[Energy separability]
+\label{lem:energy}
+Under Definition~\ref{def:ccsbm}, for a within-class edge $(u,v)$ and a
+cross-class (camouflage) edge $(u',v')$,
+\begin{equation}
+    \mathbb{E}\bigl\|\mathbf{x}_u - \mathbf{x}_v\bigr\|^2 = 2d\sigma^2,
+    \qquad
+    \mathbb{E}\bigl\|\mathbf{x}_{u'} - \mathbf{x}_{v'}\bigr\|^2 = \|\Delta\|^2 + 2d\sigma^2,
+\end{equation}
+so the expected energy gap is exactly $\|\Delta\|^2$.
+\end{lemma}
+
+\begin{proof}
+For a within-class edge both endpoints share a mean, so
+$\mathbf{x}_u - \mathbf{x}_v \sim \mathcal{N}(0, 2\sigma^2 I_d)$ and the expected
+squared norm is $2d\sigma^2$. For a cross-class edge
+$\mathbf{x}_{u'} - \mathbf{x}_{v'} \sim \mathcal{N}(\Delta, 2\sigma^2 I_d)$, and
+$\mathbb{E}\|Z\|^2 = \|\mathbb{E}Z\|^2 + \mathrm{tr}\,\mathrm{Cov}(Z)$ gives
+$\|\Delta\|^2 + 2d\sigma^2$.
+\end{proof}
+
+The gap is a \emph{location} shift that does not grow with $d$, whereas the common
+term $2d\sigma^2$ does; the score is therefore informative but increasingly noisy in
+high dimension, which is precisely why XHBot learns a projection rather than using
+the raw quadratic form. We now quantify the benefit of acting on this score.
+
+\begin{theorem}[SGTR raises the tolerated camouflage]
+\label{thm:sgtr}
+Suppose soft pruning multiplies camouflage edge weights by $(1-\bar e_c)$ and
+within-class edge weights by $(1-\bar e_w)$ in expectation, with
+$\bar e_c > \bar e_w$. Then weighted aggregation behaves as unweighted aggregation
+at the \emph{effective} camouflage ratio
+\begin{equation}
+    \rho_{\mathrm{eff}}(\rho)
+    \;=\; \frac{\rho(1-\bar e_c)}{\rho(1-\bar e_c) + (1-\rho)(1-\bar e_w)}
+    \;<\; \rho .
+    \label{eq:rhoeff}
+\end{equation}
+Consequently, with $\bar e_w = 0$, the detector tolerates true camouflage up to
+\begin{equation}
+    \rho^\star_{\mathrm{SGTR}}
+    \;=\; \frac{\rho^\star}{\rho^\star + (1-\bar e_c)(1-\rho^\star)}
+    \;\geq\; \rho^\star,
+    \label{eq:rhostarsgtr}
+\end{equation}
+with equality if and only if $\bar e_c = 0$, and
+$\rho^\star_{\mathrm{SGTR}} \to 1$ as $\bar e_c \to 1$.
+\end{theorem}
+
+\begin{proof}
+Weighted mean aggregation computes $\sum_e w_e \mathbf{x}_{u_e} / \sum_e w_e$. In
+expectation a fraction $\rho$ of a bot's edges are camouflage edges carrying weight
+$(1-\bar e_c)$ and $(1-\rho)$ are within-class edges carrying $(1-\bar e_w)$;
+normalising gives the weight share~\eqref{eq:rhoeff} on human neighbours, which is
+exactly the role $\rho$ plays in Proposition~\ref{prop:deflation}. The inequality
+$\rho_{\mathrm{eff}} < \rho$ follows since $\bar e_c > \bar e_w$ makes the numerator
+shrink faster than the denominator. For~\eqref{eq:rhostarsgtr}, set
+$\rho_{\mathrm{eff}}(\rho) = \rho^\star$ with $\bar e_w = 0$ and solve: writing
+$\beta = 1-\bar e_c$, the equation $\rho\beta = \rho^\star(\rho\beta + 1 - \rho)$
+rearranges to $\rho[\beta(1-\rho^\star) + \rho^\star] = \rho^\star$, giving the
+stated form. Monotonicity in $\bar e_c$ and the limits are immediate.
+\end{proof}
+
+Theorem~\ref{thm:sgtr} converts an ablation delta into a statement about the
+operating regime: a pruning module that attenuates camouflage edges by $75\%$ on
+average lifts the tolerated camouflage from $0.53$ to $0.82$ at $D=16$,
+$\pi_B = 0.3$. It also clarifies what pruning cannot do. Because
+$\rho_{\mathrm{eff}} \to 1$ as $\rho \to 1$ for any fixed $\bar e_c < 1$, no
+pruning rule with imperfect discrimination defeats a maximally camouflaged
+adversary; SGTR buys operating range, not immunity.
+
+\subsection{Tri-channel aggregation is strictly more expressive}
+
+\begin{theorem}[Strict expressivity separation]
+\label{thm:thca}
+Let $\mathcal{F}_{\mathrm{mean}}$ be the class of functions computable by any
+single-channel homophilic aggregator of the form
+$\mathbf{h}_v = \phi\bigl(W \cdot \mathrm{mean}_{u\in\mathcal{N}(v)} \mathbf{x}_u\bigr)$,
+and $\mathcal{F}_{\mathrm{THCA}}$ the class computable by tri-channel aggregation
+with homophilic, max-pooling, and self channels under attention fusion. Then
+$\mathcal{F}_{\mathrm{mean}} \subsetneq \mathcal{F}_{\mathrm{THCA}}$.
+\end{theorem}
+
+\begin{proof}
+\emph{Containment.} Setting the fusion weights to $\alpha_H = 1$,
+$\alpha_X = \alpha_S = 0$ reproduces the homophilic channel exactly, so every
+$f \in \mathcal{F}_{\mathrm{mean}}$ is realised.
+
+\emph{Strictness.} Consider the scalar neighbourhood multisets
+$\mathcal{N}_1 = \{0, 2\}$ and $\mathcal{N}_2 = \{1, 1\}$. Both have mean $1$, so
+$\mathrm{mean}(\mathcal{N}_1) = \mathrm{mean}(\mathcal{N}_2)$ and hence
+$\phi(W\cdot 1)$ is identical for both under \emph{every} choice of $\phi$ and $W$:
+no member of $\mathcal{F}_{\mathrm{mean}}$ separates them. The max-pooling channel
+with identity $\mathrm{MLP}_X$ returns $\max(\mathcal{N}_1) = 2 \neq 1 =
+\max(\mathcal{N}_2)$, so a tri-channel aggregator with $\alpha_X > 0$ assigns them
+distinct representations. Hence the inclusion is strict.
+\end{proof}
+
+The separating instance is not a pathology: $\{0,2\}$ versus $\{1,1\}$ is precisely
+the contrast between a node with one extreme neighbour and one with two typical
+neighbours---the signature of an account with a small number of highly anomalous
+connections. Mean aggregation is blind to it by construction, which is the
+structural reason a heterophilic channel is needed rather than merely helpful. The
+argument is in the spirit of the multiset-injectivity analysis of
+Xu et al.~\cite{xu2019powerful}, applied here to separate two aggregators rather
+than to characterise maximal power.
+
+\subsection{What the disentanglement objective does and does not guarantee}
+\label{sec:cpd-theory}
+
+CPD~\cite{dang2026xhbot} combines a supervised prototype InfoNCE term with an
+orthogonality penalty $\mathcal{L}_{MI} = \frac{1}{N}\sum_v \|(\mathbf{z}^b_v)^\top
+\mathbf{z}^s_v\|_F^2$. The two terms warrant different levels of confidence, and we
+state them separately.
+
+\begin{proposition}[The prototype term maximises an MI lower bound]
+\label{prop:nce}
+Let $\mathcal{L}_{NCE}$ be the supervised prototype InfoNCE loss over $K$ class
+prototypes. Then
+\begin{equation}
+    I(\mathbf{z}^b; y) \;\geq\; \log K - \mathcal{L}_{NCE},
+\end{equation}
+so minimising $\mathcal{L}_{NCE}$ maximises a variational lower bound on the mutual
+information between the behavioural code and the label.
+\end{proposition}
+
+\begin{proof}
+This is the InfoNCE bound of~\cite{oord2018representation} in the form given by
+Poole et al.~\cite{poole2019variational}, instantiated with the $K$ prototypes as
+the contrastive set and the critic $f(\mathbf{z}, k) = (\mathbf{z}^b)^\top
+\mathbf{P}_k / \tau_{nce}$.
+\end{proof}
+
+\begin{remark}
+The bound saturates at $\log K$, which for binary bot detection is $\log 2$. The
+objective therefore cannot certify more than one bit of label information, and its
+practical value lies in shaping the geometry of the code rather than in the
+tightness of the bound---a caveat we consider important to state, since the
+$\log K$ ceiling is often left implicit.
+\end{remark}
+
+\begin{proposition}[The orthogonality penalty controls dependence only under a
+Gaussian assumption]
+\label{prop:mi}
+If $(\mathbf{z}^b, \mathbf{z}^s)$ are jointly Gaussian with cross-correlation $r$,
+then $I(\mathbf{z}^b;\mathbf{z}^s) = -\tfrac{1}{2}\log(1-r^2)$, so
+$\mathcal{L}_{MI} \to 0$ implies $I \to 0$. Without the joint-Gaussian assumption
+the implication fails: $\mathcal{L}_{MI} = 0$ enforces only uncorrelatedness, and
+there exist uncorrelated but strongly dependent codes.
+\end{proposition}
+
+\begin{proof}
+The identity for the bivariate Gaussian is standard. For the converse, take
+$z^b \sim \mathcal{N}(0,1)$ and $z^s = (z^b)^2 - 1$: then
+$\mathbb{E}[z^b z^s] = \mathbb{E}[(z^b)^3] - \mathbb{E}[z^b] = 0$, so the penalty
+vanishes, yet $z^s$ is a deterministic function of $z^b$ and
+$I(z^b; z^s) = \infty$ in the continuous sense.
+\end{proof}
+
+We draw the honest conclusion. $\mathcal{L}_{MI}$ is a \emph{surrogate}, exact only
+in the Gaussian case, and the empirical success of CPD should not be read as
+evidence of guaranteed independence between behavioural and positional codes.
+Moreover, by the impossibility result of Locatello
+et al.~\cite{locatello2019challenging}, no purely unsupervised objective can
+identify the two factors; what makes the behavioural code identifiable here is the
+\emph{label supervision} in the prototype term, which anchors one of the two
+subspaces. The positional code carries no such anchor and is identified only up to
+the residual subspace---a limitation of the design, not of the analysis.
+
+\subsection{Computational cost}
+
+\begin{proposition}[No asymptotic overhead]
+\label{prop:complexity}
+For a graph with $N$ nodes, $|\mathcal{E}|$ edges, and hidden width $d$, one layer
+of SGTR followed by tri-channel aggregation and attention fusion costs
+$O(|\mathcal{E}|d + Nd^2)$ time and $O(|\mathcal{E}| + Nd)$ memory---the same order
+as a single relational graph convolution.
+\end{proposition}
+
+\begin{proof}
+SGTR evaluates a fixed-width scoring function per edge: $O(|\mathcal{E}|d)$. The
+homophilic and max-pooling channels each perform one pass over the edge set with a
+$d \times d$ transform per node, $O(|\mathcal{E}|d + Nd^2)$; the self channel is
+$O(Nd^2)$; attention fusion computes three scalars per node, $O(Nd)$. Summing the
+three channels multiplies the constant by a factor of at most three and leaves the
+order unchanged. Memory is dominated by storing edge weights and node states.
+\end{proof}
+
+The practical content is that the theoretical robustness gains of
+Theorem~\ref{thm:sgtr} and Theorem~\ref{thm:thca} are obtained without changing the
+asymptotic cost profile, which is consistent with the sub-millisecond per-node
+inference reported for the deployed system~\cite{dang2026xhbot}.
+
+\end{document}

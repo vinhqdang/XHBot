@@ -1,0 +1,106 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Introduction}
+\label{sec:intro}
+
+Graph neural networks (GNNs) have become the default architecture for social bot
+detection. By treating accounts as nodes and interactions as edges, models such as
+BotRGCN~\cite{feng2021botrgcn} and its successors exploit the observation that
+automated accounts are easier to identify collectively than individually. The
+premise underlying this entire family of methods is \emph{homophily}: the
+assumption that an account's neighbours are informative about its label, so that
+averaging over a neighbourhood sharpens rather than blurs the signal.
+
+Modern bots attack exactly this premise. Rather than forming the dense, mutually
+connected ``bot-nets'' of earlier generations, contemporary accounts engage in
+\emph{relation camouflage}~\cite{dou2020caregnn,cresci2020decade}: they
+deliberately follow and interact with large numbers of genuine users, so that a
+bot's neighbourhood looks statistically like a human's. Under standard message
+passing, the bot's anomalous features are averaged against benign neighbours and
+the discriminative signal is diluted---a failure mode that recent bot-detection
+work reports consistently~\cite{he2025bothp,dang2026xhbot}.
+
+The empirical response has been architectural. Detectors now prune suspicious
+edges, split aggregation into homophilic and heterophilic channels, or disentangle
+behavioural from positional signals; XHBot~\cite{dang2026xhbot} combines all three.
+These designs demonstrably help, but the evidence for \emph{why} they help is
+almost entirely ablation-driven. Three practical questions therefore remain
+unanswered:
+
+\begin{enumerate}
+    \item \textbf{When is a graph-based detector worth deploying at all?} If
+    camouflage is severe enough, averaging over a neighbourhood must eventually do
+    more harm than good. Practitioners have no criterion for where that point lies.
+    \item \textbf{What does edge pruning actually buy?} Pruning modules are
+    justified by ablation deltas, not by a statement of the form ``this module
+    extends the operating regime by \emph{this much}''.
+    \item \textbf{Are multi-channel aggregators genuinely more expressive, or
+    merely better tuned?} An architecture with more parameters that wins an
+    ablation has not thereby been shown to be more capable.
+\end{enumerate}
+
+This paper answers these questions analytically. We adopt a contextual stochastic
+block model (CSBM)~\cite{deshpande2018contextual} augmented with an explicit
+adversarial parameter---the \emph{camouflage ratio} $\rho$, the fraction of a bot's
+edges directed at humans---and study what one round of mean aggregation does to
+class separability as $\rho$ grows. This places the work in the line of analysis
+opened by Baranwal et al.~\cite{baranwal2021graph}, who showed that graph
+convolution improves linear separability by a factor of roughly $1/\sqrt{D}$ for
+neighbourhood size $D$. Their analysis assumes a homophilic generative process; our
+contribution is to make the adversary explicit and to characterise the point at
+which the advantage they identify is destroyed.
+
+\paragraph{Contributions.}
+\begin{itemize}
+    \item \textbf{An exact deflation law and error curve.} We prove that mean
+    aggregation shrinks the bot--human separation by exactly $1-\rho-\eta(\rho)$,
+    where $\eta(\rho)$ is the bot fraction induced in human neighbourhoods by
+    edge balance, and give the post-aggregation Bayes error in closed form
+    (Proposition~\ref{prop:deflation}, Theorem~\ref{thm:error}). The variance term
+    includes a mixture contribution that a naive $\sigma^2/D$ calculation misses.
+
+    \item \textbf{A critical camouflage ratio.} We derive the threshold $\rho^\star$
+    at which a homophilic GNN becomes provably worse than discarding the graph and
+    classifying raw features (Corollary~\ref{cor:critical}). In the
+    noise-dominated regime it takes the interpretable form
+    $\rho^\star = (1 - D^{-1/2})/(1+c)$, which recovers the $1/\sqrt{D}$ gain
+    of~\cite{baranwal2021graph} at $\rho = 0$ and shows that robustness to
+    camouflage grows with neighbourhood size.
+
+    \item \textbf{A provable guarantee for spectral edge pruning.} We show the
+    Dirichlet-energy score underlying SGTR separates camouflage from genuine edges
+    by exactly $\|\Delta\|^2$ in expectation (Lemma~\ref{lem:energy}), and prove
+    that soft pruning raises the tolerated camouflage to
+    $\rho^\star_{\mathrm{SGTR}} = \rho^\star / (\rho^\star + (1-\bar e_c)(1-\rho^\star))$
+    (Theorem~\ref{thm:sgtr}). This converts an ablation delta into a statement
+    about the operating regime.
+
+    \item \textbf{A strict expressivity separation for tri-channel aggregation.}
+    We prove tri-channel aggregation subsumes any single homophilic aggregator and
+    is strictly more expressive, exhibiting neighbourhoods that mean aggregation
+    provably cannot distinguish but the max-pooling channel can
+    (Theorem~\ref{thm:thca}).
+
+    \item \textbf{An honest account of the disentanglement objective.} We show the
+    contrastive prototype loss maximises a variational lower bound on the mutual
+    information between behavioural code and label
+    (Proposition~\ref{prop:nce}), and prove the orthogonality penalty controls
+    code dependence \emph{only} under a joint-Gaussian assumption
+    (Proposition~\ref{prop:mi}). We state plainly where this falls short of
+    identifiability, in light of known impossibility results for unsupervised
+    disentanglement~\cite{locatello2019challenging}.
+
+    \item \textbf{Numerical validation.} Every closed form is checked against
+    Monte-Carlo simulation. The predicted critical ratio $\rho^\star = 0.464$
+    falls inside the measured crossover bracket $[0.46, 0.47]$, and the
+    energy-gap and pruning identities match to three decimal places and to
+    machine precision respectively (Section~\ref{sec:validation}).
+\end{itemize}
+
+Our aim is not to propose another detector. It is to supply the missing analytical
+account of a design pattern that the field has already converged on empirically,
+and in doing so to replace a heuristic with a criterion that a practitioner can
+check.
+
+\end{document}

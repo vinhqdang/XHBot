@@ -1,0 +1,130 @@
+\documentclass[fonts]{icst}
+
+\usepackage[breaklinks,colorlinks,bookmarksopen,bookmarksnumbered,linkcolor=ICSTblue,citecolor=blue,urlcolor=ICSTblue]{hyperref}
+\usepackage{breakurl}
+\usepackage{doi}
+\usepackage{subfiles}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{multirow}
+\usepackage{xcolor}
+
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\do\-}
+\makeatother
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{remark}[theorem]{Remark}
+
+\def\volumeyear{2026}
+\journalname{Preprint}
+\articletype{Research Article}
+\setcounter{page}{01}
+
+\def\copyrightholder{Q.-V. Dang\textit{ et al.}}
+\copyrightnote{This is an open access article distributed under the terms of the \href{https://creativecommons.org/licenses/by-nc-sa/4.0/}{CC BY-NC-SA 4.0}, which permits copying, redistributing, remixing, transformation, and building upon the material in any medium so long as the original work is properly cited.}
+\def\articledoi{}
+\received{XXXX}
+\accepted{XXXX}
+\published{XXXX}
+
+\begin{document}
+
+\runningheads{Q.-V. Dang \textit{et al.}}{When Does the Graph Help? A Theory of Relation Camouflage in GNN-Based Bot Detection}
+
+\title{When Does the Graph Help? A Theory of Relation Camouflage in Graph Neural Network-Based Social Bot Detection}
+
+\author{Quang-Vinh Dang\affil{1}, Phuong-Lan Nguyen\affil{1}, Minh Ngoc Dinh\affil{2}, Dat Le\affil{3}\fnoteref{1}}
+
+\address{\affilnum{1}British University Vietnam, Hung Yen, Vietnam\\
+\affilnum{2}Millennia Education, Ho Chi Minh City, Vietnam\\
+\affilnum{3}University of Economics and Finance, Ho Chi Minh City, Vietnam}
+
+\abstract{
+Graph neural networks (GNNs) are the dominant paradigm for social bot detection, yet modern bots evade them by \emph{relation camouflage}: deliberately following genuine users so that homophilic message passing dilutes their anomalous features. This failure mode is widely reported empirically but has not been characterised analytically, leaving practitioners without guidance on when a graph-based detector is worth deploying at all. We develop a theory of relation camouflage in a contextual stochastic block model in which bots control a camouflage ratio $\rho$. We prove that one round of mean aggregation deflates the bot--human feature separation by an exact factor $1-\rho-\eta(\rho)$, where $\eta$ is the induced bot fraction in human neighbourhoods, and derive the resulting Bayes error in closed form. This yields a \emph{critical camouflage ratio} $\rho^\star$ beyond which a homophilic GNN is provably worse than ignoring the graph and classifying raw features; in the noise-dominated regime $\rho^\star = (1-D^{-1/2})/(1+c)$ for neighbourhood size $D$ and bot-to-human ratio $c$, recovering the known $1/\sqrt{D}$ separability gain of graph convolution at $\rho = 0$. We then analyse the three components of the XHBot detector. We show that the Dirichlet-energy edge score used by Spectral-Guided Topology Refinement (SGTR) separates camouflage from genuine edges by exactly $\|\Delta\|^2$ in expectation, and prove that SGTR raises the tolerated camouflage to $\rho^\star_{\mathrm{SGTR}} = \rho^\star/(\rho^\star + (1-\bar e_c)(1-\rho^\star))$; that tri-channel aggregation is strictly more expressive than any single homophilic aggregator; and that the contrastive prototype objective maximises a variational lower bound on the mutual information between the behavioural code and the label, while its orthogonality penalty controls code dependence only under a joint-Gaussian assumption---a limitation we state explicitly. All closed forms are validated against Monte-Carlo simulation, with the predicted critical ratio $\rho^\star = 0.464$ falling inside the empirically measured crossover bracket $[0.46, 0.47]$. The theory turns an empirical design heuristic into a checkable deployment criterion.
+}
+
+\keywords{Social Bot Detection, Graph Neural Networks, Heterophily, Contextual Stochastic Block Model, Learning Theory}
+
+\fnotetext[1]{Corresponding author.  Email: \email{datla@uef.edu.vn}}
+
+\maketitle
+
+\subfile{sections/1_intro}
+\subfile{sections/2_related}
+\subfile{sections/3_model}
+\subfile{sections/4_theory}
+\subfile{sections/5_validation}
+\subfile{sections/6_discussion}
+
+\begin{thebibliography}{99}
+
+\bibitem{dang2026xhbot}
+Dang Q-V, Nguyen P-L, Le D, Dinh MN. XHBot: eXplainable heterophily-aware graph neural networks for social bot detection. EAI Endorsed Trans AI Robotics [Internet]. 2026 Jul 7 [cited 2026 Jul 28];5. Available from: \url{https://publications.eai.eu/index.php/airo/article/view/12969}
+
+\bibitem{baranwal2021graph}
+Baranwal A, Fountoulakis K, Jagannath A. Graph convolution for semi-supervised classification: improved linear separability and out-of-distribution generalization. In: Proceedings of the 38th International Conference on Machine Learning (ICML 2021). PMLR. 2021;139:684-93.
+
+\bibitem{deshpande2018contextual}
+Deshpande Y, Sen S, Montanari A, Mossel E. Contextual stochastic block models. In: Advances in Neural Information Processing Systems 31 (NeurIPS 2018); 2018.
+
+\bibitem{zhu2020beyond}
+Zhu J, Yan Y, Zhao L, Heimann M, Akoglu L, Koutra D. Beyond homophily in graph neural networks: current limitations and effective designs. In: Advances in Neural Information Processing Systems 33 (NeurIPS 2020); 2020.
+
+\bibitem{ma2022homophily}
+Ma Y, Liu X, Shah N, Tang J. Is homophily a necessity for graph neural networks? In: International Conference on Learning Representations (ICLR 2022); 2022.
+
+\bibitem{luan2022revisiting}
+Luan S, Hua C, Lu Q, Zhu J, Zhao M, Zhang S, et al. Revisiting heterophily for graph neural networks. In: Advances in Neural Information Processing Systems 35 (NeurIPS 2022); 2022.
+
+\bibitem{xu2019powerful}
+Xu K, Hu W, Leskovec J, Jegelka S. How powerful are graph neural networks? In: International Conference on Learning Representations (ICLR 2019); 2019.
+
+\bibitem{li2018deeper}
+Li Q, Han Z, Wu XM. Deeper insights into graph convolutional networks for semi-supervised learning. In: Proceedings of the 32nd AAAI Conference on Artificial Intelligence (AAAI 2018); 2018.
+
+\bibitem{oono2020graph}
+Oono K, Suzuki T. Graph neural networks exponentially lose expressive power for node classification. In: International Conference on Learning Representations (ICLR 2020); 2020.
+
+\bibitem{nt2019revisiting}
+NT H, Maehara T. Revisiting graph neural networks: all we have is low-pass filters. arXiv preprint. 2019. doi:10.48550/arXiv.1905.09550
+
+\bibitem{oord2018representation}
+van den Oord A, Li Y, Vinyals O. Representation learning with contrastive predictive coding. arXiv preprint. 2018. doi:10.48550/arXiv.1807.03748
+
+\bibitem{poole2019variational}
+Poole B, Ozair S, van den Oord A, Alemi A, Tucker G. On variational bounds of mutual information. In: Proceedings of the 36th International Conference on Machine Learning (ICML 2019). PMLR. 2019;97:5171-80.
+
+\bibitem{locatello2019challenging}
+Locatello F, Bauer S, Lucic M, R\"atsch G, Gelly S, Sch\"olkopf B, et al. Challenging common assumptions in the unsupervised learning of disentangled representations. In: Proceedings of the 36th International Conference on Machine Learning (ICML 2019). PMLR. 2019;97:4114-24.
+
+\bibitem{dou2020caregnn}
+Dou Y, Liu Z, Sun L, Deng Y, Peng H, Yu PS. Enhancing graph neural network-based fraud detectors against camouflaged fraudsters. In: Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM 2020). ACM; 2020. doi:10.1145/3340531.3411903
+
+\bibitem{feng2021twibot20}
+Feng S, Wan H, Wang N, Li J, Luo M. TwiBot-20: a comprehensive Twitter bot detection benchmark. In: Proceedings of the 30th ACM International Conference on Information and Knowledge Management (CIKM 2021). ACM; 2021. p. 4485-94. doi:10.1145/3459637.3482019
+
+\bibitem{feng2021botrgcn}
+Feng S, Wan H, Wang N, Luo M. BotRGCN: Twitter bot detection with relational graph convolutional networks. In: Proceedings of the 2021 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining (ASONAM 2021). ACM; 2021. p. 236-9. doi:10.1145/3487351.3488336
+
+\bibitem{cresci2020decade}
+Cresci S. A decade of social bot detection. Commun ACM. 2020;63(10):72-83. doi:10.1145/3409116
+
+\bibitem{he2025bothp}
+He B, Jiang X, Wu Q, Liu H, Yang Y, Liao Y. Boosting bot detection via heterophily-aware representation learning and prototype-guided cluster discovery. In: Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2025). ACM; 2025. doi:10.1145/3711896.3736862
+
+\bibitem{quang2026integrating}
+Quang BHD, Trinh TT, Dang QV. Integrating graph features for social bot detection. In: Intelligence of Things: Technologies and Applications (ICIT 2025). Lecture Notes on Data Engineering and Communications Technologies, vol. 282. Springer; 2026. doi:10.1007/978-3-032-13254-3\_6
+
+\end{thebibliography}
+\end{document}

@@ -1,0 +1,70 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{The Camouflage-CSBM}
+\label{sec:model}
+
+We work in a two-class contextual stochastic block model augmented with an
+adversarial parameter controlling how aggressively bots attach to humans.
+
+\begin{definition}[Camouflage-CSBM]
+\label{def:ccsbm}
+Let $\mathcal{V}$ be a set of $N$ nodes partitioned into bots $\mathcal{B}$ and
+humans $\mathcal{H}$, with bot prevalence $\pi_B = |\mathcal{B}|/N \in (0,1)$ and
+bot-to-human ratio $c = \pi_B/(1-\pi_B)$. Each node $v$ carries a feature vector
+\begin{equation}
+    \mathbf{x}_v \sim \mathcal{N}(\boldsymbol{\mu}_{y_v},\, \sigma^2 I_d),
+    \qquad y_v \in \{\mathrm{B}, \mathrm{H}\},
+\end{equation}
+and we write $\Delta = \boldsymbol{\mu}_{\mathrm{B}} - \boldsymbol{\mu}_{\mathrm{H}}$
+for the class-mean gap. Every node has neighbourhood size $D$. Neighbours are drawn
+independently: a bot's neighbour is human with probability $\rho$ (the
+\emph{camouflage ratio}) and a bot otherwise; a human's neighbour is a bot with
+probability $\eta$ and a human otherwise.
+\end{definition}
+
+The two mixing parameters are not free. Counting bot--human edge endpoints from
+both sides gives $|\mathcal{B}| D \rho = |\mathcal{H}| D \eta$, hence the
+\emph{edge-balance identity}
+\begin{equation}
+    \eta(\rho) \;=\; \frac{\pi_B}{1-\pi_B}\,\rho \;=\; c\,\rho .
+    \label{eq:balance}
+\end{equation}
+Camouflage is therefore doubly harmful: it not only pollutes bot neighbourhoods but
+necessarily pollutes human neighbourhoods as well, at a rate set by the bot
+prevalence. Every result below accounts for this coupling; treating $\eta$ as
+independent of $\rho$ overstates a detector's robustness.
+
+\begin{remark}[Modelling choices]
+Independent neighbour sampling at fixed size $D$ makes the analysis exact and is
+the discrete analogue of the degree-concentration assumptions used
+in~\cite{baranwal2021graph}. Isotropic within-class covariance and a common $D$ are
+simplifications; Section~\ref{sec:limitations} discusses what changes without them.
+We emphasise that $\rho$ is an \emph{adversarial} parameter chosen by the attacker,
+not a fixed property of the generative process---this is the substantive
+difference from the standard CSBM setting.
+\end{remark}
+
+\paragraph{Aggregation operator.}
+We analyse one round of mean aggregation, the canonical homophilic operator,
+\begin{equation}
+    \mathbf{h}_v \;=\; \frac{1}{D}\sum_{u \in \mathcal{N}(v)} \mathbf{x}_u ,
+    \label{eq:meanagg}
+\end{equation}
+which isolates the effect of neighbourhood averaging from the confounds of learned
+weights and nonlinearity. Because all the quantities we need are governed by the
+projection onto the discriminant direction, define
+$\mathbf{w} = \Delta/\|\Delta\|$ and $t_v = \mathbf{w}^\top \mathbf{h}_v$.
+
+\paragraph{Baseline for comparison.}
+The natural point of reference is the graph-free classifier, which uses
+$\mathbf{x}_v$ directly. For two isotropic Gaussians with equal priors its Bayes
+error is
+\begin{equation}
+    \varepsilon_{\mathrm{raw}} \;=\; \Phi\!\left(-\frac{\|\Delta\|}{2\sigma}\right),
+    \label{eq:rawerr}
+\end{equation}
+with $\Phi$ the standard normal CDF. The question driving Section~\ref{sec:theory}
+is when aggregation beats~\eqref{eq:rawerr} and when it does not.
+
+\end{document}

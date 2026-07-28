@@ -1,0 +1,88 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Analyses of graph convolution on block models}
+
+The contextual stochastic block model~\cite{deshpande2018contextual} couples a
+stochastic block model with Gaussian node attributes and has become the standard
+setting for asking what message passing does to statistical separability. Baranwal
+et al.~\cite{baranwal2021graph} established the central positive result: for a
+two-class CSBM, one graph convolution improves the regime of linear separability by
+a factor of roughly $1/\sqrt{D}$ in the expected degree $D$, and the resulting
+classifier generalises out of distribution to graphs with different edge
+probabilities.
+
+That analysis, and most that follow it, assumes the generative process is
+homophilic---inter-class edges arise from a fixed, non-adversarial probability. The
+question we ask is different: what happens when one class \emph{chooses} its
+inter-class edge rate to defeat the detector? The camouflage ratio $\rho$ in
+Section~\ref{sec:model} is exactly this adversarial degree of freedom. Our
+Corollary~\ref{cor:critical} reduces to the $1/\sqrt{D}$ separability gain
+of~\cite{baranwal2021graph} when $\rho = 0$, and characterises how that gain is
+consumed as $\rho$ increases until it vanishes.
+
+A parallel literature studies the limits of repeated aggregation. Over-smoothing
+analyses~\cite{li2018deeper,oono2020graph} show node representations converge to
+an uninformative subspace as depth grows, and spectral
+accounts~\cite{nt2019revisiting} characterise graph convolution as a low-pass
+filter. These results concern degradation with \emph{depth} under a fixed graph.
+The effect we analyse is orthogonal: a single layer already suffers signal loss
+when the \emph{topology itself} is adversarial. The two mechanisms compound, but
+our critical ratio is present at $L = 1$.
+
+\subsection{Heterophily in graph learning}
+
+The finding that homophily-assuming GNNs degrade on heterophilic graphs motivated a
+family of architectures that separate ego from neighbour representations, aggregate
+over higher-order neighbourhoods, or combine low- and high-frequency
+signals~\cite{zhu2020beyond,luan2022revisiting}. Ma et al.~\cite{ma2022homophily}
+complicate the picture usefully by showing that homophily is not strictly necessary:
+GNNs can succeed on heterophilic graphs when inter-class neighbourhood
+\emph{distributions} are sufficiently distinguishable.
+
+That refinement matters for our setting, and we take a position on it. Under
+adversarial camouflage the distinguishability Ma et al.\ rely on is precisely what
+the adversary is optimising away: a bot that matches the human neighbourhood
+distribution eliminates the signal their argument requires. Our model makes this
+explicit, and the critical ratio quantifies when the erosion becomes fatal. The
+distinction between benign heterophily (structured, and therefore exploitable) and
+adversarial heterophily (engineered to be unexploitable) is, in our view, the
+central conceptual point separating bot detection from general heterophilic node
+classification.
+
+\subsection{Camouflage-resistant detectors}
+
+CARE-GNN~\cite{dou2020caregnn} introduced the camouflage framing to GNN-based fraud
+detection, using a label-aware similarity measure and a reinforcement-learning
+neighbour selector to filter uninformative edges. Bot-detection work has since
+adopted the pattern: BotHP~\cite{he2025bothp} separates ego and neighbour encoders
+to mitigate interaction camouflage, and XHBot~\cite{dang2026xhbot} combines
+spectral edge pruning, tri-channel aggregation, and contrastive disentanglement.
+
+These methods are validated by ablation. An ablation establishes that removing a
+component costs accuracy on a particular benchmark; it does not establish the
+\emph{range of conditions} under which the component helps, nor whether a
+multi-channel design is more expressive or merely better parameterised. The present
+paper supplies exactly those missing statements for the three mechanisms XHBot
+employs. We analyse XHBot's components because they instantiate the dominant design
+pattern, not because the analysis is specific to that system: the edge-scoring
+result applies to any feature-discrepancy pruning rule, and the expressivity result
+to any aggregator that adds a permutation-invariant non-mean channel.
+
+\subsection{Contrastive objectives and disentanglement}
+
+The InfoNCE objective~\cite{oord2018representation} is standard in representation
+learning, and Poole et al.~\cite{poole2019variational} place it within a family of
+variational bounds on mutual information, establishing the $\log K$ bound we invoke
+in Proposition~\ref{prop:nce}. Against this, Locatello
+et al.~\cite{locatello2019challenging} prove that unsupervised disentanglement is
+impossible without inductive bias or supervision. We do not attempt to evade that
+result. Section~\ref{sec:cpd-theory} states precisely which assumption the
+orthogonality penalty needs in order to control statistical dependence, and
+identifies the label supervision in the prototype term as the inductive bias that
+makes the behavioural code identifiable at all.
+
+\end{document}

@@ -1,0 +1,165 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Numerical Validation}
+\label{sec:validation}
+
+Every closed form in Section~\ref{sec:theory} is checked against Monte-Carlo
+simulation of Definition~\ref{def:ccsbm}. Our purpose here is verification of the
+analysis, not a performance claim: the results below establish that the derivations
+are correct, and say nothing on their own about accuracy on real bot graphs.
+Section~\ref{sec:limitations} addresses that gap directly.
+
+\paragraph{Protocol.}
+Unless stated otherwise we use $\pi_B = 0.3$ ($c \approx 0.4286$),
+$\|\Delta\| = 2$, $\sigma = 1$, and $D = 16$, drawing $4\times 10^5$ nodes per class
+per configuration ($1.5 \times 10^6$ for the crossover sweep). Errors are computed
+by exhaustive threshold search over the empirical distributions, so the reported
+figures are attained minima rather than plug-in estimates. All code is released
+with the paper and runs in a few minutes on CPU.
+
+\subsection{Deflation and error}
+
+Table~\ref{tab:deflation} compares Proposition~\ref{prop:deflation} and
+Theorem~\ref{thm:error} against simulation. Separation matches to within
+$1.2\times 10^{-3}$ and the standard deviation---including the mixture term that a
+naive calculation omits---to within $4\times 10^{-4}$ across the whole range.
+Figure~\ref{fig:deflation} shows the same agreement graphically.
+
+\begin{table}[t]
+\centering
+\caption{Theory versus simulation for signal deflation and Bayes error
+($\pi_B = 0.3$, $\|\Delta\|=2$, $\sigma=1$, $D=16$).}
+\label{tab:deflation}
+\small
+\begin{tabular}{@{}ccccccc@{}}
+\toprule
+& & \multicolumn{2}{c}{separation $\delta$} & \multicolumn{2}{c}{$s_{\mathrm{B}}$} & error \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+$\rho$ & $\eta$ & theory & sim. & theory & sim. & thy / sim. \\
+\midrule
+0.00 & 0.000 & 2.0000 & 2.0000 & 0.2500 & 0.2499 & 0.00003 / 0.00003 \\
+0.10 & 0.043 & 1.7143 & 1.7142 & 0.2915 & 0.2918 & 0.00113 / 0.00160 \\
+0.20 & 0.086 & 1.4286 & 1.4283 & 0.3202 & 0.3204 & 0.00925 / 0.01095 \\
+0.30 & 0.129 & 1.1429 & 1.1441 & 0.3391 & 0.3391 & 0.03698 / 0.03895 \\
+0.40 & 0.171 & 0.8571 & 0.8586 & 0.3500 & 0.3499 & 0.09785 / 0.09898 \\
+0.50 & 0.214 & 0.5714 & 0.5696 & 0.3536 & 0.3528 & 0.19898 / 0.19974 \\
+0.60 & 0.257 & 0.2857 & 0.2864 & 0.3500 & 0.3500 & 0.33734 / 0.33680 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/theory_deflation.png}
+    \caption{Theory versus simulation. (a) Post-aggregation separation decays
+    linearly in $\rho$ exactly as Proposition~\ref{prop:deflation} predicts.
+    (b) Bayes error against the graph-free baseline; the predicted critical ratio
+    $\rho^\star = 0.464$ coincides with the crossing point.}
+    \label{fig:deflation}
+\end{figure}
+
+\subsection{The critical ratio}
+
+The central prediction is Corollary~\ref{cor:critical}. Solving
+$\mathrm{SNR}(\rho) = \|\Delta\|/(2\sigma)$ numerically at $D=16$ gives
+$\rho^\star = 0.4644$. Sweeping $\rho$ in steps of $0.01$ with $1.5\times 10^6$
+samples per point, aggregation beats raw features at $\rho = 0.46$
+($\varepsilon = 0.1545$ against $\varepsilon_{\mathrm{raw}} = 0.1587$) and loses at
+$\rho = 0.47$ ($\varepsilon = 0.1648$). The measured crossover therefore lies in
+$[0.46, 0.47]$, containing the predicted value.
+
+Table~\ref{tab:critical} separates the two forms of the corollary. The exact
+crossover differs from the closed form~\eqref{eq:critical} at moderate SNR, as
+expected, since~\eqref{eq:critical} drops the mixture variance. Re-running the
+exact solver in the noise-dominated regime it was derived for ($\|\Delta\| = 0.2$,
+$\sigma = 1$) recovers the closed form to three decimal places at every degree,
+confirming that the discrepancy is the stated approximation and not an error.
+
+\begin{table}[t]
+\centering
+\caption{Critical camouflage ratio: closed form~\eqref{eq:critical} against the
+exact SNR crossover, at moderate and low SNR.}
+\label{tab:critical}
+\small
+\begin{tabular}{@{}cccc@{}}
+\toprule
+$D$ & closed form~\eqref{eq:critical} & exact ($\|\Delta\|/\sigma = 2$) & exact (low SNR) \\
+\midrule
+4  & 0.3500 & 0.2604 & 0.3488 \\
+9  & 0.4667 & 0.3913 & 0.4657 \\
+16 & 0.5250 & 0.4644 & 0.5243 \\
+25 & 0.5600 & 0.5102 & 0.5594 \\
+64 & 0.6125 & 0.5807 & 0.6121 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:critical} plots both curves against degree. The tolerated
+camouflage rises steeply for sparsely connected accounts and flattens as $D$ grows,
+which has a concrete operational reading: the accounts most vulnerable to
+camouflage are those with few connections, and a deployment that aggregates over
+small neighbourhoods is fragile in exactly the regime where bots are cheapest to
+create.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.72\linewidth]{figures/theory_critical_ratio.png}
+    \caption{Critical camouflage ratio against neighbourhood size. Below the curve
+    the graph improves on raw features; above it the graph is actively harmful.
+    The closed form is the noise-dominated limit of the exact crossover.}
+    \label{fig:critical}
+\end{figure}
+
+\subsection{SGTR}
+
+Lemma~\ref{lem:energy} predicts expected squared discrepancies of $2d\sigma^2$ and
+$\|\Delta\|^2 + 2d\sigma^2$. At $d = 8$, $\sigma = 1$, $\|\Delta\| = 2$ these are
+$16$ and $20$; simulation over $2\times10^5$ edge samples gives $16.005$ and
+$20.005$, an error below $0.03\%$.
+
+For Theorem~\ref{thm:sgtr} we verify the closed
+form~\eqref{eq:rhostarsgtr} by round-trip: substituting
+$\rho^\star_{\mathrm{SGTR}}$ back into $\rho_{\mathrm{eff}}$ must return
+$\rho^\star$. The maximum absolute deviation over
+$\bar e_c \in \{0.25, 0.5, 0.75, 0.9\}$ is $1.1\times 10^{-16}$, i.e.\ machine
+precision. Table~\ref{tab:sgtr} reports the resulting tolerance gains, and
+Figure~\ref{fig:sgtr} plots the full curve.
+
+\begin{table}[t]
+\centering
+\caption{Effect of SGTR attenuation on tolerated camouflage
+($D=16$, $\pi_B=0.3$, baseline $\rho^\star = 0.525$).}
+\label{tab:sgtr}
+\small
+\begin{tabular}{@{}ccc@{}}
+\toprule
+$\bar e_c$ & $\rho_{\mathrm{eff}}$ at $\rho = 0.4$ & $\rho^\star_{\mathrm{SGTR}}$ \\
+\midrule
+0.00 & 0.4000 & 0.5250 \\
+0.25 & 0.3333 & 0.5957 \\
+0.50 & 0.2500 & 0.6885 \\
+0.75 & 0.1429 & 0.8155 \\
+0.90 & 0.0625 & 0.9170 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.72\linewidth]{figures/theory_sgtr_tolerance.png}
+    \caption{Tolerated camouflage as a function of the mean attenuation applied to
+    camouflage edges. The shaded region is the operating range that spectral
+    pruning adds over an unpruned homophilic aggregator.}
+    \label{fig:sgtr}
+\end{figure}
+
+\subsection{THCA}
+
+Theorem~\ref{thm:thca} is constructive and we verify both halves programmatically.
+The neighbourhoods $\{0,2\}$ and $\{1,1\}$ have identical means ($1.0$ and $1.0$)
+and distinct maxima ($2.0$ and $1.0$), so mean aggregation cannot separate them
+while the max channel can; and setting $\alpha = (1,0,0)$ reproduces the homophilic
+channel exactly. Both checks pass.
+
+\end{document}

@@ -1,0 +1,121 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{From heuristic to criterion}
+
+The practical value of Corollary~\ref{cor:critical} is that it converts a design
+intuition into a quantity an operator can estimate. The inputs are the mean
+neighbourhood size $D$, the bot prevalence $\pi_B$, and the feature signal-to-noise
+ratio $\|\Delta\|/\sigma$---all measurable on a deployed system---and the output is
+a threshold on camouflage beyond which the graph is a liability. This reframes a
+question usually settled by ablation (``does the graph help on this benchmark?'')
+as one that can be answered per-cohort: for hub accounts with large $D$ the graph
+remains valuable at camouflage levels that make it actively harmful for sparse
+accounts. A detector that applies one aggregation policy to both is leaving
+accuracy on the table at one end and incurring damage at the other.
+
+The analysis also isolates an under-appreciated coupling. Because
+$\eta = c\rho$, bot prevalence enters the critical ratio directly: a platform whose
+bot population doubles does not merely face more bots, it faces a detector whose
+tolerance to each bot's camouflage has fallen. Class imbalance is normally treated
+as a training-time nuisance to be fixed by resampling; \eqref{eq:critical} shows it
+is also a structural robustness parameter, and resampling does not touch it.
+
+\subsection{What the theory does and does not license}
+
+We are deliberate about the boundaries of these claims.
+
+The results characterise \emph{one round of mean aggregation} in a stylised
+generative model. They explain why homophilic message passing fails under
+camouflage and why the three mitigations help, and they give the correct
+qualitative orderings---more pruning is better, larger neighbourhoods are safer,
+higher prevalence is more dangerous. They do not predict the accuracy of a trained
+multi-layer network on a real bot graph, and no number in
+Section~\ref{sec:validation} should be read as such. Our simulations verify
+algebra; they are not empirical evidence about Twitter or any other platform.
+
+Three specific gaps deserve naming. First, the theory is single-layer; depth
+introduces over-smoothing effects~\cite{li2018deeper,oono2020graph} that compound
+with camouflage in ways this analysis does not capture. Second, we do not model
+learning: the SGTR attenuation $\bar e_c$ is treated as given, whereas in practice
+it is the output of a trained scorer whose quality depends on the very separability
+the pruning is meant to restore. Closing that loop---bounding $\bar e_c$ as a
+function of $\|\Delta\|$, $d$, and sample size---is the natural next step and would
+turn Theorem~\ref{thm:sgtr} from a conditional into an unconditional guarantee.
+Third, the disentanglement analysis is the weakest link, and we have said why: the
+orthogonality penalty controls dependence only in the Gaussian case
+(Proposition~\ref{prop:mi}), and identifiability rests entirely on label
+supervision.
+
+\subsection{Limitations of the generative model}
+\label{sec:limitations}
+
+The camouflage-CSBM makes four simplifications, each of which trades realism for
+tractability.
+
+\emph{Isotropic, equal-covariance features.} Real account features are neither
+isotropic nor identically dispersed across classes. Anisotropy would replace
+$\|\Delta\|/\sigma$ with a Mahalanobis distance throughout; the structure of the
+results survives, but $\rho^\star$ becomes direction-dependent.
+
+\emph{Fixed neighbourhood size.} Social graphs are heavy-tailed. Since $\rho^\star$
+is concave in $D$, a mixture of degrees is \emph{not} well summarised by its mean:
+applying~\eqref{eq:critical} at the average degree overstates robustness for the
+low-degree majority. Per-degree stratification, which the theory directly supports,
+is the appropriate remedy.
+
+\emph{Independent neighbour sampling.} We ignore triadic closure and community
+structure, both prominent in real follow graphs. Correlated neighbourhoods reduce
+the effective sample size in the averaging step, which inflates the variance
+in~\eqref{eq:variances} and lowers $\rho^\star$; our thresholds are therefore
+optimistic.
+
+\emph{A single homogeneous relation.} Production detectors operate on
+heterogeneous graphs with several edge types. The analysis extends per-relation,
+and the interesting question---how an adversary should allocate a fixed camouflage
+budget across relations---follows naturally from~\eqref{eq:critical} but is beyond
+the present scope.
+
+\subsection{An adversarial reading}
+
+Finally, the theory can be read from the attacker's side, which we think is the
+more useful test of it. Corollary~\ref{cor:critical} tells an adversary exactly how
+much camouflage is needed to neutralise a homophilic detector, and
+Theorem~\ref{thm:sgtr} tells them how much more is needed against a pruning
+defence. That $\rho^\star_{\mathrm{SGTR}} \to 1$ only as $\bar e_c \to 1$ means no
+imperfect pruning rule is a permanent fix; the defence buys operating range, and an
+adversary willing to spend edges can always exceed it. Treating $\rho$ as a
+strategic variable rather than a nuisance parameter---and analysing the resulting
+game between detector and adversary---strikes us as the most promising direction
+this line of work opens.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have given an analytical account of relation camouflage in GNN-based bot
+detection. Modelling camouflage as an adversarial parameter in a contextual
+stochastic block model, we proved that mean aggregation deflates the class signal
+by exactly $1-(1+c)\rho$, derived the resulting Bayes error, and obtained a
+critical camouflage ratio $\rho^\star = (1-D^{-1/2})/(1+c)$ beyond which a
+homophilic GNN is provably worse than ignoring the graph---a result that recovers
+the known $1/\sqrt{D}$ separability gain of graph convolution at $\rho = 0$. We
+then showed that spectral edge pruning separates camouflage edges by exactly
+$\|\Delta\|^2$ in expectation and raises the tolerated camouflage to
+$\rho^\star/(\rho^\star + (1-\bar e_c)(1-\rho^\star))$; that tri-channel
+aggregation is strictly more expressive than any single homophilic aggregator; and
+that the contrastive prototype objective maximises a variational lower bound on
+label information while its orthogonality penalty guarantees independence only
+under a joint-Gaussian assumption. All closed forms were verified numerically, with
+the predicted critical ratio falling inside the measured crossover bracket.
+
+The contribution is not a new detector but a criterion. Practitioners currently
+decide whether to trust a graph-based detector by running an ablation on a
+benchmark; the results here let them instead estimate three measurable quantities
+and compute the answer for their own deployment, per account cohort. Extending the
+analysis to multiple layers, to heterogeneous relations, and to a learned rather
+than assumed pruning quality would make that criterion sharper still.
+
+\end{document}
