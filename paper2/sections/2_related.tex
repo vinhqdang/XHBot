@@ -15,14 +15,45 @@ a factor of roughly $1/\sqrt{D}$ in the expected degree $D$, and the resulting
 classifier generalises out of distribution to graphs with different edge
 probabilities.
 
-That analysis, and most that follow it, assumes the generative process is
-homophilic---inter-class edges arise from a fixed, non-adversarial probability. The
-question we ask is different: what happens when one class \emph{chooses} its
-inter-class edge rate to defeat the detector? The camouflage ratio $\rho$ in
-Section~\ref{sec:model} is exactly this adversarial degree of freedom. Our
-Corollary~\ref{cor:critical} reduces to the $1/\sqrt{D}$ separability gain
-of~\cite{baranwal2021graph} when $\rho = 0$, and characterises how that gain is
-consumed as $\rho$ increases until it vanishes.
+That analysis assumes the generative process is homophilic---inter-class edges arise
+from a fixed, non-adversarial probability---and establishes only the positive side.
+Its follow-ups extend the positive results to multiple
+layers~\cite{baranwal2023effects} and characterise the locally Bayes-optimal
+architecture as one that \emph{interpolates} between an MLP in the low-graph-signal
+regime and a convolution in the high-signal regime~\cite{baranwal2023optimality}.
+Our Corollary~\ref{cor:critical} reduces to the $1/\sqrt{D}$ separability gain
+of~\cite{baranwal2021graph} when $\rho = 0$, which calibrates our model against this
+baseline.
+
+\paragraph{The crossover is known; our contribution is the imbalanced and
+adversarial case.} We state the priority situation plainly, because it determines
+what this paper does and does not claim. A closed-form threshold at which mean
+aggregation becomes worse than the graph-free classifier was established by Ma
+et al.~\cite[Thm.~2]{ma2022homophily} for the \emph{balanced} symmetric CSBM, and
+Corollary~\ref{cor:critical} recovers their condition exactly at $c = 1$
+(Remark~\ref{rem:ma} works the algebra through). Related crossover analyses have
+since appeared: Luan et al.~\cite{luan2023when} compute the Bayes error of
+graph-aware against graph-agnostic classifiers under a homophily parameter with
+per-class variances and degrees, locating the intersection points directly and
+criticising the fixed-classifier comparison used in~\cite{ma2022homophily}; Mao
+et al.~\cite{mao2023demystifying} prove the per-node version, that a GCN beats an
+MLP on homophilic nodes and loses on heterophilic ones \emph{within the same graph};
+and the graph-attention analysis of Fountoulakis
+et al.~\cite{fountoulakis2023graph} both identifies the same signal-deflation
+factor and proves that attention---the closest analogue to soft edge
+pruning---is lower-bounded by the better of convolution and the graph-free
+classifier, while also showing (their Theorems~9 and~13) that no attention
+mechanism separates intra- from inter-class edges in the hard regime.
+
+Against this background our claim is narrower than ``we show when the graph is
+harmful''. It is that the adversarial, class-imbalanced case is not a relabelling of
+the balanced one: the two classes deflate asymmetrically, which moves the decision
+boundary and invalidates a fixed-boundary comparison; bot prevalence enters the
+threshold through $\eta = c\rho$ as a robustness parameter; and the mixture-variance
+term omitted in~\cite{ma2022homophily} shifts the threshold by $13\%$. Read this way,
+the closest antecedent to Theorem~\ref{thm:sgtr} is~\cite{fountoulakis2023graph},
+which gives the qualitative guarantee for attention; we give a closed form for how
+far a pruner of a given quality moves the threshold.
 
 A parallel literature studies the limits of repeated aggregation. Over-smoothing
 analyses~\cite{li2018deeper,oono2020graph} show node representations converge to
@@ -39,19 +70,61 @@ The finding that homophily-assuming GNNs degrade on heterophilic graphs motivate
 family of architectures that separate ego from neighbour representations, aggregate
 over higher-order neighbourhoods, or combine low- and high-frequency
 signals~\cite{zhu2020beyond,luan2022revisiting}. Ma et al.~\cite{ma2022homophily}
-complicate the picture usefully by showing that homophily is not strictly necessary:
-GNNs can succeed on heterophilic graphs when inter-class neighbourhood
-\emph{distributions} are sufficiently distinguishable.
+show in addition that homophily is not strictly necessary: GNNs can succeed on
+heterophilic graphs when inter-class neighbourhood \emph{distributions} are
+sufficiently distinguishable.
 
-That refinement matters for our setting, and we take a position on it. Under
+That observation matters for our setting, and we take a position on it. Under
 adversarial camouflage the distinguishability Ma et al.\ rely on is precisely what
 the adversary is optimising away: a bot that matches the human neighbourhood
-distribution eliminates the signal their argument requires. Our model makes this
-explicit, and the critical ratio quantifies when the erosion becomes fatal. The
-distinction between benign heterophily (structured, and therefore exploitable) and
-adversarial heterophily (engineered to be unexploitable) is, in our view, the
-central conceptual point separating bot detection from general heterophilic node
-classification.
+distribution eliminates the signal their argument requires. The distinction between
+benign heterophily---structured, and therefore exploitable---and adversarial
+heterophily, engineered to be unexploitable, is in our view the conceptual point
+separating bot detection from general heterophilic node classification. It is a
+distinction about the \emph{provenance} of the inter-class edges, not about the
+algebra of aggregation, which is why our threshold coincides with theirs in the
+balanced case while the interpretation of the parameter differs.
+
+\subsection{Robust aggregation and adversarial topology}
+\label{sec:related-robust}
+
+Camouflage is a contamination phenomenon, and two mature literatures have already
+treated it as one.
+
+The first replaces the mean with a robust estimator. In Byzantine-robust distributed
+learning a fraction of workers report corrupted updates, and aggregation rules such
+as Krum~\cite{blanchard2017machine} and coordinate-wise median or trimmed
+mean~\cite{yin2018byzantine} bound the resulting error. The idea has been imported
+into GNN neighbourhood aggregation directly: Geisler
+et al.~\cite{geisler2020reliable} construct an aggregation with the maximal
+breakdown point of $0.5$, so the bias stays bounded while fewer than half of a
+node's edges are adversarial, and Chen et al.~\cite{chen2021understanding} attribute
+the structural vulnerability of GCNs specifically to the non-robustness of the
+weighted mean, analysed through the breakdown point.
+
+We therefore avoid the term for our own threshold. A breakdown point asks when an
+adversary can drive an estimate arbitrarily far under unbounded contamination;
+$\rho^\star$ is instead a bias--variance crossover under \emph{bounded}
+contamination---human features are not arbitrary---and marks where the $\sqrt{D}$
+variance reduction ceases to pay for the $(1+c)\rho$ bias. The two quantities answer
+different questions, and $\rho^\star$ is the weaker of the two.
+
+The second literature attacks the topology. Nettack~\cite{zugner2018adversarial} and
+Metattack~\cite{zugner2019adversarial} insert or remove edges to flip predictions,
+and defences such as GNNGuard~\cite{zhang2020gnnguard} and
+Pro-GNN~\cite{jin2020graph} filter them, largely heuristically. Two results in this
+line bear directly on ours. Zhu et al.~\cite{zhu2022how} prove the bridge our model
+assumes---that impactful structural attacks on homophilous data necessarily reduce
+homophily---and derive the ego/neighbour-separation design principle from it.
+Mujkanovic et al.~\cite{mujkanovic2022are} show empirically that under adaptive
+attack, defended GNNs can underperform an MLP that ignores the topology outright;
+our Corollary~\ref{cor:critical} can be read as a closed-form account of when that
+should be expected. Certified-robustness work~\cite{bojchevski2019certifiable} is
+orthogonal: it certifies that a prediction is unchanged within a perturbation
+budget, never that the graph has become net-harmful beyond one. Gosch
+et al.~\cite{gosch2023revisiting} come closest in combining a CSBM, an adversary,
+and a Bayes-optimal yardstick, but use it to show GNNs are \emph{over}-robust,
+insensitive past the point of genuine semantic change.
 
 \subsection{Camouflage-resistant detectors}
 

@@ -123,7 +123,37 @@ graph is a genuine asset for hub accounts long after it has become a liability f
 sparse ones. Third, $\rho^\star$ decreases in $c$: as bots become more prevalent,
 the camouflage budget they need in order to break the detector shrinks.
 
+\begin{remark}[Relation to Ma et al.]
+\label{rem:ma}
+Equation~\eqref{eq:critical} is not new in the balanced case, and we want to be
+explicit about what is and is not ours. For a symmetric CSBM with intra- and
+inter-class edge probabilities $p$ and $q$, Ma et al.~\cite[Thm.~2]{ma2022homophily}
+prove that a node is better classified after aggregation than before whenever
+$\deg(i) > (p+q)^2/(p-q)^2$. Their inter-class neighbour fraction is
+$\rho = q/(p+q)$, so $(p-q)/(p+q) = 1-2\rho$ and their condition rearranges to
+$\sqrt{D}\,(1-2\rho) > 1$, i.e.\ $\rho < (1 - D^{-1/2})/2$. This is
+exactly~\eqref{eq:critical} at $c = 1$. A closed-form threshold for when mean
+aggregation is worse than discarding the graph was therefore established at
+ICLR~2022, and our corollary is its extension to $c \neq 1$.
+
+What the extension adds is not merely a symbol. Three things change when the classes
+are imbalanced. (i) The two classes deflate by \emph{different} amounts, $\rho$ for
+bots and $\eta = c\rho$ for humans, so the post-aggregation class midpoint
+\emph{moves}; a comparison against a decision boundary held fixed at the raw-feature
+midpoint---as in~\cite{ma2022homophily}---is then no longer the right one, which is
+precisely the criticism Luan et al.~\cite{luan2023when} raise against that
+analysis. Our Theorem~\ref{thm:error} compares Bayes errors instead, and is
+insensitive to this. (ii) The edge-balance identity $\eta = c\rho$
+in~\eqref{eq:balance} is what couples the two, and it is what makes bot
+prevalence a robustness parameter rather than a training-time nuisance. (iii) The
+mixture-variance term $\rho(1-\rho)\|\Delta\|^2$ is absent from the covariance
+$I/\sqrt{\deg(i)}$ reported in~\cite{ma2022homophily}; including it moves
+$\rho^\star$ from $0.53$ to $0.46$ in the configuration of
+Remark~\ref{rem:practical}, a $13\%$ correction to the threshold.
+\end{remark}
+
 \begin{remark}[Practical reading]
+\label{rem:practical}
 For a detector with typical $D = 16$ and bot prevalence $\pi_B = 0.3$
 ($c \approx 0.43$), \eqref{eq:critical} gives $\rho^\star \approx 0.53$ in the
 noise-dominated regime and $0.46$ once the mixture variance is included. A bot that
@@ -213,9 +243,16 @@ $\rho_{\mathrm{eff}} \to 1$ as $\rho \to 1$ for any fixed $\bar e_c < 1$, no
 pruning rule with imperfect discrimination defeats a maximally camouflaged
 adversary; SGTR buys operating range, not immunity.
 
-\subsection{Tri-channel aggregation is strictly more expressive}
+\subsection{Why a non-mean channel is needed}
 
-\begin{theorem}[Strict expressivity separation]
+The expressivity argument for tri-channel aggregation is a direct application of the
+standard multiset-injectivity analysis of Xu et al.~\cite{xu2019powerful}, and we
+record it as a proposition rather than claim it as a new result. It is included
+because it settles the third question of Section~\ref{sec:intro}---whether
+multi-channel aggregation is more \emph{capable} or merely better
+parameterised---which an ablation cannot settle.
+
+\begin{proposition}[Expressivity separation; after~\cite{xu2019powerful}]
 \label{thm:thca}
 Let $\mathcal{F}_{\mathrm{mean}}$ be the class of functions computable by any
 single-channel homophilic aggregator of the form
@@ -223,7 +260,7 @@ $\mathbf{h}_v = \phi\bigl(W \cdot \mathrm{mean}_{u\in\mathcal{N}(v)} \mathbf{x}_
 and $\mathcal{F}_{\mathrm{THCA}}$ the class computable by tri-channel aggregation
 with homophilic, max-pooling, and self channels under attention fusion. Then
 $\mathcal{F}_{\mathrm{mean}} \subsetneq \mathcal{F}_{\mathrm{THCA}}$.
-\end{theorem}
+\end{proposition}
 
 \begin{proof}
 \emph{Containment.} Setting the fusion weights to $\alpha_H = 1$,
@@ -244,10 +281,7 @@ The separating instance is not a pathology: $\{0,2\}$ versus $\{1,1\}$ is precis
 the contrast between a node with one extreme neighbour and one with two typical
 neighbours---the signature of an account with a small number of highly anomalous
 connections. Mean aggregation is blind to it by construction, which is the
-structural reason a heterophilic channel is needed rather than merely helpful. The
-argument is in the spirit of the multiset-injectivity analysis of
-Xu et al.~\cite{xu2019powerful}, applied here to separate two aggregators rather
-than to characterise maximal power.
+structural reason a heterophilic channel is needed rather than merely helpful.
 
 \subsection{What the disentanglement objective does and does not guarantee}
 \label{sec:cpd-theory}

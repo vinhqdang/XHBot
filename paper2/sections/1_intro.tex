@@ -47,40 +47,53 @@ edges directed at humans---and study what one round of mean aggregation does to
 class separability as $\rho$ grows. This places the work in the line of analysis
 opened by Baranwal et al.~\cite{baranwal2021graph}, who showed that graph
 convolution improves linear separability by a factor of roughly $1/\sqrt{D}$ for
-neighbourhood size $D$. Their analysis assumes a homophilic generative process; our
-contribution is to make the adversary explicit and to characterise the point at
-which the advantage they identify is destroyed.
+neighbourhood size $D$ under a homophilic generative process.
+
+\paragraph{What is already known.} We are explicit about priority from the outset.
+For a \emph{balanced} symmetric CSBM, Ma et al.~\cite[Thm.~2]{ma2022homophily}
+already established a closed-form threshold at which aggregation ceases to beat the
+graph-free classifier, and our critical ratio reduces to their condition exactly when
+the two classes are equal in size (Remark~\ref{rem:ma}); related crossover analyses
+appear in~\cite{luan2023when,mao2023demystifying,fountoulakis2023graph}. The
+existence of a crossover is therefore not our discovery, and we do not claim it.
+Our contribution is the \emph{class-imbalanced adversarial} case, where the two
+classes deflate by different amounts---which moves the decision boundary and makes
+bot prevalence itself a robustness parameter---together with a closed form for how
+far edge pruning shifts the threshold.
 
 \paragraph{Contributions.}
+
 \begin{itemize}
-    \item \textbf{An exact deflation law and error curve.} We prove that mean
-    aggregation shrinks the bot--human separation by exactly $1-\rho-\eta(\rho)$,
-    where $\eta(\rho)$ is the bot fraction induced in human neighbourhoods by
-    edge balance, and give the post-aggregation Bayes error in closed form
-    (Proposition~\ref{prop:deflation}, Theorem~\ref{thm:error}). The variance term
-    includes a mixture contribution that a naive $\sigma^2/D$ calculation misses.
+    \item \textbf{The edge-balance identity, and bot prevalence as a robustness
+    parameter.} Camouflage edges have two ends, so a bot that points an edge at a
+    human necessarily pollutes that human's neighbourhood too. We show this forces
+    $\eta = c\rho$, where $c$ is the bot-to-human ratio, so that the total deflation
+    is $1-(1+c)\rho$ (Proposition~\ref{prop:deflation}). The consequence is that
+    bot prevalence enters the robustness threshold directly: as bots become more
+    common, each one needs \emph{less} camouflage to break the detector. This is not
+    a class-imbalance problem that resampling addresses.
 
-    \item \textbf{A critical camouflage ratio.} We derive the threshold $\rho^\star$
-    at which a homophilic GNN becomes provably worse than discarding the graph and
-    classifying raw features (Corollary~\ref{cor:critical}). In the
-    noise-dominated regime it takes the interpretable form
-    $\rho^\star = (1 - D^{-1/2})/(1+c)$, which recovers the $1/\sqrt{D}$ gain
-    of~\cite{baranwal2021graph} at $\rho = 0$ and shows that robustness to
-    camouflage grows with neighbourhood size.
+    \item \textbf{A Bayes-error crossover valid under class imbalance.} When
+    $c \neq 1$ the two classes deflate asymmetrically, the post-aggregation class
+    midpoint moves, and a comparison against a fixed decision boundary is no longer
+    valid---the objection Luan et al.~\cite{luan2023when} raise
+    against~\cite{ma2022homophily}. We compare Bayes errors instead
+    (Theorem~\ref{thm:error}), obtaining
+    $\rho^\star = (1 - D^{-1/2})/(1+c)$ (Corollary~\ref{cor:critical}), which
+    recovers~\cite{ma2022homophily} at $c=1$ and~\cite{baranwal2021graph} at
+    $\rho=0$. Our error term also retains a mixture-variance contribution that a
+    naive $\sigma^2/D$ calculation misses, and which shifts the threshold by $13\%$.
 
-    \item \textbf{A provable guarantee for spectral edge pruning.} We show the
+    \item \textbf{A closed form for what edge pruning buys.} We show the
     Dirichlet-energy score underlying SGTR separates camouflage from genuine edges
     by exactly $\|\Delta\|^2$ in expectation (Lemma~\ref{lem:energy}), and prove
     that soft pruning raises the tolerated camouflage to
     $\rho^\star_{\mathrm{SGTR}} = \rho^\star / (\rho^\star + (1-\bar e_c)(1-\rho^\star))$
-    (Theorem~\ref{thm:sgtr}). This converts an ablation delta into a statement
-    about the operating regime.
-
-    \item \textbf{A strict expressivity separation for tri-channel aggregation.}
-    We prove tri-channel aggregation subsumes any single homophilic aggregator and
-    is strictly more expressive, exhibiting neighbourhoods that mean aggregation
-    provably cannot distinguish but the max-pooling channel can
-    (Theorem~\ref{thm:thca}).
+    for a pruner of quality $\bar e_c$ (Theorem~\ref{thm:sgtr}). The qualitative
+    version of this guarantee is known for graph
+    attention~\cite{fountoulakis2023graph}; the contribution here is the rate. It
+    converts an ablation delta into a statement about the operating regime, and makes
+    explicit that no imperfect pruner attains immunity.
 
     \item \textbf{An honest account of the disentanglement objective.} We show the
     contrastive prototype loss maximises a variational lower bound on the mutual
