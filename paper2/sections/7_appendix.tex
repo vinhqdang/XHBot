@@ -1,0 +1,160 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\appendix
+% \appendix does not reliably reset the counter from inside a subfile
+\setcounter{section}{0}
+\section{Deferred proofs}
+\label{app:proofs}
+
+This appendix gives in full the proofs that are compressed or omitted in the main
+text. Throughout, $\pi_B$ is the bot prevalence, $c = \pi_B/(1-\pi_B)$,
+$\eta = c\rho$, $\lambda = 1-(1+c)\rho$, features are $\mathbf{x}_v \sim
+\mathcal{N}(\boldsymbol\mu_{y_v}, \sigma^2 I_d)$ with
+$\Delta = \boldsymbol\mu_B - \boldsymbol\mu_H$, and $D$ is the neighbourhood size.
+
+\subsection{The edge-balance identity}
+\label{app:balance}
+
+\begin{lemma}
+Let camouflage edges be those joining a bot to a human, and suppose each bot directs
+a fraction $\rho$ of its $D$ edges to humans. Then the expected fraction of a
+human's neighbourhood that is composed of bots is $\eta = c\rho$.
+\end{lemma}
+
+\begin{proof}
+Let $n$ be the number of nodes, so there are $\pi_B n$ bots and $(1-\pi_B)n$ humans.
+Each bot contributes $\rho D$ camouflage edge-endpoints, giving
+$\pi_B n \rho D$ endpoints in total. Every such endpoint lands on a human, and the
+humans collectively expose $(1-\pi_B) n D$ endpoints. Hence the expected bot fraction
+of a human neighbourhood is
+\[
+    \eta \;=\; \frac{\pi_B n \rho D}{(1-\pi_B) n D}
+        \;=\; \frac{\pi_B}{1-\pi_B}\,\rho \;=\; c\rho .
+\]
+The identity is a conservation statement about edge endpoints and is independent of
+how bots choose \emph{which} humans to attach to; only the aggregate count matters.
+It presumes $\eta \leq 1$, i.e.\ $\rho \leq 1/c$, which is automatic when
+$\pi_B \leq 1/2$.
+\end{proof}
+
+The asymmetry is the point: the adversary sets $\rho$ directly but induces $\eta$ on
+the other class, and the two coincide only when the classes are balanced ($c=1$).
+
+\subsection{Proof of the depth recursion (Theorem~\ref{thm:depth})}
+\label{app:depth}
+
+\begin{proof}
+Work with the projection onto the discriminant direction
+$\hat{\mathbf{u}} = \Delta/\|\Delta\|$, which is one-dimensional and loses no
+information about the class means. Write $m^{(l)}_B, m^{(l)}_H$ for the projected
+class-conditional means after $l$ layers and $V^{(l)}_B, V^{(l)}_H$ for the
+corresponding variances, with $m^{(0)}_B - m^{(0)}_H = \|\Delta\|$ and
+$V^{(0)}_B = V^{(0)}_H = \sigma^2$.
+
+\emph{Means.} A bot aggregates $D$ neighbours of which a fraction $1-\rho$ are bots
+and $\rho$ humans, so by linearity
+$m^{(l+1)}_B = (1-\rho)m^{(l)}_B + \rho\,m^{(l)}_H$, and symmetrically
+$m^{(l+1)}_H = \eta\,m^{(l)}_B + (1-\eta)m^{(l)}_H$. Subtracting,
+\[
+  \Delta_{l+1} = m^{(l+1)}_B - m^{(l+1)}_H
+  = \bigl(1-\rho-\eta\bigr)\bigl(m^{(l)}_B - m^{(l)}_H\bigr)
+  = \lambda\,\Delta_l ,
+\]
+which is~\eqref{eq:depth-mean}; hence $\Delta_L = \lambda^L\|\Delta\|$. Note the two
+classes are deflated by different factors ($\rho$ versus $\eta$), so the midpoint
+$\tfrac12(m_B + m_H)$ moves unless $c = 1$; the \emph{separation}, however, obeys a
+single scalar recursion.
+
+\emph{Variances.} Fix a bot at level $l+1$ and let $X$ be the projected
+representation of one of its neighbours. Under the tree-like assumption the $D$
+neighbours are independent, and $X$ is a two-component mixture: with probability
+$1-\rho$ it has mean $m^{(l)}_B$ and variance $V^{(l)}_B$, and with probability
+$\rho$ mean $m^{(l)}_H$ and variance $V^{(l)}_H$. For any such mixture,
+\[
+  \operatorname{Var}(X)
+  = (1-\rho)V^{(l)}_B + \rho V^{(l)}_H
+    + \rho(1-\rho)\bigl(m^{(l)}_B - m^{(l)}_H\bigr)^2 ,
+\]
+by the law of total variance, the last term being the between-component
+contribution. Averaging $D$ independent copies divides this by $D$, which
+gives~\eqref{eq:depth-varB}; replacing $\rho$ by $\eta$
+gives~\eqref{eq:depth-varH}.
+
+\emph{Noise-dominated limit.} Suppose the mixture terms
+$\rho(1-\rho)\Delta_l^2$ and $\eta(1-\eta)\Delta_l^2$ are negligible beside the
+variance terms at every level. Then both recursions reduce to
+$V^{(l+1)} = V^{(l)}/D$, so $V^{(L)} = \sigma^2/D^{L}$ and the standard deviation is
+$\sigma D^{-L/2}$. With $\mathrm{SNR}_L := \Delta_L/(2\sqrt{V^{(L)}})$ and
+$\mathrm{SNR}_{\mathrm{raw}} = \|\Delta\|/(2\sigma)$,
+\[
+  \frac{\mathrm{SNR}_L}{\mathrm{SNR}_{\mathrm{raw}}}
+  = \frac{\lambda^L\|\Delta\|}{2\sigma D^{-L/2}}\cdot\frac{2\sigma}{\|\Delta\|}
+  = \bigl(\lambda\sqrt{D}\bigr)^{L},
+\]
+which is~\eqref{eq:depth-clean}. Since $t \mapsto t^L$ is increasing on $t>0$, this
+exceeds $1$ for some $L \geq 1$ if and only if it does for all of them, so the
+crossover $|\lambda|\sqrt{D} = 1$ is independent of $L$; solving
+$|1-(1+c)\rho| = D^{-1/2}$ for $\rho$ gives the two endpoints
+of~\eqref{eq:window}.
+\end{proof}
+
+\begin{remark}[Where the approximation is used, and what it costs]
+The tree-like assumption enters only in asserting that the $D$ aggregated
+neighbours are independent. On a graph with overlapping receptive fields the
+level-$l$ representations of two neighbours share ancestors and are positively
+correlated, which inflates $V^{(l+1)}$ above~\eqref{eq:depth-varB} and so makes
+\eqref{eq:depth-clean} an \emph{optimistic} bound at large $L$. The recursion is
+therefore best read as exact for locally tree-like graphs and as an upper bound on
+the achievable SNR otherwise. In particular the unbounded growth implied by
+$(\lambda\sqrt D)^L$ for $\lambda\sqrt D>1$ cannot persist on a finite graph, where
+receptive fields saturate once they cover it; the depth-independence of the
+\emph{crossover}, which is what we use, does not rely on the large-$L$ behaviour.
+\end{remark}
+
+\subsection{Exact law of the edge score}
+\label{app:score}
+
+\begin{lemma}
+For an edge $(u,v)$ let $s_{uv} = \|\mathbf{x}_u - \mathbf{x}_v\|^2$. Then
+$s \sim 2\sigma^2\chi^2_d$ if $y_u = y_v$, and
+$s \sim 2\sigma^2\chi^2_d(r^2/2)$ with $r = \|\Delta\|/\sigma$ otherwise. In
+particular $\mathbb{E}[s \mid \text{camouflage}] - \mathbb{E}[s \mid \text{within}]
+= \|\Delta\|^2$, and the ratio of the gap to the within-class standard deviation is
+$\kappa = r^2/(2\sqrt{2d})$.
+\end{lemma}
+
+\begin{proof}
+Write $\mathbf{z} = \mathbf{x}_u - \mathbf{x}_v$. If $y_u = y_v$ then
+$\mathbf{z} \sim \mathcal{N}(0, 2\sigma^2 I_d)$, so
+$\|\mathbf{z}\|^2/(2\sigma^2) \sim \chi^2_d$. If $y_u \neq y_v$ then
+$\mathbf{z} \sim \mathcal{N}(\pm\Delta, 2\sigma^2 I_d)$ and
+$\|\mathbf{z}\|^2/(2\sigma^2)$ is noncentral chi-square with $d$ degrees of freedom
+and noncentrality $\|\Delta\|^2/(2\sigma^2) = r^2/2$.
+
+For the moments, $\mathbb{E}[\chi^2_d] = d$ and
+$\mathbb{E}[\chi^2_d(\lambda)] = d + \lambda$, so the means are $2\sigma^2 d$ and
+$2\sigma^2 d + \|\Delta\|^2$, giving the stated gap. Since
+$\operatorname{Var}(\chi^2_d) = 2d$, the within-class variance of $s$ is
+$4\sigma^4\cdot 2d$, whose square root is $2\sigma^2\sqrt{2d}$; dividing the gap by
+it gives $\kappa = \|\Delta\|^2/(2\sigma^2\sqrt{2d}) = r^2/(2\sqrt{2d})$.
+
+The $d^{-1/2}$ dependence is the concentration phenomenon: the gap between the two
+score distributions grows like $\|\Delta\|^2$ while their spread grows like
+$\sqrt{d}$, so a fixed feature separation becomes progressively harder to detect
+from raw squared distances as the ambient dimension increases.
+\end{proof}
+
+\section{Reproducibility}
+\label{app:repro}
+
+All closed forms in the paper are checked numerically by the scripts in
+\texttt{theory/}: \texttt{csbm\_validation.py} covers
+Proposition~\ref{prop:deflation} through Theorem~\ref{thm:sgtr},
+\texttt{extensions2.py} covers Proposition~\ref{prop:deff},
+Corollary~\ref{cor:ceiling} and Theorem~\ref{thm:depth}, and
+\texttt{measure\_rho.py} implements the estimator of
+Section~\ref{sec:measuring}. Each writes a JSON record of every figure quoted in
+the text. The scripts depend only on \texttt{numpy} and \texttt{scipy}.
+
+\end{document}

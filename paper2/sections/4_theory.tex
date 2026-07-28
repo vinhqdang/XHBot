@@ -217,9 +217,19 @@ Consequently, with $\bar e_w = 0$, the detector tolerates true camouflage up to
     \;\geq\; \rho^\star,
     \label{eq:rhostarsgtr}
 \end{equation}
-with equality if and only if $\bar e_c = 0$, and
-$\rho^\star_{\mathrm{SGTR}} \to 1$ as $\bar e_c \to 1$.
+with equality if and only if $\bar e_c = 0$.
 \end{theorem}
+
+\noindent
+Equation~\eqref{eq:rhostarsgtr} accounts only for the change in neighbourhood
+\emph{composition}. It therefore appears to imply
+$\rho^\star_{\mathrm{SGTR}} \to 1$ as $\bar e_c \to 1$: that a sufficiently good
+pruner tolerates any camouflage whatsoever. That conclusion is false, and
+Section~\ref{sec:achievable} shows why. Down-weighting edges non-uniformly also
+reduces the \emph{effective degree}, and hence forfeits part of the $\sqrt{D}$
+variance reduction that made aggregation worthwhile in the first place. Once that
+cost is included, the ceiling is $1 - 1/D$ rather than $1$, and the operating point
+is an interior optimum rather than the corner $\bar e_c \to 1$.
 
 \begin{proof}
 Weighted mean aggregation computes $\sum_e w_e \mathbf{x}_{u_e} / \sum_e w_e$. In
@@ -267,6 +277,187 @@ that~\cite{weiss2026cost} works in the dense regime where degree effects are abs
 into $O(1/n)$, which removes the $D^{-1/2}$ term that our threshold depends on; the
 finite-$D$ setting is therefore necessary for a statement of this form.
 \end{remark}
+
+\subsection{What pruning quality is achievable, and what it costs}
+\label{sec:achievable}
+
+Theorem~\ref{thm:sgtr} takes the pruner's quality $\bar e_c$ as given. Two things
+are then missing: whether a given $\bar e_c$ is attainable at all by a
+feature-based score, and what is given up in exchange. We supply both, which
+removes the free parameter and corrects the limit noted above.
+
+\paragraph{Only the retained-weight ratio matters.}
+Write $a = 1-\bar e_c$ and $b = 1-\bar e_w$ for the surviving weight on camouflage
+and within-class edges. Weighted mean aggregation is invariant to a common rescaling
+of all weights, so $a$ and $b$ enter only through the ratio
+\begin{equation}
+    \theta \;=\; a/b \;\in\; (0,1] ,
+    \label{eq:theta}
+\end{equation}
+which we call the \emph{retained-weight ratio}; $\theta = 1$ is no pruning and
+$\theta = 0$ is perfect pruning. This is the same quantity that governs the
+cost-sensitive condition $w_+/w_- > q/p$ of~\cite{weiss2026cost}. In terms of
+$\theta$, the effective camouflage ratio of Theorem~\ref{thm:sgtr} is
+$\rho_{\mathrm{eff}} = \rho\theta/(\rho\theta + 1-\rho)$.
+
+\begin{proposition}[Pruning forfeits effective degree]
+\label{prop:deff}
+A weighted mean of $D$ unit-variance terms has the variance of an unweighted mean
+of
+\begin{equation}
+    D_{\mathrm{eff}}
+    \;=\; D\,\frac{\bigl[(1-\rho) + \rho\theta\bigr]^2}
+                   {(1-\rho) + \rho\theta^{2}}
+    \;\leq\; D
+    \label{eq:deff}
+\end{equation}
+terms, with equality if and only if $\theta = 1$. Consequently pruned aggregation
+beats the graph-free classifier if and only if
+\begin{equation}
+    \bigl|1 - (1+c)\,\rho_{\mathrm{eff}}(\rho,\theta)\bigr|
+    \sqrt{D_{\mathrm{eff}}(\rho,\theta)} \;>\; 1 .
+    \label{eq:pruned-condition}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The variance of $\sum_e w_e z_e / \sum_e w_e$ for independent unit-variance $z_e$ is
+$\sum_e w_e^2/(\sum_e w_e)^2$, so the variance-equivalent count is
+$(\sum_e w_e)^2/\sum_e w_e^2$. Substituting $\rho D$ edges of weight $a$ and
+$(1-\rho)D$ of weight $b$, and cancelling $b^2$, gives~\eqref{eq:deff}; the
+inequality is Cauchy--Schwarz, with equality iff the weights are constant.
+Combining with Proposition~\ref{prop:deflation} applied at $\rho_{\mathrm{eff}}$
+yields~\eqref{eq:pruned-condition}.
+\end{proof}
+
+This resolves a degeneracy that~\eqref{eq:rhostarsgtr} alone does not. Uniform
+attenuation ($\theta = 1$, any common scale) leaves both $\rho_{\mathrm{eff}}$ and
+$D_{\mathrm{eff}}$ unchanged and so achieves exactly nothing, as it must; and
+aggressive pruning is now penalised rather than free.
+
+\begin{corollary}[Ceiling for a perfect pruner]
+\label{cor:ceiling}
+Even with $\theta = 0$---every camouflage edge removed, every genuine edge
+retained---aggregation beats the graph-free classifier if and only if
+\begin{equation}
+    \rho \;<\; 1 - \frac{1}{D} .
+    \label{eq:ceiling}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+At $\theta = 0$ we have $\rho_{\mathrm{eff}} = 0$, so the bias factor
+in~\eqref{eq:pruned-condition} is $1$, and
+$D_{\mathrm{eff}} = D(1-\rho)^2/(1-\rho) = D(1-\rho)$. The condition becomes
+$\sqrt{D(1-\rho)} > 1$, i.e.\ $\rho < 1 - 1/D$.
+\end{proof}
+
+The interpretation is worth stating plainly, because it is the opposite of what
+Theorem~\ref{thm:sgtr} suggests in isolation. A perfect pruner does not confer
+immunity. It removes the bias but leaves a bot with only $(1-\rho)D$ usable
+neighbours, and once that number falls to one the graph carries no more information
+than the node's own features. Pruning cannot manufacture evidence that camouflage
+has destroyed; at $\rho \to 1$ there is simply nothing left to aggregate.
+
+\paragraph{Achievable $\theta$.}
+It remains to bound $\theta$ from below. SGTR scores an edge by the feature
+discrepancy $s_{uv} = \|\mathbf{x}_u - \mathbf{x}_v\|^2$, whose law under the CSBM
+is exactly
+\begin{equation}
+    s \sim 2\sigma^2\chi^2_{d}
+    \quad\text{(within class)},
+    \qquad
+    s \sim 2\sigma^2\chi^2_{d}\!\left(\tfrac{r^2}{2}\right)
+    \quad\text{(camouflage)},
+    \label{eq:scorelaw}
+\end{equation}
+with $r = \|\Delta\|/\sigma$ and $\chi^2_d(\lambda)$ the noncentral chi-square. Any
+threshold rule therefore has an operating point $(\bar e_w, \bar e_c)$ on the ROC
+of~\eqref{eq:scorelaw}, and $\theta$ is the ratio of its complements. In the
+large-$d$ Gaussian approximation the discriminability index is
+\begin{equation}
+    \kappa \;=\; \frac{\|\Delta\|^2}{2\sigma^2\sqrt{2d}}
+            \;=\; \frac{r^2}{2\sqrt{2d}} ,
+    \label{eq:kappa}
+\end{equation}
+so $\bar e_c \approx \Phi(\Phi^{-1}(\bar e_w) + \kappa)$.
+
+Two consequences follow. First, $\bar e_w \to 0$ forces $\bar e_c \to 0$: there is no
+threshold that removes camouflage edges without also removing genuine ones, so the
+idealisation $\bar e_w = 0$ used in~\eqref{eq:rhostarsgtr} is not attainable and the
+joint form is required. Second, because $\kappa$ scales as $d^{-1/2}$, the raw
+discrepancy score \emph{degrades} as the feature dimension grows---the two score
+distributions concentrate and overlap. This is the formal content of the remark that
+motivates learning a projection: mapping to $k \ll d$ dimensions while preserving
+$\|\Delta\|$ multiplies $\kappa$ by $\sqrt{d/k}$.
+
+Substituting the achievable $\theta$ into~\eqref{eq:pruned-condition} gives a
+tolerance that depends only on $(D, c, r, d)$---all measurable---with no free pruning
+parameter. Section~\ref{sec:validation} reports the resulting values.
+
+\subsection{Depth}
+\label{sec:depth}
+
+Everything so far concerns a single layer. Since deployed detectors stack two or
+more, we record how the picture changes. Assume the graph is locally tree-like, so
+that the neighbourhoods aggregated at different levels are disjoint; this is the
+standard local-weak-convergence approximation and is accurate for sparse graphs in
+which short cycles are rare.
+
+\begin{theorem}[Depth recursion]
+\label{thm:depth}
+Let $\Delta_l$ denote the class-mean separation and $V_B^{(l)}, V_H^{(l)}$ the
+class-conditional variances after $l$ layers, with
+$\Delta_0 = \|\Delta\|$ and $V^{(0)}_B = V^{(0)}_H = \sigma^2$. Then
+\begin{align}
+    \Delta_{l+1} &= \lambda\,\Delta_l, \qquad \lambda = 1-(1+c)\rho,
+    \label{eq:depth-mean}\\
+    V^{(l+1)}_B &= \tfrac{1}{D}\Bigl[(1-\rho)V^{(l)}_B + \rho V^{(l)}_H
+                    + \rho(1-\rho)\Delta_l^2\Bigr],
+    \label{eq:depth-varB}\\
+    V^{(l+1)}_H &= \tfrac{1}{D}\Bigl[\eta V^{(l)}_B + (1-\eta)V^{(l)}_H
+                    + \eta(1-\eta)\Delta_l^2\Bigr].
+    \label{eq:depth-varH}
+\end{align}
+In the noise-dominated regime, where the $\Delta_l^2$ terms are negligible, this
+collapses to
+\begin{equation}
+    \frac{\mathrm{SNR}_L}{\mathrm{SNR}_{\mathrm{raw}}}
+    \;=\; \bigl(\lambda\sqrt{D}\bigr)^{L}.
+    \label{eq:depth-clean}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Deferred to Appendix~\ref{app:depth}.
+\end{proof}
+
+Three consequences. First, \textbf{the crossover is depth-independent}: since
+$(\lambda\sqrt D)^L > 1$ iff $\lambda\sqrt D > 1$ for every $L \geq 1$, the critical
+ratio is the same at every depth, and $\rho^\star$ is not an artefact of the
+single-layer analysis. Second, \textbf{depth amplifies the consequence
+exponentially}: below $\rho^\star$ each additional layer multiplies the SNR by
+$\lambda\sqrt D > 1$, and above it by $\lambda\sqrt D < 1$. Stacking layers is
+therefore a leveraged bet on being on the right side of the threshold, which is a
+sharper statement than the usual observation that deep GNNs over-smooth: the sign of
+the effect is set by the topology, not by the depth.
+
+Third, the harmful region is \emph{bounded above}. Since only $|\lambda|$ matters,
+aggregation is harmful precisely on the window
+\begin{equation}
+    \rho \;\in\;
+    \left(\frac{1 - D^{-1/2}}{1+c},\;\; \frac{1 + D^{-1/2}}{1+c}\right),
+    \label{eq:window}
+\end{equation}
+and \emph{helps again} above it. The reason is instructive: a bot with
+$\rho \to 1$ connects almost exclusively to humans, so its neighbourhood is strongly
+\emph{anti}-correlated with its label and therefore informative once more, with the
+orientation reversed---a downstream linear layer can absorb the sign. This is the
+adversarial instance of the observation that heterophily is not inherently
+harmful~\cite{ma2022homophily,luan2023when}, and it identifies the genuinely
+dangerous strategy as \emph{intermediate} camouflage, which maximises ambiguity
+rather than maximising heterophily. For $D=16$ and $\pi_B = 0.3$ the window is
+$(0.525, 0.875)$.
 
 \subsection{Why a non-mean channel is needed}
 

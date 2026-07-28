@@ -106,11 +106,31 @@ far edge pruning shifts the threshold.
     identifiability, in light of known impossibility results for unsupervised
     disentanglement~\cite{locatello2019challenging}.
 
-    \item \textbf{Numerical validation.} Every closed form is checked against
-    Monte-Carlo simulation. The predicted critical ratio $\rho^\star = 0.464$
-    falls inside the measured crossover bracket $[0.46, 0.47]$, and the
-    energy-gap and pruning identities match to three decimal places and to
-    machine precision respectively (Section~\ref{sec:validation}).
+    \item \textbf{A ceiling on what pruning can achieve.} Down-weighting edges
+    non-uniformly also forfeits effective degree, so pruning trades bias against
+    variance rather than buying the former for free
+    (Proposition~\ref{prop:deff}). Accounting for this corrects a conclusion that
+    the composition analysis alone suggests: even a \emph{perfect} pruner tolerates
+    only $\rho < 1 - 1/D$, not $\rho \to 1$ (Corollary~\ref{cor:ceiling}). We then
+    bound the achievable pruning quality from the exact law of the edge score,
+    which removes the free parameter: the tolerance becomes a function of
+    $(D, c, r, d)$ alone.
+
+    \item \textbf{Depth, and an upper edge to the harmful region.} We give the
+    exact mean--variance recursion across layers (Theorem~\ref{thm:depth}) and show
+    the crossover is \emph{independent of depth}, while the gain or loss compounds
+    exponentially in it. Because only $|\lambda|$ matters, the harmful region is a
+    bounded \emph{window}: beyond it a bot's neighbourhood is strongly
+    anti-correlated with its label and so informative again. The dangerous strategy
+    is intermediate camouflage, not maximal camouflage.
+
+    \item \textbf{Measurement on real graphs, and validation.} Every closed form is
+    checked against Monte-Carlo simulation. Beyond that we \emph{measure} $\rho$ on
+    two real labelled fraud graphs, finding $\hat\rho \approx 0.80$--$0.90$, just
+    inside the predicted harmful window, and confirming the edge-balance identity
+    to within $3\%$ where its degree assumption holds
+    (Section~\ref{sec:measuring}). We are explicit that these are fraud rather than
+    bot graphs, and that access to TwiBot was unavailable.
 \end{itemize}
 
 Our aim is not to propose another detector. It is to supply the missing analytical
