@@ -41,75 +41,55 @@ $\pi_B \leq 1/2$.
 The asymmetry is the point: the adversary sets $\rho$ directly but induces $\eta$ on
 the other class, and the two coincide only when the classes are balanced ($c=1$).
 
-\subsection{Proof of the depth recursion (Theorem~\ref{thm:depth})}
+\subsection{Proof of the depth result (Theorem~\ref{thm:depth})}
 \label{app:depth}
 
 \begin{proof}
-Work with the projection onto the discriminant direction
-$\hat{\mathbf{u}} = \Delta/\|\Delta\|$, which is one-dimensional and loses no
-information about the class means. Write $m^{(l)}_B, m^{(l)}_H$ for the projected
-class-conditional means after $l$ layers and $V^{(l)}_B, V^{(l)}_H$ for the
-corresponding variances, with $m^{(0)}_B - m^{(0)}_H = \|\Delta\|$ and
-$V^{(0)}_B = V^{(0)}_H = \sigma^2$.
+Project onto $\hat{\mathbf{u}} = \Delta/\|\Delta\|$. Write $P = D^{-1}A$ for the
+simple-random-walk operator on the $D$-regular tree, so that $L$ rounds of mean
+aggregation produce $\mathbf{h}^{(L)} = P^{L}\mathbf{x}$. Crucially $P$ is
+\emph{not} supported on the $L$-sphere: since $v \in \mathcal{N}(u)$ whenever
+$u \in \mathcal{N}(v)$, the walk backtracks, and $P^L e_v$ places mass at every
+distance $j \le L$ of the same parity as $L$, together with $j=0$ when $L$ is even.
 
-\emph{Means.} A bot aggregates $D$ neighbours of which a fraction $1-\rho$ are bots
-and $\rho$ humans, so by linearity
-$m^{(l+1)}_B = (1-\rho)m^{(l)}_B + \rho\,m^{(l)}_H$, and symmetrically
-$m^{(l+1)}_H = \eta\,m^{(l)}_B + (1-\eta)m^{(l)}_H$. Subtracting,
-\[
-  \Delta_{l+1} = m^{(l+1)}_B - m^{(l+1)}_H
-  = \bigl(1-\rho-\eta\bigr)\bigl(m^{(l)}_B - m^{(l)}_H\bigr)
-  = \lambda\,\Delta_l ,
-\]
-which is~\eqref{eq:depth-mean}; hence $\Delta_L = \lambda^L\|\Delta\|$. Note the two
-classes are deflated by different factors ($\rho$ versus $\eta$), so the midpoint
-$\tfrac12(m_B + m_H)$ moves unless $c = 1$; the \emph{separation}, however, obeys a
-single scalar recursion.
+\emph{Weights.} By symmetry all nodes at distance $j$ carry equal weight, so if
+$q^{(L)}_j$ denotes the probability that an $L$-step walk ends at distance $j$, each
+such node has weight $q^{(L)}_j/N_j$ with $N_j = D(D-1)^{j-1}$ and $N_0 = 1$. The
+distance process is the birth--death chain that steps outward with probability
+$(D-1)/D$ and inward with probability $1/D$ from any $j\ge1$, and outward with
+certainty from $j=0$; iterating it gives $q^{(L)}$.
 
-\emph{Variances.} Fix a bot at level $l+1$ and let $X$ be the projected
-representation of one of its neighbours. Under the tree-like assumption the $D$
-neighbours are independent, and $X$ is a two-component mixture: with probability
-$1-\rho$ it has mean $m^{(l)}_B$ and variance $V^{(l)}_B$, and with probability
-$\rho$ mean $m^{(l)}_H$ and variance $V^{(l)}_H$. For any such mixture,
-\[
-  \operatorname{Var}(X)
-  = (1-\rho)V^{(l)}_B + \rho V^{(l)}_H
-    + \rho(1-\rho)\bigl(m^{(l)}_B - m^{(l)}_H\bigr)^2 ,
-\]
-by the law of total variance, the last term being the between-component
-contribution. Averaging $D$ independent copies divides this by $D$, which
-gives~\eqref{eq:depth-varB}; replacing $\rho$ by $\eta$
-gives~\eqref{eq:depth-varH}.
+\emph{Signal.} Along a path in the tree the labels form a two-state Markov chain with
+transition matrix $\begin{pmatrix} 1-\rho & \rho\\ \eta & 1-\eta\end{pmatrix}$, whose
+eigenvalues are $1$ and $\lambda = 1-\rho-\eta = 1-(1+c)\rho$. Hence for a node at
+distance $j$,
+$\mathbb{E}[s_w \mid y_v = B] - \mathbb{E}[s_w \mid y_v = H] = \lambda^{j}\|\Delta\|$,
+and summing against the weights gives
+$\Delta_L = \|\Delta\|\sum_j q^{(L)}_j \lambda^{j}$. Note this is \emph{not}
+$\lambda^L\|\Delta\|$: the $j<L$ terms are deflated less, and the $j=0$ term not at
+all.
 
-\emph{Noise-dominated limit.} Suppose the mixture terms
-$\rho(1-\rho)\Delta_l^2$ and $\eta(1-\eta)\Delta_l^2$ are negligible beside the
-variance terms at every level. Then both recursions reduce to
-$V^{(l+1)} = V^{(l)}/D$, so $V^{(L)} = \sigma^2/D^{L}$ and the standard deviation is
-$\sigma D^{-L/2}$. With $\mathrm{SNR}_L := \Delta_L/(2\sqrt{V^{(L)}})$ and
-$\mathrm{SNR}_{\mathrm{raw}} = \|\Delta\|/(2\sigma)$,
-\[
-  \frac{\mathrm{SNR}_L}{\mathrm{SNR}_{\mathrm{raw}}}
-  = \frac{\lambda^L\|\Delta\|}{2\sigma D^{-L/2}}\cdot\frac{2\sigma}{\|\Delta\|}
-  = \bigl(\lambda\sqrt{D}\bigr)^{L},
-\]
-which is~\eqref{eq:depth-clean}. Since $t \mapsto t^L$ is increasing on $t>0$, this
-exceeds $1$ for some $L \geq 1$ if and only if it does for all of them, so the
-crossover $|\lambda|\sqrt{D} = 1$ is independent of $L$; solving
-$|1-(1+c)\rho| = D^{-1/2}$ for $\rho$ gives the two endpoints
-of~\eqref{eq:window}.
+\emph{Noise.} For independent $\mathcal{N}(0,\sigma^2)$ noise,
+$\operatorname{Var}(\mathbf{h}^{(L)}_v) = \sigma^2\|P^Le_v\|^2
+ = \sigma^2\sum_j N_j (q^{(L)}_j/N_j)^2
+ = \sigma^2\sum_j (q^{(L)}_j)^2/N_j$.
+Dividing signal by noise and normalising by
+$\mathrm{SNR}_{\mathrm{raw}} = \|\Delta\|/(2\sigma)$ gives~\eqref{eq:depth-exact};
+the absolute value is required because $\sum_j q_j\lambda^j$ can be negative.
+At $L=1$, $q_1=1$ and $N_1=D$, recovering $|\lambda|\sqrt{D}$.
 \end{proof}
 
-\begin{remark}[Where the approximation is used, and what it costs]
-The tree-like assumption enters only in asserting that the $D$ aggregated
-neighbours are independent. On a graph with overlapping receptive fields the
-level-$l$ representations of two neighbours share ancestors and are positively
-correlated, which inflates $V^{(l+1)}$ above~\eqref{eq:depth-varB} and so makes
-\eqref{eq:depth-clean} an \emph{optimistic} bound at large $L$. The recursion is
-therefore best read as exact for locally tree-like graphs and as an upper bound on
-the achievable SNR otherwise. In particular the unbounded growth implied by
-$(\lambda\sqrt D)^L$ for $\lambda\sqrt D>1$ cannot persist on a finite graph, where
-receptive fields saturate once they cover it; the depth-independence of the
-\emph{crossover}, which is what we use, does not rely on the large-$L$ behaviour.
+\begin{remark}[Why the naive recursion fails, and by how much]
+Propagating the deflation as $\Delta_{l+1} = \lambda\Delta_l$ and the variance as
+$V_{l+1} = V_l/D$ describes the \emph{non-backtracking} walk, and yields
+$\mathrm{SNR}_L/\mathrm{SNR}_{\mathrm{raw}} = (\lambda\sqrt D)^L$ and a
+depth-independent crossover. Both conclusions are artefacts. The true weight
+concentration $\sum_j (q^{(L)}_j)^2/N_j$ exceeds $D^{-L}$ by factors of $1.94$,
+$4.63$, $12.3$ and $35.0$ at $L = 2,3,4,5$ for $D = 16$, and the crossover moves from
+$0.525$ at $L=1$ to $0.587$ at $L=2$. The direction is intuitive once stated: the
+retained ego mass is undeflated signal, so backtracking \emph{helps} the detector. A
+simulation that averages over the $D^L$ leaves of a tree reproduces the naive
+recursion exactly and therefore cannot detect this error; one must simulate $P^L$.
 \end{remark}
 
 \subsection{Exact law of the edge score}
@@ -133,7 +113,7 @@ $\|\mathbf{z}\|^2/(2\sigma^2)$ is noncentral chi-square with $d$ degrees of free
 and noncentrality $\|\Delta\|^2/(2\sigma^2) = r^2/2$.
 
 For the moments, $\mathbb{E}[\chi^2_d] = d$ and
-$\mathbb{E}[\chi^2_d(\lambda)] = d + \lambda$, so the means are $2\sigma^2 d$ and
+$\mathbb{E}[\chi^2_d(\nu)] = d + \nu$, so the means are $2\sigma^2 d$ and
 $2\sigma^2 d + \|\Delta\|^2$, giving the stated gap. Since
 $\operatorname{Var}(\chi^2_d) = 2d$, the within-class variance of $s$ is
 $4\sigma^4\cdot 2d$, whose square root is $2\sigma^2\sqrt{2d}$; dividing the gap by
@@ -149,12 +129,16 @@ from raw squared distances as the ambient dimension increases.
 \label{app:repro}
 
 All closed forms in the paper are checked numerically by the scripts in
-\texttt{theory/}: \texttt{csbm\_validation.py} covers
-Proposition~\ref{prop:deflation} through Theorem~\ref{thm:sgtr},
-\texttt{extensions2.py} covers Proposition~\ref{prop:deff},
-Corollary~\ref{cor:ceiling} and Theorem~\ref{thm:depth}, and
-\texttt{measure\_rho.py} implements the estimator of
-Section~\ref{sec:measuring}. Each writes a JSON record of every figure quoted in
-the text. The scripts depend only on \texttt{numpy} and \texttt{scipy}.
+\texttt{theory/}. \texttt{csbm\_validation.py} and \texttt{refine\_and\_thca.py}
+cover Proposition~\ref{prop:deflation} through Theorem~\ref{thm:sgtr};
+\texttt{corrections.py} covers Proposition~\ref{prop:deff},
+Proposition~\ref{cor:ceiling} and Theorem~\ref{thm:depth}, and supersedes the
+earlier \texttt{extensions2.py}, which is retained only so that the two errors
+documented in Remarks~\ref{rem:no-ceiling} and~\ref{app:depth} can be reproduced;
+\texttt{measure\_rho.py} implements the camouflage estimator of
+Section~\ref{sec:measuring} together with a self-test against planted ground truth;
+and \texttt{real\_data.py} produces Table~\ref{tab:real}. Each writes a JSON record
+of every figure quoted in the text. The scripts depend only on \texttt{numpy} and
+\texttt{scipy}; the fraud graphs are fetched from public URLs given in the script.
 
 \end{document}

@@ -130,8 +130,11 @@ Figure~\ref{fig:sgtr} plots the full curve.
 
 \begin{table}[t]
 \centering
-\caption{Effect of SGTR attenuation on tolerated camouflage
-($D=16$, $\pi_B=0.3$, baseline $\rho^\star = 0.525$).}
+\caption{Effect of SGTR attenuation on tolerated camouflage under the
+composition-only form~\eqref{eq:rhostarsgtr} ($D=16$, $\pi_B=0.3$, baseline
+$\rho^\star = 0.525$). These values ignore both the effective-degree cost and the
+correct $\eta_{\mathrm{eff}}$; Section~\ref{sec:validation-ext} gives the figures
+we stand behind. The table is retained only to show the size of the two corrections.}
 \label{tab:sgtr}
 \small
 \begin{tabular}{@{}ccc@{}}
@@ -159,25 +162,32 @@ $\bar e_c$ & $\rho_{\mathrm{eff}}$ at $\rho = 0.4$ & $\rho^\star_{\mathrm{SGTR}}
 \subsection{The extensions: achievable pruning and depth}
 \label{sec:validation-ext}
 
-Proposition~\ref{prop:deff} and Theorem~\ref{thm:depth} are checked in
-\texttt{theory/extensions2.py}. The effective-degree formula~\eqref{eq:deff} matches
-Monte-Carlo variance to within $0.5\%$ for $\theta \geq 0.5$, degrading to $7\%$ at
-$\theta = 0$ where finitely many nodes lose their entire neighbourhood and are
-excluded. The perfect-pruning ceiling of Corollary~\ref{cor:ceiling} reproduces
-$1-1/D$ to six decimal places for $D \in \{4,16,64,256\}$. The tolerance curve is
-monotone in the retained-weight ratio, rising from $0.525$ at $\theta = 1$ to
-$0.9375$ at $\theta = 0$ for $D=16$, $\pi_B = 0.3$.
+The effective-degree formula~\eqref{eq:deff} matches Monte-Carlo variance to
+within $0.5\%$ for $\theta \geq 0.5$. At $\theta = 0$ it is off by $7.3\%$
+($8.00$ predicted against $7.41$ measured at $\rho=0.5$, $D=16$), and the cause is
+not sampling: it is Jensen's inequality on $\mathbb{E}[1/K]$ for the random retained
+count $K$, exactly the effect quantified in Remark~\ref{rem:no-ceiling}. Under
+perfect pruning the variance-equivalent degree is $1.29$ rather than the $1.00$ that
+$\mathbb{E}[K]$ predicts at $\rho = 1-1/D$, $D=16$, and $35.6\%$ of nodes retain no
+neighbour at all; the proportion still benefiting falls to one half at
+$\rho = 0.897$ ($D=16$) and $0.974$ ($D=64$).
 
-For the depth recursion, the exact recursion
-\eqref{eq:depth-mean}--\eqref{eq:depth-varH} agrees with a locally tree-like
-simulation to between $0.1\%$ and $1.5\%$ across $\rho \in \{0,0.2,0.35,0.5\}$ and
-$L \in \{1,2,3\}$. The simplified form~\eqref{eq:depth-clean} is exact at $\rho = 0$
-but overestimates once the mixture terms matter---by a factor of two at $\rho=0.2$,
-$L=3$---confirming that it is genuinely a noise-dominated limit and not the general
-case; raising $\sigma$ to $6$ recovers it to within $4\%$. The two crossover points
-of the exact recursion sit at $0.5245$ and $0.8754$ for $L = 1$, $0.5245$ and
-$0.8755$ for $L=2$, and $0.5245$ and $0.8755$ for $L=3$, against the predicted
-window $(0.525, 0.875)$: the crossover is depth-independent to four decimal places.
+Correcting $\eta_{\mathrm{eff}}$ as in~\eqref{eq:pruned-condition} raises the
+tolerances relative to the $c\,\rho_{\mathrm{eff}}$ substitution: at $D=16$,
+$\pi_B=0.3$ we obtain $0.609$, $0.715$, $0.847$ and $0.928$ for
+$\bar e_c = 0.25, 0.5, 0.75, 0.9$, against $0.594$, $0.679$, $0.788$ and $0.869$
+under the incorrect form. The error was therefore pessimistic, and by up to six
+percentage points.
+
+For depth, \texttt{theory/corrections.py} evaluates~\eqref{eq:depth-exact}
+directly. The weight profile $\sum_j (q^{(L)}_j)^2/N_j$ exceeds the
+non-backtracking value $D^{-L}$ by factors of $1.94$, $4.63$, $12.3$ and $35.0$ at
+$L = 2,\dots,5$, which is the quantitative size of the term
+that~\eqref{eq:backtrack} restores. The resulting crossovers are
+$\rho^\star_1 = 0.5250$, $\rho^\star_2 = 0.5868$, $\rho^\star_3 = 0.5528$,
+$\rho^\star_4 = 0.5756$ and $\rho^\star_5 = 0.5567$: every multi-layer value lies
+above the single-layer one, so depth increases the tolerated camouflage, and the
+crossover is \emph{not} depth-independent.
 
 \subsection{Measuring the camouflage ratio on real graphs}
 \label{sec:measuring}
@@ -186,7 +196,11 @@ The theory is parameterised by $\rho$, which has so far been a modelling device.
 now measure it. TwiBot-20 and TwiBot-22 require author approval for access, which we
 did not have; we therefore use the two graphs from
 CARE-GNN~\cite{dou2020caregnn}---the work that introduced the camouflage framing---
-together with the Elliptic bitcoin graph, all openly available. These are fraud
+together with the Elliptic bitcoin graph, all openly available. We report every
+relation we measured, including the two whose median degree is $1$: those are
+excluded from the window comparison because a single neighbour offers no variance
+reduction to trade against, but they are also the two lowest-camouflage
+measurements, and omitting them would flatter the narrative. These are fraud
 rather than bot graphs. The mechanism is the same (a fraudulent node attaching to
 benign ones to dilute its neighbourhood) but the domain is not, and we draw no
 conclusion about Twitter from them.
@@ -215,6 +229,11 @@ YelpChi & \texttt{homo}    & 0.805 & 0.133 & 0.137 & (0.79, 0.92) \\
 Amazon  & \texttt{homo}    & 0.897 & 0.033 & 0.066 & (0.85, 1.01) \\
         & \texttt{net\_usu} & 0.897 & 0.036 & 0.066 & (0.84, 1.03) \\
         & \texttt{net\_uvu} & 0.818 & 0.030 & 0.060 & (0.67, 1.19) \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{degenerate ($\tilde D = 1$; no variance reduction is
+available at all)}}\\
+YelpChi & \texttt{net\_rur} & 0.075 & 0.004 & 0.013 & --- \\
+Elliptic & \texttt{tx}      & 0.490 & 0.018 & 0.053 & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -245,18 +264,26 @@ graphs sit close to the boundary, which is precisely the regime in which the cho
 of aggregator decides the outcome, and it is consistent with the empirical fact that
 camouflage-resistant architectures were needed on exactly these datasets.
 
-\paragraph{Weak pruning suffices, and the theory says why.}
+\paragraph{Raw-discrepancy pruning is far too weak to rescue them.}
 Using the measured feature separations ($r = 1.17$ over $d=32$ for YelpChi,
 $r = 2.04$ over $d=25$ for Amazon), \eqref{eq:kappa} gives $\kappa = 0.086$ and
-$0.295$, hence best achievable retained-weight ratios $\theta_{\min} = 0.77$ and
-$0.43$. These are poor pruners. Yet substituting them
-into~\eqref{eq:pruned-condition} raises the tolerance from $0.787$ to $0.827$ on
-YelpChi \texttt{homo} and from $0.854$ to $0.930$ on Amazon \texttt{homo}---in both
-cases past the measured $\hat\rho$. The prediction is therefore that even a weak
-discrepancy-based filter flips these graphs from harmful to helpful, which is a
-concrete, falsifiable account of why neighbour selection is the component that
-matters on these benchmarks. It also explains why a \emph{learned} similarity is
-worth the trouble: at $\kappa < 0.3$ the raw score is close to uninformative.
+$0.295$: the edge score is close to uninformative. Optimising the threshold
+under~\eqref{eq:deff-hard} then moves the tolerance almost not at all---from
+$0.787$ to $0.788$ on YelpChi \texttt{homo}, and from $0.854$ to $0.863$ on
+Amazon \texttt{homo}---leaving every relation still below its measured
+$\hat\rho$. A \emph{flawless} pruner, by contrast, would comfortably rescue
+them: half of all nodes still benefit up to $\rho = 0.989$ at $D=158$.
+
+The operative quantity is therefore the \emph{gap} between achievable and ideal
+edge scoring, and on these graphs it is wide. This is a sharper and more useful
+claim than the one the inconsistent soft/hard pairing produces: it says the
+component that decides the outcome is not pruning as such but the \emph{quality} of
+the edge score, and that a raw feature-discrepancy statistic does not supply it. That
+is a concrete account of why CARE-GNN~\cite{dou2020caregnn} needs a label-aware
+learned similarity with a reinforcement-learned selector rather than a fixed
+distance, and why XHBot learns a projection before scoring. It is also falsifiable:
+substituting a better-calibrated $\kappa$ for a learned scorer should move the
+tolerance past $\hat\rho$, and if it does not, the theory is wrong.
 
 \paragraph{Caveat.}
 The window is derived for a CSBM with regular degrees, isotropic Gaussian features,

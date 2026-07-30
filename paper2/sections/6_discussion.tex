@@ -37,13 +37,17 @@ multi-layer network on a real bot graph, and no number in
 Section~\ref{sec:validation} should be read as such. Our simulations verify
 algebra; they are not empirical evidence about Twitter or any other platform.
 
-Three specific gaps deserve naming. First, the theory is single-layer; depth
-introduces over-smoothing effects~\cite{li2018deeper,oono2020graph} that compound
-with camouflage in ways this analysis does not capture. Second, we do not model
-learning: the SGTR attenuation $\bar e_c$ is treated as given, whereas in practice
-it is the output of a trained scorer whose quality depends on the very separability
-the pruning is meant to restore. Closing that loop---bounding $\bar e_c$ as a
-function of $\|\Delta\|$, $d$, and sample size---is the natural next step and would
+Three specific gaps deserve naming. First, the single-relation restriction is real: our measurements show camouflage
+differs by an order of magnitude across relations of the same graph
+(Table~\ref{tab:real}), and a multi-relational treatment would need to model how a
+detector pools them. Second, although Section~\ref{sec:depth} extends the analysis
+to $L$ layers, it does so in the noise-dominated regime and on a regular tree; a
+treatment that keeps the mixture terms at depth, and that handles the finite graphs
+where receptive fields saturate, is open. Third, Section~\ref{sec:achievable} bounds
+the achievable pruning quality from the feature distributions but treats the scorer
+as a fixed threshold rule; bounding what a \emph{learned} scorer attains, as a
+function of sample size and hypothesis class, is the natural next step and is what
+our real-data measurements suggest matters most and would
 turn Theorem~\ref{thm:sgtr} from a conditional into an unconditional guarantee.
 Third, the disentanglement analysis is the weakest link, and we have said why: the
 orthogonality penalty controls dependence only in the Gaussian case
@@ -93,6 +97,21 @@ game between detector and adversary---strikes us as the most promising direction
 this line of work opens.
 
 \section{Conclusion}
+
+We close by restating the priority position plainly, because it determines how this
+paper should be cited. That a crossover exists---a camouflage level beyond which mean
+aggregation is worse than discarding the graph---is due to Ma
+et al.~\cite{ma2022homophily}, and the fact that the harmful region is a bounded
+window rather than a half-line is the second root of their condition, discussed under
+the name mid-homophily pitfall by Luan et al.~\cite{luan2023when}. What we add is the
+class-imbalanced adversarial case: the edge-balance identity $\eta = c\rho$, which
+makes bot prevalence a robustness parameter and which we confirm on real data; a
+mixture-variance correction worth $13\%$ of the threshold; the observation that
+pruning trades bias against effective degree, so that a bound on achievable edge-score
+quality is needed before any tolerance claim means anything; and the finding that mean
+aggregation's backtracking term acts as an implicit residual connection, so that the
+crossover rises with depth rather than being invariant to it.
+
 \label{sec:conclusion}
 
 We have given an analytical account of relation camouflage in GNN-based bot
