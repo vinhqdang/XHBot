@@ -161,12 +161,14 @@ $\bar e_c$ & $\rho_{\mathrm{eff}}$ at $\rho = 0.4$ & $\rho^\star_{\mathrm{prune}
     The solid curve is the corrected analysis (Proposition~\ref{prop:deff}, with
     $\eta_{\mathrm{eff}}$ as in~\eqref{eq:pruned-condition}); the dotted curve is the
     composition-only form~\eqref{eq:rhostarsgtr}. The correction is \emph{upward} over
-    almost the whole range---treating the human side correctly matters more than the
-    effective-degree penalty---but it saturates at $0.967$ rather than reaching $1$,
-    because pruning cannot manufacture ties that camouflage has removed. The
-    dash-dotted line marks where half of the \emph{strategic actors} still retain
-    enough ties to benefit (Proposition~\ref{cor:ceiling}); genuine actors are barely
-    affected.}
+    the plotted range: treating the majority side correctly matters more than the
+    effective-degree penalty. The curve is truncated at $\bar e_c = 0.9$ deliberately.
+    Equation~\eqref{eq:deff} replaces the random retained count by its mean, which is
+    defensible while many ties survive but is exactly the substitution
+    Remark~\ref{rem:no-ceiling} shows to be invalid as $\bar e_c \to 1$; that limit is
+    governed instead by Proposition~\ref{cor:ceiling}, which says perfect pruning never
+    loses. The dash-dotted line marks where half of the \emph{strategic actors} still
+    retain enough ties to benefit; majority actors are barely affected.}
     \label{fig:sgtr}
 \end{figure}
 
@@ -251,25 +253,32 @@ criterion of Theorem~\ref{thm:error} at $r = 2.32$ (Section~\ref{sec:r-estimate}
 not the noise-dominated window~\eqref{eq:window}: $\rho_{\mathrm{cross}}$ is the
 crossover and the final column is
 $\mathrm{SNR}_{\mathrm{agg}}/\mathrm{SNR}_{\mathrm{raw}}$ at the measured $\hat\rho$,
-so values below $1$ mean the relation is worse than using attributes alone.}
+so values below $1$ mean the relation is worse than using attributes alone. The
+penultimate column evaluates that ratio with the model-implied $\eta = c\rho$; the final
+column substitutes the \emph{measured} $\hat\eta$, which on this population is far
+smaller because automated accounts have much lower degree
+(Section~\ref{sec:balance-check}). The verdict is unchanged either way; the magnitude is
+not.}
 \label{tab:real}
 \resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrrrrrrr}
+\begin{tabular}{lrrrrrrrr}
 \toprule
 Relation & ties & $\hat\rho$ & $\tilde\rho$ & $\hat\eta$ & $\tilde D$
- & $\rho_{\mathrm{cross}}$ & $\frac{\mathrm{SNR}_{\mathrm{agg}}}{\mathrm{SNR}_{\mathrm{raw}}}$ \\
+ & $\rho_{\mathrm{cross}}$
+ & $\frac{\mathrm{SNR}_{\mathrm{agg}}}{\mathrm{SNR}_{\mathrm{raw}}}$
+ & \,''\,($\hat\eta$) \\
 \midrule
-\multicolumn{8}{@{}l}{\emph{social layer}}\\
-following   & 231{,}829 & 0.969 & 1.00 & 0.041 & 4  & 0.252 & 0.51 \\
-friendship  & 327{,}035 & 0.989 & 1.00 & 0.033 & 8  & 0.372 & 0.79 \\
-mention     & 107{,}794 & 0.994 & 1.00 & 0.022 & 4  & 0.252 & 0.57 \\
-quote       & 20{,}536  & 0.999 & 1.00 & 0.014 & 2  & 0.121 & 0.42 \\
-reply       & 20{,}700  & 0.991 & 1.00 & 0.009 & 1  & ---   & 0.28 \\
-\;\;union   & 331{,}251 & 0.989 & 1.00 & 0.032 & 8  & 0.372 & 0.79 \\
+\multicolumn{9}{@{}l}{\emph{social layer}}\\
+following   & 231{,}829 & 0.969 & 1.00 & 0.041 & 4  & 0.252 & 0.51 & 0.02 \\
+friendship  & 327{,}035 & 0.989 & 1.00 & 0.033 & 8  & 0.372 & 0.79 & 0.06 \\
+mention     & 107{,}794 & 0.994 & 1.00 & 0.022 & 4  & 0.252 & 0.57 & 0.03 \\
+quote       & 20{,}536  & 0.999 & 1.00 & 0.014 & 2  & 0.121 & 0.42 & 0.02 \\
+reply       & 20{,}700  & 0.991 & 1.00 & 0.009 & 1  & ---   & 0.28 & 0.00 \\
+\;\;union   & 331{,}251 & 0.989 & 1.00 & 0.032 & 8  & 0.372 & 0.79 & 0.06 \\
 \midrule
-\multicolumn{8}{@{}l}{\emph{content-coordination layer}}\\
-shared URL     & 263{,}800 & 0.595 & 0.62 & 0.195 & 12 & 0.432 & 0.44 \\
-shared hashtag & 300{,}000 & 0.627 & 0.65 & 0.279 & 53 & 0.585 & 0.71 \\
+\multicolumn{9}{@{}l}{\emph{content-coordination layer}}\\
+shared URL     & 263{,}800 & 0.595 & 0.62 & 0.195 & 12 & 0.432 & 0.44 & 0.51 \\
+shared hashtag & 300{,}000 & 0.627 & 0.65 & 0.279 & 53 & 0.585 & 0.71 & 0.47 \\
 \bottomrule
 \end{tabular}%
 }
@@ -301,7 +310,13 @@ and how it was obtained.
 \paragraph{On this population, every relation is one the network harms.}
 The last column of Table~\ref{tab:real} is below $1$ for all seven recorded relations, and for their social union: under
 the exact criterion, neighbour averaging on MGTAB is worse than using attributes alone
-on \emph{every} one of the seven recorded relations, by factors between $1.3$ and $3.6$. We report this
+on \emph{every} one of the seven recorded relations. The size of the shortfall depends
+on which $\eta$ is used: with the model-implied $\eta = c\rho$ the factors run from
+$1.3$ to $3.6$, whereas substituting the measured $\hat\eta$---which is the honest
+choice on a population whose classes differ in degree by a factor of five---they run from
+$2$ on the content relations to more than an order of magnitude on the social ones. We
+report both, because the gap between them is itself the degree effect of
+Section~\ref{sec:balance-check} and not a modelling detail to be hidden. We report this
 as the principal empirical finding, and we note that an earlier version of this
 analysis reached the opposite conclusion for the social relations by applying the
 noise-dominated window~\eqref{eq:window} at $r = 13$; the ``informative again with
@@ -345,6 +360,7 @@ Snijders et al.~\citeyearpar{snijders2013model}: the quantity is a property of a
 not of a population.
 
 \paragraph{The degree-corrected identity is exact, once the estimators match.}
+\label{sec:balance-check}
 On the social union, the identity in its degree-corrected form
 $\eta = c\rho\,(\bar d_B/\bar d_H)$ predicts $0.0647508$ against a measured
 $0.0647508$: agreement to machine precision. This is not a coincidence but a

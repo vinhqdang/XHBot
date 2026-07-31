@@ -13,7 +13,7 @@ BLUE, VERM, GREEN, GREY = "#0072B2", "#D55E00", "#009E73", "#666666"
 D, c = 16, 3/7
 base = tolerance_soft(c, D, 1.0)
 
-th = np.linspace(1.0, 0.0, 120)
+th = np.linspace(1.0, 0.10, 120)   # theta -> 0 invalid: D_eff_soft uses E[K]
 tol = [tolerance_soft(c, D, float(t)) for t in th]
 ec = 1.0 - th                                    # attenuation, for the x-axis
 half = rho_half_benefit(D)
@@ -29,7 +29,7 @@ ax.axhline(half, color=GREY, lw=1.2, ls="-.",
            label=rf"half of strategic actors benefit ($\rho={half:.3f}$)")
 ax.set_xlabel(r"attenuation of camouflage ties $\bar{e}_c$")
 ax.set_ylabel(r"tolerated camouflage")
-ax.set_ylim(0.45, 1.02); ax.set_xlim(0, 1)
+ax.set_ylim(0.45, 1.02); ax.set_xlim(0, 0.9)
 ax.grid(True, ls=":", lw=0.6, color="#cccccc"); ax.set_axisbelow(True)
 ax.legend(frameon=False, loc="upper left", fontsize=6.5)
 fig.tight_layout(); fig.savefig("../figures/theory_pruning_tolerance.png", dpi=200,
