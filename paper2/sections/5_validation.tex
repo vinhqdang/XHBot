@@ -291,18 +291,27 @@ is the concrete form of the concern raised by V\"or\"os and
 Snijders~\cite{voros2017cluster} and by Snijders et al.~\cite{snijders2013model}: the
 quantity is a property of a relation, not of a population.
 
-\paragraph{The edge-balance identity requires its degree correction here, and is
-still only approximate.} On the social union, $\eta = c\rho$ predicts $0.365$ against
-a measured $0.032$---wrong by a factor of $11$. The reason is visible in the degrees:
-automated accounts have mean degree $14.8$ against $83.5$ for genuine ones, a ratio of
-$0.18$, so the regular-degree assumption behind~\eqref{eq:balance} fails badly. The
-degree-corrected form $\eta = c\rho\,(\bar d_B/\bar d_H)$ gives $0.067$, within a
-factor of two but still not close. We take this as the honest boundary of the
-identity: it holds to within $3\%$ on YelpChi, where class degrees are comparable, and
-degrades in proportion to degree asymmetry. Since $\eta$ is a mean of per-node ratios
-rather than a ratio of means, no single scalar correction will recover it under strong
-within-class degree skew, and the identity should be read as exact in the model and
-diagnostic---not predictive---on data.
+\paragraph{The degree-corrected identity is exact, once the estimators match.}
+On the social union, the identity in its degree-corrected form
+$\eta = c\rho\,(\bar d_B/\bar d_H)$ predicts $0.0647508$ against a measured
+$0.0647508$: agreement to machine precision. This is not a coincidence but a
+consequence of what~\eqref{eq:balance} is---an accounting identity over edge
+endpoints---and it holds on \emph{any} graph provided $\rho$, $\eta$ and the mean
+degrees are all estimated as ratios of sums, matching the sums the derivation counts.
+The uncorrected form $\eta = c\rho$ predicts $0.365$, so the degree factor
+$\bar d_B/\bar d_H = 0.177$ is doing essential work here: automated accounts have mean
+degree $14.8$ against $83.5$ for genuine ones.
+
+We flag the estimator sensitivity because it caught us out. Computing $\hat\eta$ as a
+\emph{mean of per-node ratios}, while predicting it from a \emph{ratio of means},
+yields $0.032$ against a predicted $0.067$ and the appearance of a factor-of-two
+failure. The discrepancy is entirely an artefact of mixing the two estimators, com\-pounded
+by averaging degrees over connected nodes only. Since a mean of ratios weights
+low-degree actors equally with hubs, the two estimators diverge exactly in proportion
+to within-class degree skew, which on this population is severe. The practical
+guidance is that~\eqref{eq:balance} is a constraint an analyst can \emph{check} on
+their own data, and a failed check indicates an estimator mismatch or a violated
+regularity assumption rather than a violated identity.
 
 \paragraph{Caveat.}
 The window is derived for a CSBM with regular degrees, isotropic Gaussian features,
