@@ -19,12 +19,12 @@ of such accounts formed dense, mutually connected clusters and were consequently
 to identify collectively. Contemporary ones do the opposite: they form ties to large
 numbers of genuine users so that their local neighbourhood is statistically
 indistinguishable from a genuine actor's---a strategy known in that literature as
-\emph{relation camouflage}~\cite{dou2020caregnn,cresci2020decade}. The strategy is
+\emph{relation camouflage}~\citep{dou2020caregnn,cresci2020decade}. The strategy is
 purposive and cheap, and it targets the inferential mechanism rather than any
 particular detector. Detection systems have responded by discarding suspicious ties,
 by treating similar and dissimilar neighbours through separate channels, or by holding
-an actor's own attributes apart from its neighbours'~\cite{dou2020caregnn,he2025bothp};
-our own earlier work combines all three~\cite{dang2026xhbot}. Those designs are
+an actor's own attributes apart from its neighbours'~\citep{dou2020caregnn,he2025bothp};
+our own earlier work combines all three~\citep{dang2026xhbot}. Those designs are
 justified empirically, by ablation. What has been missing is an account of the
 structural conditions under which the underlying inference works at all, which is what
 we supply here.
@@ -46,17 +46,17 @@ have precise answers.
 \end{enumerate}
 
 Our analysis is conducted in a contextual stochastic block
-model~\cite{deshpande2018contextual}---a stochastic block model with attributes on
+model~\citep{deshpande2018contextual}---a stochastic block model with attributes on
 the nodes---augmented with $\rho$ as an explicit strategic parameter, and we study
 what neighbourhood averaging does to the separation between the two classes as $\rho$
 grows.
 
 \paragraph{What is already known.} We are explicit about priority from the outset.
-For a \emph{balanced} symmetric CSBM, Ma et al.~\cite[Thm.~2]{ma2022homophily}
+For a \emph{balanced} symmetric CSBM, Ma et al.~\citeyearpar[Thm.~2]{ma2022homophily}
 already established a closed-form threshold at which aggregation ceases to beat the
 graph-free classifier, and our critical ratio reduces to their condition exactly when
 the two classes are equal in size (Remark~\ref{rem:ma}); related crossover analyses
-appear in~\cite{luan2023when,mao2023demystifying,fountoulakis2023graph}. The
+appear in~\citep{luan2023when,mao2023demystifying,fountoulakis2023graph}. The
 existence of a crossover is therefore not our discovery, and we do not claim it.
 Our contribution is the \emph{class-imbalanced adversarial} case, where the two
 classes deflate by different amounts---which moves the decision boundary and makes
@@ -78,11 +78,11 @@ far edge pruning shifts the threshold.
     \item \textbf{A Bayes-error crossover valid under class imbalance.} When
     $c \neq 1$ the two classes deflate asymmetrically, the post-aggregation class
     midpoint moves, and a comparison against a fixed decision boundary is no longer
-    valid---the objection Luan et al.~\cite{luan2023when} raise
-    against~\cite{ma2022homophily}. We compare Bayes errors instead
+    valid---the objection Luan et al.~\citeyearpar{luan2023when} raise
+    against~\citep{ma2022homophily}. We compare Bayes errors instead
     (Theorem~\ref{thm:error}), obtaining
     $\rho^\star = (1 - D^{-1/2})/(1+c)$ (Corollary~\ref{cor:critical}), which
-    recovers~\cite{ma2022homophily} at $c=1$ and~\cite{baranwal2021graph} at
+    recovers~\citep{ma2022homophily} at $c=1$ and~\citep{baranwal2021graph} at
     $\rho=0$. Our error term also retains a mixture-variance contribution that a
     naive $\sigma^2/D$ calculation misses, and which shifts the threshold by $11.5\%$.
 

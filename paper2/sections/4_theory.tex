@@ -144,7 +144,7 @@ Equation~\eqref{eq:critical} is the paper's most directly actionable result, and
 says three things. First, at $\rho = 0$ the condition reduces to
 $\mathrm{SNR}_{\mathrm{agg}}/\mathrm{SNR}_{\mathrm{raw}} = \sqrt{D}$: aggregation
 improves separability by $\sqrt{D}$, recovering the $1/\sqrt{D}$ gain established
-by Baranwal et al.~\cite{baranwal2021graph} and confirming our model is calibrated
+by Baranwal et al.~\citeyearpar{baranwal2021graph} and confirming our model is calibrated
 against the known homophilic baseline. Second, $\rho^\star$ increases with $D$, so
 detectors operating on densely connected accounts tolerate more camouflage---the
 graph is a genuine asset for hub accounts long after it has become a liability for
@@ -155,7 +155,7 @@ the camouflage budget they need in order to break the detector shrinks.
 \label{rem:ma}
 Equation~\eqref{eq:critical} is not new in the balanced case, and we want to be
 explicit about what is and is not ours. For a symmetric CSBM with intra- and
-inter-class edge probabilities $p$ and $q$, Ma et al.~\cite[Thm.~2]{ma2022homophily}
+inter-class edge probabilities $p$ and $q$, Ma et al.~\citeyearpar[Thm.~2]{ma2022homophily}
 prove that a node is better classified after aggregation than before whenever
 $\deg(i) > (p+q)^2/(p-q)^2$. Their inter-class neighbour fraction is
 $\rho = q/(p+q)$, so $(p-q)/(p+q) = 1-2\rho$ and their condition rearranges to
@@ -168,14 +168,14 @@ What the extension adds is not merely a symbol. Three things change when the cla
 are imbalanced. (i) The two classes deflate by \emph{different} amounts, $\rho$ for
 bots and $\eta = c\rho$ for humans, so the post-aggregation class midpoint
 \emph{moves}; a comparison against a decision boundary held fixed at the raw-feature
-midpoint---as in~\cite{ma2022homophily}---is then no longer the right one, which is
-precisely the criticism Luan et al.~\cite{luan2023when} raise against that
+midpoint---as in~\citep{ma2022homophily}---is then no longer the right one, which is
+precisely the criticism Luan et al.~\citeyearpar{luan2023when} raise against that
 analysis. Our Theorem~\ref{thm:error} compares Bayes errors instead, and is
 insensitive to this. (ii) The edge-balance identity $\eta = c\rho$
 in~\eqref{eq:balance} is what couples the two, and it is what makes bot
 prevalence a robustness parameter rather than a training-time nuisance. (iii) The
 mixture-variance term $\rho(1-\rho)\|\Delta\|^2$ is absent from the covariance
-$I/\sqrt{\deg(i)}$ reported in~\cite{ma2022homophily}; including it moves
+$I/\sqrt{\deg(i)}$ reported in~\citep{ma2022homophily}; including it moves
 $\rho^\star$ from $0.53$ to $0.46$ in the configuration of
 Remark~\ref{rem:practical}, an $11.5\%$ correction to the threshold.
 \end{remark}
@@ -193,7 +193,7 @@ architectural mitigation is necessary rather than optional.
 \subsection{Spectral edge pruning provably extends the operating regime}
 \label{sec:sgtr-theory}
 
-SGTR~\cite{dang2026xhbot} scores each edge by a learned function of the feature
+SGTR~\citeyearpar{dang2026xhbot} scores each edge by a learned function of the feature
 discrepancy $(\mathbf{x}_u - \mathbf{x}_v)^2$, motivated by the per-edge
 decomposition of the Dirichlet energy $\mathbf{f}^\top L \mathbf{f} =
 \sum_{(u,v)\in\mathcal{E}} (f_u-f_v)^2$. The following lemma shows this quantity is
@@ -288,13 +288,13 @@ adversary; SGTR buys operating range, not immunity.
 \label{rem:sgtr-priority}
 The \emph{mechanism} in~\eqref{eq:rhoeff}---that edge reweighting acts by rescaling
 the effective inter-class edge share, so that weights enter only through the products
-of weight and edge rate---is not new. Weiss~\cite[Thm.~2]{weiss2026cost} proves the
+of weight and edge rate---is not new. Weiss~\citeyearpar[Thm.~2]{weiss2026cost} proves the
 corresponding statement for cost-sensitive aggregation with within- and
 cross-class weights $w_+ > w_-$, and shows the class-mean direction is preserved iff
 $w_+/w_- > q/p$; our~\eqref{eq:rhoeff} is that identity with $w_+ = 1-\bar e_w$ and
 $w_- = 1-\bar e_c$. The observation that only a perfect discriminator tolerates
 arbitrary heterophily is the contrapositive of the same condition. The related
-guarantee for graph attention in~\cite{fountoulakis2023graph} is qualitative but
+guarantee for graph attention in~\citep{fountoulakis2023graph} is qualitative but
 similar in spirit.
 
 What~\eqref{eq:rhostarsgtr} adds is the \emph{inversion}: composing that rescaling
@@ -304,7 +304,7 @@ is a short derivation, and we present it as a corollary of two known ingredients
 rather than as an independent discovery. Its value is operational: $\bar e_c$ is
 measurable for a deployed pruner, so~\eqref{eq:rhostarsgtr} turns a component
 ablation into a quantitative operating-range claim. We note also
-that~\cite{weiss2026cost} works in the dense regime where degree effects are absorbed
+that~\citep{weiss2026cost} works in the dense regime where degree effects are absorbed
 into $O(1/n)$, which removes the $D^{-1/2}$ term that our threshold depends on; the
 finite-$D$ setting is therefore necessary for a statement of this form.
 \end{remark}
@@ -327,7 +327,7 @@ of all weights, so $a$ and $b$ enter only through the ratio
 \end{equation}
 which we call the \emph{retained-weight ratio}; $\theta = 1$ is no pruning and
 $\theta = 0$ is perfect pruning. This is the same quantity that governs the
-cost-sensitive condition $w_+/w_- > q/p$ of~\cite{weiss2026cost}. In terms of
+cost-sensitive condition $w_+/w_- > q/p$ of~\citep{weiss2026cost}. In terms of
 $\theta$, the effective camouflage ratio of Theorem~\ref{thm:sgtr} is
 $\rho_{\mathrm{eff}} = \rho\theta/(\rho\theta + 1-\rho)$.
 
@@ -549,7 +549,7 @@ $L=1,\dots,4$ against $4.00, 15.49, 60.0, 232.4$ for a non-backtracking walk. De
 under backtracking therefore trades peak separability at low $\rho$ for a higher
 crossover---a bias--variance trade rather than a free gain, and one that favours
 architectures able to tune the ego weight rather than inherit it at
-$1/D$~\cite{zhu2020beyond,zhu2022how}.
+$1/D$~\citep{zhu2020beyond,zhu2022how}.
 
 Second, the harmful region is \emph{bounded above}. Only $|\lambda|$ enters, so at
 $L=1$ aggregation is harmful precisely on the window
@@ -564,9 +564,9 @@ humans, so its neighbourhood is strongly \emph{anti}-correlated with its label a
 informative once more, with the orientation reversed. We claim no novelty for this.
 It is the second root of the same inequality
 $\sqrt{D}\,|1-2\rho| > 1$ that Remark~\ref{rem:ma} attributes to
-Ma et al.~\cite{ma2022homophily}, whose symmetry in $|p-q|$ those authors discuss
+Ma et al.~\citeyearpar{ma2022homophily}, whose symmetry in $|p-q|$ those authors discuss
 directly, and the resulting ``intermediate heterophily is worst'' phenomenon is the
-mid-homophily pitfall named by Luan et al.~\cite{luan2023when}. We record it because
+mid-homophily pitfall named by Luan et al.~\citeyearpar{luan2023when}. We record it because
 it identifies the dangerous adversarial strategy as \emph{intermediate} rather than
 maximal camouflage, and because the upper edge exceeds $1$---so that the window
 degenerates to a one-sided threshold and no ``helps again'' regime exists---whenever
@@ -584,7 +584,7 @@ architecturally rather than by measurement.
 Detectors built on neighbourhood aggregation now routinely include a module that
 down-weights or removes suspicious ties, a second aggregation channel for
 dissimilar neighbours, or an explicit separation of an actor's own attributes from its
-neighbours'~\cite{dou2020caregnn,he2025bothp,dang2026xhbot}. Each of these is
+neighbours'~\citep{dou2020caregnn,he2025bothp,dang2026xhbot}. Each of these is
 justified in the literature by an ablation: removing the module costs accuracy on a
 benchmark. Our analysis supplies the missing account of \emph{why} they help and,
 more usefully, \emph{when}.

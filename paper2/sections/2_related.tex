@@ -9,21 +9,21 @@
 
 The operation we analyse has a long history in network analysis under several names.
 In the network autocorrelation model an actor's outcome is regressed on a weighted
-average of its alters' outcomes, and Leenders~\cite{leenders2002modeling} makes the
+average of its alters' outcomes, and Leenders~\citeyearpar{leenders2002modeling} makes the
 point on which this paper turns: the weight matrix is a substantive modelling
 commitment, not a technical detail, and the conclusions depend on it. Row-normalised
 weights---the natural choice, and the one implicit in most applications---are exactly
 the mean aggregation of Section~\ref{sec:model}. Everett and
-Borgatti~\cite{everett2026alter} give the general matrix formulation of \emph{alter
+Borgatti~\citeyearpar{everett2026alter} give the general matrix formulation of \emph{alter
 composition}, the profile of categories an actor is exposed to through its alters,
 and extend it to overlapping memberships; our camouflage ratio is a two-category
 alter-composition measure, and the question we ask is what happens to it when one
 category chooses its ties.
 
 Two in-journal results bear directly on the reliability of this inference.
-Roeling and Nicholls~\cite{roeling2020imputation} impute unobserved attributes from
+Roeling and Nicholls~\citeyearpar{roeling2020imputation} impute unobserved attributes from
 network structure and find the procedure sensitive to model misspecification and to
-missingness. V\"or\"os et al.~\cite{voros2019limits} report a negative result of the
+missingness. V\"or\"os et al.~\citeyearpar{voros2019limits} report a negative result of the
 same kind: across five countries, friendship relations turn out to be a poor proxy
 for status attributions, so one relation cannot be substituted for another. Both are
 warnings that neighbour-based inference is conditional rather than automatic; our
@@ -31,11 +31,11 @@ contribution is to give one condition in closed form, for the case where the fai
 is \emph{induced deliberately}.
 
 Homophily is the assumption the inference rests on, and its measurement is a
-developed literature here: Bojanowski and Corten~\cite{bojanowski2014measuring}
+developed literature here: Bojanowski and Corten~\citeyearpar{bojanowski2014measuring}
 survey and axiomatise segregation and homophily indices, and
-McMillan~\cite{mcmillan2022worth} shows that homophily measured on strong and weak
+McMillan~\citeyearpar{mcmillan2022worth} shows that homophily measured on strong and weak
 ties differs in magnitude, so that a single homophily figure for a population can be
-misleading. Noel and Nyhan~\cite{noel2011unfriending} demonstrate the consequence for
+misleading. Noel and Nyhan~\citeyearpar{noel2011unfriending} demonstrate the consequence for
 inference, showing that homophily in tie \emph{retention} biases estimates of social
 influence. Our results are the adversarial limit of this concern: we treat the degree
 of homophily violation as a decision variable of one class rather than a property of
@@ -45,13 +45,13 @@ the population.
 \label{sec:related-multiplex}
 
 That different relations among the same actors have different structure is a founding
-observation of this journal~\cite{lazega1999multiplexity}, and its methodological
+observation of this journal~\citep{lazega1999multiplexity}, and its methodological
 consequence---that collapsing relations into a single adjacency destroys information,
 while modelling them jointly quickly becomes intractable---is treated directly by
-V\"or\"os and Snijders~\cite{voros2017cluster}. Snijders et
-al.~\cite{snijders2013model} show the stronger version: structure apparently present
+V\"or\"os and Snijders~\citeyearpar{voros2017cluster}. Snijders et
+al.~\citeyearpar{snijders2013model} show the stronger version: structure apparently present
 in an advice relation is substantially mediated by the friendship relation beneath
-it. An et al.~\cite{an2026estimating} find the same phenomenon quantitatively, with
+it. An et al.~\citeyearpar{an2026estimating} find the same phenomenon quantitatively, with
 peer effects differing in magnitude between friends and classmates in a multilayer
 setting.
 
@@ -65,14 +65,14 @@ signal with an unusable one.
 \label{sec:related-strategic}
 
 The premise that actors form ties instrumentally, and with an eye to how they will be
-perceived, is established here but thinly populated. Burt et al.~\cite{burt2021network}
+perceived, is established here but thinly populated. Burt et al.~\citeyearpar{burt2021network}
 show experimentally that brokerage position causes attributions of leadership, and
 report participants re-shaping an assigned network to suit their preferences. Shea et
-al.~\cite{shea2019cheater} come closest to our mechanism: actors anticipating
+al.~\citeyearpar{shea2019cheater} come closest to our mechanism: actors anticipating
 unethical behaviour activate sparser networks that better conceal it, while those who
 have already acted unethically activate denser ones for support---network structure
 managed as a function of what the actor wants inferred about it. Barone and
-Coscia~\cite{barone2018birds} estimate trustworthiness from mutually inconsistent
+Coscia~\citeyearpar{barone2018birds} estimate trustworthiness from mutually inconsistent
 self-reports and find homophily in it, which is both an instance of inferring a
 latent attribute that actors have an incentive to misreport and a demonstration that
 the inference can work.
@@ -80,7 +80,7 @@ the inference can work.
 What is absent, so far as we can determine, is the case where the tie portfolio is
 \emph{engineered} to defeat the inference. We searched the journal's full record and
 found no treatment of automated or inauthentic accounts; the nearest work concerns
-misinformation susceptibility in personal networks~\cite{choi2026who}. We therefore
+misinformation susceptibility in personal networks~\citep{choi2026who}. We therefore
 take our terminology from this journal---alter composition, autocorrelation,
 exposure---and our substantive setting from the detection literature, rather than
 importing the latter's vocabulary wholesale.
@@ -89,29 +89,29 @@ importing the latter's vocabulary wholesale.
 \label{sec:related-degree}
 
 Our edge-endpoint identity requires a degree correction, and the reason is a
-long-standing concern here. Snijders~\cite{snijders1981degree} introduced degree
-variance as an index of graph heterogeneity; Anderson et al.~\cite{anderson1999interaction}
+long-standing concern here. Snijders~\citeyearpar{snijders1981degree} introduced degree
+variance as an index of graph heterogeneity; Anderson et al.~\citeyearpar{anderson1999interaction}
 showed that graph-level indices are systematically confounded by size and density; and
-Krivitsky et al.~\cite{krivitsky2009representing} exhibit networks with identical,
+Krivitsky et al.~\citeyearpar{krivitsky2009representing} exhibit networks with identical,
 highly skewed degree distributions but entirely different structure, concluding that
 degree-based accounts cannot by themselves identify structure. Section~\ref{sec:measuring}
 bears this out: the identity requires its degree factor wherever class mean degrees
 differ, and holds exactly once it is included.
 
 The stochastic blockmodel we build on originates in this
-journal~\cite{holland1983stochastic}. Degree correction \emph{within} blockmodels is
+journal~\citep{holland1983stochastic}. Degree correction \emph{within} blockmodels is
 much less developed here; the one instance we found, Yu et
-al.~\cite{yu2018detecting}, monitors node propensity in a dynamic degree-corrected
+al.~\citeyearpar{yu2018detecting}, monitors node propensity in a dynamic degree-corrected
 blockmodel in order to detect anomalous nodes, which is close to our setting in both
 model and purpose.
 
 \subsection{Analyses of neighbourhood averaging in the machine-learning literature}
 
 
-The contextual stochastic block model~\cite{deshpande2018contextual} couples a
+The contextual stochastic block model~\citep{deshpande2018contextual} couples a
 stochastic block model with Gaussian node attributes and has become the standard
 setting for asking what message passing does to statistical separability. Baranwal
-et al.~\cite{baranwal2021graph} established the central positive result: for a
+et al.~\citeyearpar{baranwal2021graph} established the central positive result: for a
 two-class CSBM, one graph convolution improves the regime of linear separability by
 a factor of roughly $1/\sqrt{D}$ in the expected degree $D$, and the resulting
 classifier generalises out of distribution to graphs with different edge
@@ -120,28 +120,28 @@ probabilities.
 That analysis assumes the generative process is homophilic---inter-class edges arise
 from a fixed, non-adversarial probability---and establishes only the positive side.
 Its follow-ups extend the positive results to multiple
-layers~\cite{baranwal2023effects} and characterise the locally Bayes-optimal
+layers~\citep{baranwal2023effects} and characterise the locally Bayes-optimal
 architecture as one that \emph{interpolates} between an MLP in the low-graph-signal
-regime and a convolution in the high-signal regime~\cite{baranwal2023optimality}.
+regime and a convolution in the high-signal regime~\citep{baranwal2023optimality}.
 Our Corollary~\ref{cor:critical} reduces to the $1/\sqrt{D}$ separability gain
-of~\cite{baranwal2021graph} when $\rho = 0$, which calibrates our model against this
+of~\citep{baranwal2021graph} when $\rho = 0$, which calibrates our model against this
 baseline.
 
 \paragraph{The crossover is known; our contribution is the imbalanced and
 adversarial case.} We state the priority situation plainly, because it determines
 what this paper does and does not claim. A closed-form threshold at which mean
 aggregation becomes worse than the graph-free classifier was established by Ma
-et al.~\cite[Thm.~2]{ma2022homophily} for the \emph{balanced} symmetric CSBM, and
+et al.~\citeyearpar[Thm.~2]{ma2022homophily} for the \emph{balanced} symmetric CSBM, and
 Corollary~\ref{cor:critical} recovers their condition exactly at $c = 1$
 (Remark~\ref{rem:ma} works the algebra through). Related crossover analyses have
-since appeared: Luan et al.~\cite{luan2023when} compute the Bayes error of
+since appeared: Luan et al.~\citeyearpar{luan2023when} compute the Bayes error of
 graph-aware against graph-agnostic classifiers under a homophily parameter with
 per-class variances and degrees, locating the intersection points directly and
-criticising the fixed-classifier comparison used in~\cite{ma2022homophily}; Mao
-et al.~\cite{mao2023demystifying} prove the per-node version, that a GCN beats an
+criticising the fixed-classifier comparison used in~\citep{ma2022homophily}; Mao
+et al.~\citeyearpar{mao2023demystifying} prove the per-node version, that a GCN beats an
 MLP on homophilic nodes and loses on heterophilic ones \emph{within the same graph};
 and the graph-attention analysis of Fountoulakis
-et al.~\cite{fountoulakis2023graph} both identifies the same signal-deflation
+et al.~\citeyearpar{fountoulakis2023graph} both identifies the same signal-deflation
 factor and proves that attention---the closest analogue to soft edge
 pruning---is lower-bounded by the better of convolution and the graph-free
 classifier, while also showing (their Theorems~9 and~13) that no attention
@@ -152,15 +152,15 @@ harmful''. It is that the adversarial, class-imbalanced case is not a relabellin
 the balanced one: the two classes deflate asymmetrically, which moves the decision
 boundary and invalidates a fixed-boundary comparison; bot prevalence enters the
 threshold through $\eta = c\rho$ as a robustness parameter; and the mixture-variance
-term omitted in~\cite{ma2022homophily} shifts the threshold by $11.5\%$. Read this way,
-the closest antecedent to Theorem~\ref{thm:sgtr} is~\cite{fountoulakis2023graph},
+term omitted in~\citep{ma2022homophily} shifts the threshold by $11.5\%$. Read this way,
+the closest antecedent to Theorem~\ref{thm:sgtr} is~\citep{fountoulakis2023graph},
 which gives the qualitative guarantee for attention; we give a closed form for how
 far a pruner of a given quality moves the threshold.
 
 A parallel literature studies the limits of repeated aggregation. Over-smoothing
-analyses~\cite{li2018deeper,oono2020graph} show node representations converge to
+analyses~\citep{li2018deeper,oono2020graph} show node representations converge to
 an uninformative subspace as depth grows, and spectral
-accounts~\cite{nt2019revisiting} characterise graph convolution as a low-pass
+accounts~\citep{nt2019revisiting} characterise graph convolution as a low-pass
 filter. These results concern degradation with \emph{depth} under a fixed graph.
 The effect we analyse is orthogonal: a single layer already suffers signal loss
 when the \emph{topology itself} is adversarial. The two mechanisms compound, but
@@ -171,7 +171,7 @@ our critical ratio is present at $L = 1$.
 The finding that homophily-assuming GNNs degrade on heterophilic graphs motivated a
 family of architectures that separate ego from neighbour representations, aggregate
 over higher-order neighbourhoods, or combine low- and high-frequency
-signals~\cite{zhu2020beyond,luan2022revisiting}. Ma et al.~\cite{ma2022homophily}
+signals~\citep{zhu2020beyond,luan2022revisiting}. Ma et al.~\citeyearpar{ma2022homophily}
 show in addition that homophily is not strictly necessary: GNNs can succeed on
 heterophilic graphs when inter-class neighbourhood \emph{distributions} are
 sufficiently distinguishable.
@@ -195,12 +195,12 @@ treated it as one.
 
 The first replaces the mean with a robust estimator. In Byzantine-robust distributed
 learning a fraction of workers report corrupted updates, and aggregation rules such
-as Krum~\cite{blanchard2017machine} and coordinate-wise median or trimmed
-mean~\cite{yin2018byzantine} bound the resulting error. The idea has been imported
+as Krum~\citeyearpar{blanchard2017machine} and coordinate-wise median or trimmed
+mean~\citep{yin2018byzantine} bound the resulting error. The idea has been imported
 into GNN neighbourhood aggregation directly: Geisler
-et al.~\cite{geisler2020reliable} construct an aggregation with the maximal
+et al.~\citeyearpar{geisler2020reliable} construct an aggregation with the maximal
 breakdown point of $0.5$, so the bias stays bounded while fewer than half of a
-node's edges are adversarial, and Chen et al.~\cite{chen2021understanding} attribute
+node's edges are adversarial, and Chen et al.~\citeyearpar{chen2021understanding} attribute
 the structural vulnerability of GCNs specifically to the non-robustness of the
 weighted mean, analysed through the breakdown point.
 
@@ -211,30 +211,30 @@ contamination---human features are not arbitrary---and marks where the $\sqrt{D}
 variance reduction ceases to pay for the $(1+c)\rho$ bias. The two quantities answer
 different questions, and $\rho^\star$ is the weaker of the two.
 
-The second literature attacks the topology. Nettack~\cite{zugner2018adversarial} and
-Metattack~\cite{zugner2019adversarial} insert or remove edges to flip predictions,
-and defences such as GNNGuard~\cite{zhang2020gnnguard} and
-Pro-GNN~\cite{jin2020graph} filter them, largely heuristically. Two results in this
-line bear directly on ours. Zhu et al.~\cite{zhu2022how} prove the bridge our model
+The second literature attacks the topology. Nettack~\citeyearpar{zugner2018adversarial} and
+Metattack~\citeyearpar{zugner2019adversarial} insert or remove edges to flip predictions,
+and defences such as GNNGuard~\citeyearpar{zhang2020gnnguard} and
+Pro-GNN~\citeyearpar{jin2020graph} filter them, largely heuristically. Two results in this
+line bear directly on ours. Zhu et al.~\citeyearpar{zhu2022how} prove the bridge our model
 assumes---that impactful structural attacks on homophilous data necessarily reduce
 homophily---and derive the ego/neighbour-separation design principle from it.
-Mujkanovic et al.~\cite{mujkanovic2022are} show empirically that under adaptive
+Mujkanovic et al.~\citeyearpar{mujkanovic2022are} show empirically that under adaptive
 attack, defended GNNs can underperform an MLP that ignores the topology outright;
 our Corollary~\ref{cor:critical} can be read as a closed-form account of when that
-should be expected. Certified-robustness work~\cite{bojchevski2019certifiable} is
+should be expected. Certified-robustness work~\citep{bojchevski2019certifiable} is
 orthogonal: it certifies that a prediction is unchanged within a perturbation
 budget, never that the graph has become net-harmful beyond one. Gosch
-et al.~\cite{gosch2023revisiting} come closest in combining a CSBM, an adversary,
+et al.~\citeyearpar{gosch2023revisiting} come closest in combining a CSBM, an adversary,
 and a Bayes-optimal yardstick, but use it to show GNNs are \emph{over}-robust,
 insensitive past the point of genuine semantic change.
 
 \subsection{Camouflage-resistant detectors}
 
-CARE-GNN~\cite{dou2020caregnn} introduced the camouflage framing to GNN-based fraud
+CARE-GNN~\citeyearpar{dou2020caregnn} introduced the camouflage framing to GNN-based fraud
 detection, using a label-aware similarity measure and a reinforcement-learning
 neighbour selector to filter uninformative edges. Bot-detection work has since
-adopted the pattern: BotHP~\cite{he2025bothp} separates ego and neighbour encoders
-to mitigate interaction camouflage, and XHBot~\cite{dang2026xhbot} combines
+adopted the pattern: BotHP~\citeyearpar{he2025bothp} separates ego and neighbour encoders
+to mitigate interaction camouflage, and XHBot~\citeyearpar{dang2026xhbot} combines
 spectral edge pruning, tri-channel aggregation, and contrastive disentanglement.
 
 These methods are validated by ablation. An ablation establishes that removing a
