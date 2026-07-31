@@ -70,9 +70,12 @@ $\lambda^L\|\Delta\|$: the $j<L$ terms are deflated less, and the $j=0$ term not
 all.
 
 \emph{Noise.} For independent $\mathcal{N}(0,\sigma^2)$ noise,
-$\operatorname{Var}(\mathbf{h}^{(L)}_v) = \sigma^2\|P^Le_v\|^2
- = \sigma^2\sum_j N_j (q^{(L)}_j/N_j)^2
- = \sigma^2\sum_j (q^{(L)}_j)^2/N_j$.
+\[
+  \operatorname{Var}\bigl(\mathbf{h}^{(L)}_v\bigr)
+  = \sigma^2\bigl\|P^Le_v\bigr\|^2
+  = \sigma^2\sum_j N_j \bigl(q^{(L)}_j/N_j\bigr)^2
+  = \sigma^2\sum_j \bigl(q^{(L)}_j\bigr)^2 / N_j .
+\]
 Dividing signal by noise and normalising by
 $\mathrm{SNR}_{\mathrm{raw}} = \|\Delta\|/(2\sigma)$ gives~\eqref{eq:depth-exact};
 the absolute value is required because $\sum_j q_j\lambda^j$ can be negative.
