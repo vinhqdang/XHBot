@@ -51,10 +51,46 @@
 \affilnum{3}University of Economics and Finance, Ho Chi Minh City, Vietnam}
 
 \abstract{
-Graph neural networks (GNNs) are the dominant paradigm for social bot detection, yet modern bots evade them by \emph{relation camouflage}: deliberately following genuine users so that homophilic message passing dilutes their anomalous features. This failure mode is widely reported empirically but has not been characterised analytically, leaving practitioners without guidance on when a graph-based detector is worth deploying at all. We develop a theory of relation camouflage in a contextual stochastic block model in which bots control a camouflage ratio $\rho$. We prove that one round of mean aggregation deflates the bot--human feature separation by an exact factor $1-\rho-\eta(\rho)$, where $\eta$ is the induced bot fraction in human neighbourhoods, and derive the resulting Bayes error in closed form. This yields a \emph{critical camouflage ratio} $\rho^\star$ beyond which a homophilic GNN is worse than ignoring the graph and classifying raw features; in the noise-dominated regime $\rho^\star = (1-D^{-1/2})/(1+c)$ for neighbourhood size $D$ and bot-to-human ratio $c$. We are explicit that such a crossover is not new: at $c=1$ this recovers Theorem~2 of Ma et al.\ (ICLR 2022), and at $\rho=0$ the known $1/\sqrt{D}$ separability gain of graph convolution. Our contribution is the class-imbalanced adversarial case, where the two classes deflate asymmetrically through the edge-balance identity $\eta = c\rho$, making bot prevalence itself a robustness parameter, together with a mixture-variance correction that shifts the threshold by $13\%$. We then analyse the three components of the XHBot detector. We show that the Dirichlet-energy edge score used by Spectral-Guided Topology Refinement (SGTR) separates camouflage from genuine edges by exactly $\|\Delta\|^2$ in expectation, and give a closed form for how far pruning of a given quality shifts the threshold---showing that pruning trades bias against effective degree rather than buying robustness for free, and bounding the quality achievable from the exact law of the edge score; that a non-mean channel is needed for reasons already implicit in the multiset-injectivity literature; and that the contrastive prototype objective maximises a variational lower bound on the mutual information between the behavioural code and the label, while its orthogonality penalty controls code dependence only under a joint-Gaussian assumption---a limitation we state explicitly. We further show that the crossover moves with depth, because mean aggregation backtracks and thereby supplies an implicit residual connection that reinjects undeflated features. All closed forms are validated against Monte-Carlo simulation, and we \emph{measure} $\rho$ on real labelled fraud graphs, finding $\hat\rho \approx 0.80$--$0.90$ and confirming $\eta \approx c\rho$ to within $3\%$ where its degree assumption holds. The theory turns an empirical design heuristic into a checkable deployment criterion, and identifies the gap between achievable and ideal edge scoring as the quantity that decides whether a graph is worth using.
+Inferring an actor's attributes from those of its network neighbours is among the
+oldest uses of relational data, and it rests on homophily: neighbours are assumed to
+be informative. We ask what happens when an actor \emph{chooses} its ties in order to
+defeat that inference. Automated accounts on social platforms do exactly this,
+forming ties to genuine users so that their local neighbourhood resembles a genuine
+one---a strategy known as relation camouflage. We formalise it with a single
+structural parameter, the \emph{camouflage ratio} $\rho$, the share of an actor's
+ties directed at the other class, and ask when neighbourhood information still
+improves on attributes alone.
+
+Three results follow. First, camouflage is not a private act: because a tie has two
+ends, an actor that camouflages necessarily contaminates its neighbours'
+neighbourhoods in turn. Edge-endpoint conservation forces the induced contamination
+of the majority to be $\eta = c\rho$, where $c$ is the minority-to-majority ratio, so
+that \emph{prevalence acts as protection}---the more common the strategic actors, the
+less camouflage each one needs to defeat relational inference. Second, this yields a
+threshold $\rho^\star = (1-D^{-1/2})/(1+c)$ in the mean neighbourhood size $D$, above
+which averaging over neighbours is worse than ignoring the network entirely, and a
+bounded interval above which relational information becomes informative again with
+its sign reversed: the most damaging strategy is \emph{intermediate}, not maximal,
+camouflage. We are explicit that a crossover of this kind is not new---at $c = 1$ it
+recovers a result of Ma et al.\ (2022) and the interval is the second root of the
+same condition---and that our contribution is the asymmetric, class-imbalanced case
+together with a variance correction that shifts the threshold by $13\%$. Third,
+selectively discarding suspicious ties does not straightforwardly restore inference:
+it trades bias against the number of ties left to average over, and we bound the
+discrimination achievable from attribute discrepancies alone.
+
+We then measure $\rho$ on three labelled empirical networks, finding
+$\hat\rho \approx 0.80$--$0.90$ on dense relations, that $\eta \approx c\rho$ holds
+to within $3\%$ where its degree assumption is met, and that camouflage varies by an
+order of magnitude \emph{across relation types within the same population}---so that
+multiplexity, not aggregate density, determines whether relational inference is
+usable. We provide the estimator and discuss the implications for automated
+detection, where these mechanisms are currently addressed by architectural heuristics
+rather than by measurement.
+
 }
 
-\keywords{Social Bot Detection, Graph Neural Networks, Heterophily, Contextual Stochastic Block Model, Learning Theory}
+\keywords{Relational inference, Homophily, Strategic tie formation, Multiplexity, Social bots, Stochastic block models}
 
 \fnotetext[1]{Corresponding author.  Email: \email{datla@uef.edu.vn}}
 
