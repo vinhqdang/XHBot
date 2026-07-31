@@ -297,12 +297,4 @@ requires only data access; \texttt{theory/measure\_rho.py} implements the estima
 and validates it against planted ground truth, recovering $\rho$ exactly and
 confirming $\eta = c\rho$ on synthetic graphs with regular degrees.
 
-\subsection{THCA}
-
-Theorem~\ref{thm:thca} is constructive and we verify both halves programmatically.
-The neighbourhoods $\{0,2\}$ and $\{1,1\}$ have identical means ($1.0$ and $1.0$)
-and distinct maxima ($2.0$ and $1.0$), so mean aggregation cannot separate them
-while the max channel can; and setting $\alpha = (1,0,0)$ reproduces the homophilic
-channel exactly. Both checks pass.
-
 \end{document}

@@ -145,17 +145,4 @@ pattern, not because the analysis is specific to that system: the edge-scoring
 result applies to any feature-discrepancy pruning rule, and the expressivity result
 to any aggregator that adds a permutation-invariant non-mean channel.
 
-\subsection{Contrastive objectives and disentanglement}
-
-The InfoNCE objective~\cite{oord2018representation} is standard in representation
-learning, and Poole et al.~\cite{poole2019variational} place it within a family of
-variational bounds on mutual information, establishing the $\log K$ bound we invoke
-in Proposition~\ref{prop:nce}. Against this, Locatello
-et al.~\cite{locatello2019challenging} prove that unsupervised disentanglement is
-impossible without inductive bias or supervision. We do not attempt to evade that
-result. Section~\ref{sec:cpd-theory} states precisely which assumption the
-orthogonality penalty needs in order to control statistical dependence, and
-identifies the label supervision in the prototype term as the inductive bias that
-makes the behavioural code identifiable at all.
-
 \end{document}

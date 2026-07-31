@@ -552,130 +552,43 @@ degenerates to a one-sided threshold and no ``helps again'' regime exists---when
 $c < D^{-1/2}$, which is the case for all of the real graphs measured in
 Section~\ref{sec:measuring}.
 
-\subsection{Why a non-mean channel is needed}
+\subsection{Implications for automated detection}
+\label{sec:implications}
 
-The expressivity argument for tri-channel aggregation is a direct application of the
-standard multiset-injectivity analysis of Xu et al.~\cite{xu2019powerful}, and we
-record it as a proposition rather than claim it as a new result. It is included
-because it settles the third question of Section~\ref{sec:intro}---whether
-multi-channel aggregation is more \emph{capable} or merely better
-parameterised---which an ablation cannot settle.
+The three results above are statements about network structure, but they bear directly
+on how automated accounts are detected in practice, and it is worth making the
+connection explicit because the current literature addresses these mechanisms
+architecturally rather than by measurement.
 
-\begin{proposition}[Expressivity separation; after~\cite{xu2019powerful}]
-\label{thm:thca}
-Let $\mathcal{F}_{\mathrm{mean}}$ be the class of functions computable by any
-single-channel homophilic aggregator of the form
-$\mathbf{h}_v = \phi\bigl(W \cdot \mathrm{mean}_{u\in\mathcal{N}(v)} \mathbf{x}_u\bigr)$,
-and $\mathcal{F}_{\mathrm{THCA}}$ the class computable by tri-channel aggregation
-with homophilic, max-pooling, and self channels under attention fusion. Then
-$\mathcal{F}_{\mathrm{mean}} \subsetneq \mathcal{F}_{\mathrm{THCA}}$.
-\end{proposition}
+Detectors built on neighbourhood aggregation now routinely include a module that
+down-weights or removes suspicious ties, a second aggregation channel for
+dissimilar neighbours, or an explicit separation of an actor's own attributes from its
+neighbours'~\cite{dou2020caregnn,he2025bothp,dang2026xhbot}. Each of these is
+justified in the literature by an ablation: removing the module costs accuracy on a
+benchmark. Our analysis supplies the missing account of \emph{why} they help and,
+more usefully, \emph{when}.
 
-\begin{proof}
-\emph{Containment.} Setting the fusion weights to $\alpha_H = 1$,
-$\alpha_X = \alpha_S = 0$ reproduces the homophilic channel exactly, so every
-$f \in \mathcal{F}_{\mathrm{mean}}$ is realised.
+Tie-discarding modules are the case analysed in Section~\ref{sec:achievable}, and the
+analysis is less encouraging than the ablations suggest: discarding ties trades bias
+against the number of ties left to average over, so its benefit is bounded by the
+quality of the underlying suspicion score, and on the networks we measure a score
+based on attribute discrepancy alone is far too weak to restore inference
+(Section~\ref{sec:measuring}). Separating an actor's own attributes from its
+neighbours' is, by Theorem~\ref{thm:depth}, a way of making explicit and tunable a
+term that iterated averaging already supplies at the fixed weight $1/D$---which
+explains why the device helps most in exactly the regime, low degree and high
+camouflage, where that fixed weight is least appropriate. And the finding that
+camouflage differs by an order of magnitude across relation types within one
+population implies that a detector pooling relations into a single adjacency is
+averaging a usable signal with an unusable one; our thresholds apply per relation, and
+suggest treating relation selection as a measurement question prior to model choice.
 
-\emph{Strictness.} Consider the scalar neighbourhood multisets
-$\mathcal{N}_1 = \{0, 2\}$ and $\mathcal{N}_2 = \{1, 1\}$. Both have mean $1$, so
-$\mathrm{mean}(\mathcal{N}_1) = \mathrm{mean}(\mathcal{N}_2)$ and hence
-$\phi(W\cdot 1)$ is identical for both under \emph{every} choice of $\phi$ and $W$:
-no member of $\mathcal{F}_{\mathrm{mean}}$ separates them. The max-pooling channel
-with identity $\mathrm{MLP}_X$ returns $\max(\mathcal{N}_1) = 2 \neq 1 =
-\max(\mathcal{N}_2)$, so a tri-channel aggregator with $\alpha_X > 0$ assigns them
-distinct representations. Hence the inclusion is strict.
-\end{proof}
-
-The separating instance is not a pathology: $\{0,2\}$ versus $\{1,1\}$ is precisely
-the contrast between a node with one extreme neighbour and one with two typical
-neighbours---the signature of an account with a small number of highly anomalous
-connections. Mean aggregation is blind to it by construction, which is the
-structural reason a heterophilic channel is needed rather than merely helpful.
-
-\subsection{What the disentanglement objective does and does not guarantee}
-\label{sec:cpd-theory}
-
-CPD~\cite{dang2026xhbot} combines a supervised prototype InfoNCE term with an
-orthogonality penalty $\mathcal{L}_{MI} = \frac{1}{N}\sum_v \|(\mathbf{z}^b_v)^\top
-\mathbf{z}^s_v\|_F^2$. The two terms warrant different levels of confidence, and we
-state them separately.
-
-\begin{proposition}[The prototype term maximises an MI lower bound]
-\label{prop:nce}
-Let $\mathcal{L}_{NCE}$ be the supervised prototype InfoNCE loss over $K$ class
-prototypes. Then
-\begin{equation}
-    I(\mathbf{z}^b; y) \;\geq\; \log K - \mathcal{L}_{NCE},
-\end{equation}
-so minimising $\mathcal{L}_{NCE}$ maximises a variational lower bound on the mutual
-information between the behavioural code and the label.
-\end{proposition}
-
-\begin{proof}
-This is the InfoNCE bound of~\cite{oord2018representation} in the form given by
-Poole et al.~\cite{poole2019variational}, instantiated with the $K$ prototypes as
-the contrastive set and the critic $f(\mathbf{z}, k) = (\mathbf{z}^b)^\top
-\mathbf{P}_k / \tau_{nce}$.
-\end{proof}
-
-\begin{remark}
-The bound saturates at $\log K$, which for binary bot detection is $\log 2$. The
-objective therefore cannot certify more than one bit of label information, and its
-practical value lies in shaping the geometry of the code rather than in the
-tightness of the bound---a caveat we consider important to state, since the
-$\log K$ ceiling is often left implicit.
-\end{remark}
-
-\begin{proposition}[The orthogonality penalty controls dependence only under a
-Gaussian assumption]
-\label{prop:mi}
-If $(\mathbf{z}^b, \mathbf{z}^s)$ are jointly Gaussian with cross-correlation $r$,
-then $I(\mathbf{z}^b;\mathbf{z}^s) = -\tfrac{1}{2}\log(1-r^2)$, so
-$\mathcal{L}_{MI} \to 0$ implies $I \to 0$. Without the joint-Gaussian assumption
-the implication fails: $\mathcal{L}_{MI} = 0$ enforces only uncorrelatedness, and
-there exist uncorrelated but strongly dependent codes.
-\end{proposition}
-
-\begin{proof}
-The identity for the bivariate Gaussian is standard. For the converse, take
-$z^b \sim \mathcal{N}(0,1)$ and $z^s = (z^b)^2 - 1$: then
-$\mathbb{E}[z^b z^s] = \mathbb{E}[(z^b)^3] - \mathbb{E}[z^b] = 0$, so the penalty
-vanishes, yet $z^s$ is a deterministic function of $z^b$ and
-$I(z^b; z^s) = \infty$ in the continuous sense.
-\end{proof}
-
-We draw the honest conclusion. $\mathcal{L}_{MI}$ is a \emph{surrogate}, exact only
-in the Gaussian case, and the empirical success of CPD should not be read as
-evidence of guaranteed independence between behavioural and positional codes.
-Moreover, by the impossibility result of Locatello
-et al.~\cite{locatello2019challenging}, no purely unsupervised objective can
-identify the two factors; what makes the behavioural code identifiable here is the
-\emph{label supervision} in the prototype term, which anchors one of the two
-subspaces. The positional code carries no such anchor and is identified only up to
-the residual subspace---a limitation of the design, not of the analysis.
-
-\subsection{Computational cost}
-
-\begin{proposition}[No asymptotic overhead]
-\label{prop:complexity}
-For a graph with $N$ nodes, $|\mathcal{E}|$ edges, and hidden width $d$, one layer
-of SGTR followed by tri-channel aggregation and attention fusion costs
-$O(|\mathcal{E}|d + Nd^2)$ time and $O(|\mathcal{E}| + Nd)$ memory---the same order
-as a single relational graph convolution.
-\end{proposition}
-
-\begin{proof}
-SGTR evaluates a fixed-width scoring function per edge: $O(|\mathcal{E}|d)$. The
-homophilic and max-pooling channels each perform one pass over the edge set with a
-$d \times d$ transform per node, $O(|\mathcal{E}|d + Nd^2)$; the self channel is
-$O(Nd^2)$; attention fusion computes three scalars per node, $O(Nd)$. Summing the
-three channels multiplies the constant by a factor of at most three and leaves the
-order unchanged. Memory is dominated by storing edge weights and node states.
-\end{proof}
-
-The practical content is that the theoretical robustness gains of
-Theorem~\ref{thm:sgtr} and Theorem~\ref{thm:thca} are obtained without changing the
-asymptotic cost profile, which is consistent with the sub-millisecond per-node
-inference reported for the deployed system~\cite{dang2026xhbot}.
+We draw one broader methodological conclusion. Because $\rho$, $c$, $D$ and the
+attribute separation are all estimable from data a practitioner already has, the
+question ``is relational information worth using here?'' can be answered before
+fitting any model, and per relation rather than for a network as a whole. That is a
+more informative starting point than an ablation, which reports only that a component
+helped on one benchmark without indicating the conditions under which it would stop
+helping.
 
 \end{document}

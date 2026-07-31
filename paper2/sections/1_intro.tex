@@ -4,50 +4,46 @@
 \section{Introduction}
 \label{sec:intro}
 
-Graph neural networks (GNNs) have become the default architecture for social bot
-detection. By treating accounts as nodes and interactions as edges, models such as
-BotRGCN~\cite{feng2021botrgcn} and its successors exploit the observation that
-automated accounts are easier to identify collectively than individually. The
-premise underlying this entire family of methods is \emph{homophily}: the
-assumption that an account's neighbours are informative about its label, so that
-averaging over a neighbourhood sharpens rather than blurs the signal.
+One of the oldest uses of relational data is to infer something about an actor from
+the actors it is connected to. The inference rests on \emph{homophily}: if ties are
+formed preferentially between similar actors, then a neighbourhood is informative
+about its centre, and averaging over it estimates the centre's attributes more
+precisely than the centre's own noisy attributes do. Variants of this logic underpin
+network autocorrelation models, peer-influence estimation, and relational
+classification.
 
-Modern bots attack exactly this premise. Rather than forming the dense, mutually
-connected ``bot-nets'' of earlier generations, contemporary accounts engage in
-\emph{relation camouflage}~\cite{dou2020caregnn,cresci2020decade}: they
-deliberately follow and interact with large numbers of genuine users, so that a
-bot's neighbourhood looks statistically like a human's. Under standard message
-passing, the bot's anomalous features are averaged against benign neighbours and
-the discriminative signal is diluted---a failure mode that recent bot-detection
-work reports consistently~\cite{he2025bothp,dang2026xhbot}.
+This paper asks what happens when an actor \emph{chooses} its ties in order to defeat
+that inference. The setting where this is most consequential, and where labelled data
+exists, is the detection of automated accounts on social platforms. Early generations
+of such accounts formed dense, mutually connected clusters and were consequently easy
+to identify collectively. Contemporary ones do the opposite: they form ties to large
+numbers of genuine users so that their local neighbourhood is statistically
+indistinguishable from a genuine actor's---a strategy known in that literature as
+\emph{relation camouflage}~\cite{dou2020caregnn,cresci2020decade}. The strategy is
+purposive and cheap, and it targets the inferential mechanism rather than any
+particular detector.
 
-The empirical response has been architectural. Detectors now prune suspicious
-edges, split aggregation into homophilic and heterophilic channels, or disentangle
-behavioural from positional signals; XHBot~\cite{dang2026xhbot} combines all three.
-These designs demonstrably help, but the evidence for \emph{why} they help is
-almost entirely ablation-driven. Three practical questions therefore remain
-unanswered:
+We formalise it with one structural parameter, the \emph{camouflage ratio} $\rho$: the
+share of a strategic actor's ties directed at the other class. Two questions then
+have precise answers.
 
 \begin{enumerate}
-    \item \textbf{When is a graph-based detector worth deploying at all?} If
-    camouflage is severe enough, averaging over a neighbourhood must eventually do
-    more harm than good. Practitioners have no criterion for where that point lies.
-    \item \textbf{What does edge pruning actually buy?} Pruning modules are
-    justified by ablation deltas, not by a statement of the form ``this module
-    extends the operating regime by \emph{this much}''.
-    \item \textbf{Are multi-channel aggregators genuinely more expressive, or
-    merely better tuned?} An architecture with more parameters that wins an
-    ablation has not thereby been shown to be more capable.
+    \item \textbf{When is relational information worth using at all?} If camouflage
+    is severe enough, averaging over neighbours must eventually be worse than
+    ignoring the network and using attributes alone. Practitioners have no criterion
+    for where that point lies, and---as we show---it depends on quantities they can
+    already measure.
+    \item \textbf{Does selectively discarding suspicious ties restore the
+    inference?} Discarding ties is the standard remedy, and it is justified almost
+    entirely by ablation: removing the step costs accuracy on a benchmark. That is
+    not a statement about the conditions under which it works.
 \end{enumerate}
 
-This paper answers these questions analytically. We adopt a contextual stochastic
-block model (CSBM)~\cite{deshpande2018contextual} augmented with an explicit
-adversarial parameter---the \emph{camouflage ratio} $\rho$, the fraction of a bot's
-edges directed at humans---and study what one round of mean aggregation does to
-class separability as $\rho$ grows. This places the work in the line of analysis
-opened by Baranwal et al.~\cite{baranwal2021graph}, who showed that graph
-convolution improves linear separability by a factor of roughly $1/\sqrt{D}$ for
-neighbourhood size $D$ under a homophilic generative process.
+Our analysis is conducted in a contextual stochastic block
+model~\cite{deshpande2018contextual}---a stochastic block model with attributes on
+the nodes---augmented with $\rho$ as an explicit strategic parameter, and we study
+what neighbourhood averaging does to the separation between the two classes as $\rho$
+grows.
 
 \paragraph{What is already known.} We are explicit about priority from the outset.
 For a \emph{balanced} symmetric CSBM, Ma et al.~\cite[Thm.~2]{ma2022homophily}
@@ -97,45 +93,12 @@ far edge pruning shifts the threshold.
     pruner, this converts an ablation delta into an operating-range claim, and makes
     explicit that no imperfect pruner attains immunity.
 
-    \item \textbf{An honest account of the disentanglement objective.} We show the
-    contrastive prototype loss maximises a variational lower bound on the mutual
-    information between behavioural code and label
-    (Proposition~\ref{prop:nce}), and prove the orthogonality penalty controls
-    code dependence \emph{only} under a joint-Gaussian assumption
-    (Proposition~\ref{prop:mi}). We state plainly where this falls short of
-    identifiability, in light of known impossibility results for unsupervised
-    disentanglement~\cite{locatello2019challenging}.
-
-    \item \textbf{A ceiling on what pruning can achieve.} Down-weighting edges
-    non-uniformly also forfeits effective degree, so pruning trades bias against
-    variance rather than buying the former for free
-    (Proposition~\ref{prop:deff}). Accounting for this corrects a conclusion that
-    the composition analysis alone suggests: even a \emph{perfect} pruner tolerates
-    only $\rho < 1 - 1/D$, not $\rho \to 1$ (Corollary~\ref{cor:ceiling}). We then
-    bound the achievable pruning quality from the exact law of the edge score,
-    which removes the free parameter: the tolerance becomes a function of
-    $(D, c, r, d)$ alone.
-
-    \item \textbf{Depth, and an upper edge to the harmful region.} We give the
-    exact mean--variance recursion across layers (Theorem~\ref{thm:depth}) and show
-    the crossover is \emph{independent of depth}, while the gain or loss compounds
-    exponentially in it. Because only $|\lambda|$ matters, the harmful region is a
-    bounded \emph{window}: beyond it a bot's neighbourhood is strongly
-    anti-correlated with its label and so informative again. The dangerous strategy
-    is intermediate camouflage, not maximal camouflage.
-
-    \item \textbf{Measurement on real graphs, and validation.} Every closed form is
-    checked against Monte-Carlo simulation. Beyond that we \emph{measure} $\rho$ on
-    two real labelled fraud graphs, finding $\hat\rho \approx 0.80$--$0.90$, just
-    inside the predicted harmful window, and confirming the edge-balance identity
-    to within $3\%$ where its degree assumption holds
-    (Section~\ref{sec:measuring}). We are explicit that these are fraud rather than
-    bot graphs, and that access to TwiBot was unavailable.
 \end{itemize}
 
-Our aim is not to propose another detector. It is to supply the missing analytical
-account of a design pattern that the field has already converged on empirically,
-and in doing so to replace a heuristic with a criterion that a practitioner can
-check.
+Our aim is not to propose a detector. It is to characterise a structural mechanism
+that limits what ties can reveal, to show that its governing quantities are
+measurable, and to report what they are on real networks. The practical consequence is
+that ``should I use the network here?'' becomes a question that can be answered from
+data before any model is fitted, and answered separately for each type of tie.
 
 \end{document}
