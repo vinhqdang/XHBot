@@ -33,7 +33,7 @@ def fig1():
 
     fig, ax = plt.subplots(1, 2, figsize=(6.9, 2.6))
 
-    ax[0].plot(rho_t, sep_t, color=BLUE, lw=2, label="Theory (Prop. 1)")
+    ax[0].plot(rho_t, sep_t, color=BLUE, lw=2, label="Theory (Prop. 3)")
     ax[0].plot(rho_s, [s["sep"] for s in sims], ls="none", marker="o", ms=5,
                mfc="white", mec=VERM, mew=1.6, label="Simulation")
     ax[0].set_xlabel(r"camouflage ratio $\rho$")
@@ -42,7 +42,7 @@ def fig1():
     ax[0].grid(True, **GRID); ax[0].set_axisbelow(True)
     ax[0].legend(frameon=False, loc="upper right")
 
-    ax[1].plot(rho_t, err_t, color=BLUE, lw=2, label="Theory (Thm. 1)")
+    ax[1].plot(rho_t, err_t, color=BLUE, lw=2, label="Theory (Thm. 4)")
     ax[1].plot(rho_s, [s["err"] for s in sims], ls="none", marker="o", ms=5,
                mfc="white", mec=VERM, mew=1.6, label="Simulation")
     ax[1].axhline(raw, color=GREEN, lw=1.6, ls="--", label="Raw features (no graph)")
@@ -50,7 +50,7 @@ def fig1():
     ax[1].annotate(rf"$\rho^\star={rstar:.3f}$", xy=(rstar, 0.42),
                    xytext=(rstar + 0.015, 0.44), fontsize=8, color="#333333")
     ax[1].set_xlabel(r"camouflage ratio $\rho$")
-    ax[1].set_ylabel("Bayes error")
+    ax[1].set_ylabel("balanced error")
     ax[1].set_title("(b) Error and the critical ratio", loc="left")
     ax[1].grid(True, **GRID); ax[1].set_axisbelow(True)
     ax[1].legend(frameon=False, loc="upper left")
@@ -69,9 +69,15 @@ def fig2():
     ax.plot(Ds, simple, color=GREEN, lw=2, ls="--",
             label=r"low-SNR form $\frac{1-D^{-1/2}}{1+c}$")
     ax.plot(Ds, exact, color=BLUE, lw=2, label=r"exact $\rho^\star(D)$")
+    c_ = pi_B / (1 - pi_B)
+    upper = np.minimum((1 + Ds**-0.5) / (1 + c_), 1.0)
+    ax.plot(Ds, upper, color=VERM, lw=1.6, ls="-.",
+            label=r"upper edge $\frac{1+D^{-1/2}}{1+c}$")
     ax.fill_between(Ds, 0, exact, color=BLUE, alpha=0.10)
-    ax.text(40, 0.22, "graph helps", fontsize=8, color="#33556b")
-    ax.text(40, 0.70, "graph hurts", fontsize=8, color="#7a4a2a")
+    ax.fill_between(Ds, exact, upper, color=VERM, alpha=0.10)
+    ax.text(40, 0.18, "network helps", fontsize=7.5, color="#33556b")
+    ax.text(34, 0.62, "network harms", fontsize=7.5, color="#7a4a2a")
+    ax.text(28, 0.94, "helps again (sign reversed)", fontsize=6.5, color="#555555")
     ax.set_xlabel("neighbourhood size $D$")
     ax.set_ylabel(r"critical camouflage ratio $\rho^\star$")
     ax.set_ylim(0, 1.0)

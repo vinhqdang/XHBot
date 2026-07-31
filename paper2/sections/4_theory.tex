@@ -71,8 +71,15 @@ Three clarifications, since the distinction matters for how the comparisons belo
 should be read. (i) When $s_{\mathrm{B}} \neq s_{\mathrm{H}}$ the likelihood ratio of
 two unequal-variance Gaussians is quadratic, so the Bayes rule is an interval and
 $\Phi(-\mathrm{SNR})$ is the error of the equal-error-rate \emph{threshold} rule, an
-upper bound. Comparisons of $\Phi(-\mathrm{SNR})$ against the exact graph-free error
-are therefore conservative: they can only understate how much aggregation helps.
+upper bound. That bound is loose in one direction, but at finite $D$ it is not the
+dominant approximation: the central limit theorem is. The aggregate is exactly a
+mixture of $D+1$ Gaussians, and $\Phi(-\mathrm{SNR})$ \emph{under}-states its error
+by $41\%$ relative at $\rho = 0.1$, $18\%$ at $\rho = 0.2$ and $6\%$ at
+$\rho = 0.3$ (Table~\ref{tab:deflation}), while the attribute-only baseline is exact
+because raw attributes are exactly Gaussian. Comparisons therefore \emph{overstate}
+how much aggregation helps, and are optimistic rather than conservative. The
+crossover itself is barely affected---exact $0.4642$ against $0.4644$---but the
+direction should not be misreported.
 (ii) The criterion is \emph{balanced} error, weighting the two classes equally, not
 the prior-weighted risk---a deliberate choice in a paper about class imbalance,
 where a prior-weighted criterion rewards predicting the majority class and would
@@ -522,15 +529,27 @@ First, \textbf{the crossover is not depth-independent}. Solving
 \eqref{eq:depth-exact} $= 1$ at $D=16$, $\pi_B = 0.3$ gives
 $\rho^\star_1 = 0.525$, $\rho^\star_2 = 0.587$, $\rho^\star_3 = 0.553$,
 $\rho^\star_4 = 0.576$, $\rho^\star_5 = 0.557$. Every value for $L\geq2$ exceeds the
-single-layer threshold, so \textbf{depth buys robustness to camouflage}, and the
-mechanism is exactly the backtracking term: \eqref{eq:backtrack} is an implicit
-residual connection that reinjects the node's own undeflated features at every
-layer. This gives a theoretical account of why ego--neighbour separation is a
-productive design principle under heterophily~\cite{zhu2020beyond,zhu2022how}:
-architectures that separate the ego term are making explicit, and controllable,
-a term that plain mean aggregation already supplies at a fixed weight $1/D$.
-The non-monotonicity in $L$ is a parity effect---odd $L$ places less mass at
-even distances---and is not important for our purposes.
+single-layer threshold, so \textbf{depth buys tolerance to camouflage}.
+
+The mechanism is that backtracking retains weight at distances $j < L$, which are
+deflated by $\lambda^{j}$ rather than by $\lambda^{L}$; the ego term $j=0$
+of~\eqref{eq:backtrack} is the extreme case, being undeflated entirely. It is worth
+being precise about this, because the ego term is \emph{not} present at every layer:
+the tree is bipartite, so $q^{(L)}_0 = 0$ for all odd $L$. At $L=3$ the ego weight is
+zero, yet $\rho^\star_3 = 0.553$ still exceeds $\rho^\star_1$---there the gain comes
+from mass returned to distance $1$ ($q^{(3)}_1 = 0.121$). The oscillation in $L$ is
+this parity: even $L$ admits an ego term, odd $L$ does not.
+
+Two qualifications matter. Deleting the ego term at $L=2$ and renormalising drops the
+crossover from $0.587$ to $0.522$, so at even depths it does carry most of the effect.
+And the benefit is specific to the camouflaged regime: backtracking \emph{costs}
+separability when camouflage is absent, since the retained near-origin mass is
+over-weighted noise. At $\rho=0$ the SNR ratios are $4.00, 11.49, 29.73, 72.91$ for
+$L=1,\dots,4$ against $4.00, 15.49, 60.0, 232.4$ for a non-backtracking walk. Depth
+under backtracking therefore trades peak separability at low $\rho$ for a higher
+crossover---a bias--variance trade rather than a free gain, and one that favours
+architectures able to tune the ego weight rather than inherit it at
+$1/D$~\cite{zhu2020beyond,zhu2022how}.
 
 Second, the harmful region is \emph{bounded above}. Only $|\lambda|$ enters, so at
 $L=1$ aggregation is harmful precisely on the window

@@ -35,6 +35,19 @@ necessarily pollutes human neighbourhoods as well, at a rate set by the bot
 prevalence. Every result below accounts for this coupling; treating $\eta$ as
 independent of $\rho$ overstates a detector's robustness.
 
+\begin{assumption}[Regularity used by the depth analysis]
+\label{as:tree}
+Definition~\ref{def:ccsbm} samples each actor's alters independently, which suffices
+for the single-layer results. Section~\ref{sec:depth} additionally requires that the
+tie relation be \emph{symmetric}---so that $v \in \mathcal{N}(u)$ whenever
+$u \in \mathcal{N}(v)$, which is what makes~\eqref{eq:backtrack} hold---and that the
+neighbourhood be locally tree-like with branching $D$, so that the number of actors at
+distance $j$ is $N_j = D(D-1)^{j-1}$. Both are standard for sparse networks in which
+short cycles are rare, and neither is needed before Section~\ref{sec:depth}. We also
+take $\rho \le 1/c$, so that $\eta \le 1$, which holds automatically whenever the
+strategic class is the minority.
+\end{assumption}
+
 \begin{remark}[Modelling choices]
 Independent neighbour sampling at fixed size $D$ makes the analysis exact and is
 the discrete analogue of the degree-concentration assumptions used

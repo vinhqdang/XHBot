@@ -86,8 +86,12 @@ $\mathrm{SNR}_L/\mathrm{SNR}_{\mathrm{raw}} = (\lambda\sqrt D)^L$ and a
 depth-independent crossover. Both conclusions are artefacts. The true weight
 concentration $\sum_j (q^{(L)}_j)^2/N_j$ exceeds $D^{-L}$ by factors of $1.94$,
 $4.63$, $12.3$ and $35.0$ at $L = 2,3,4,5$ for $D = 16$, and the crossover moves from
-$0.525$ at $L=1$ to $0.587$ at $L=2$. The direction is intuitive once stated: the
-retained ego mass is undeflated signal, so backtracking \emph{helps} the detector. A
+$0.525$ at $L=1$ to $0.587$ at $L=2$. The direction is intuitive once stated: mass retained at distance $j<L$ is deflated
+only by $\lambda^{j}$, so backtracking raises the crossover. It does so at a cost,
+however: at $\rho=0$ the same retained mass is over-weighted noise, and the
+non-backtracking walk attains a strictly higher SNR ($60.0$ against $29.7$ at $L=3$,
+$D=16$). Backtracking trades separability in the homophilous regime for tolerance in
+the camouflaged one. A
 simulation that averages over the $D^L$ leaves of a tree reproduces the naive
 recursion exactly and therefore cannot detect this error; one must simulate $P^L$.
 \end{remark}
@@ -137,7 +141,9 @@ earlier \texttt{extensions2.py}, which is retained only so that the two errors
 documented in Remarks~\ref{rem:no-ceiling} and~\ref{app:depth} can be reproduced;
 \texttt{measure\_rho.py} implements the camouflage estimator of
 Section~\ref{sec:measuring} together with a self-test against planted ground truth;
-and \texttt{real\_data.py} produces Table~\ref{tab:real}. Each writes a JSON record
+\texttt{mgtab.py} produces Table~\ref{tab:real} from the released MGTAB tensors,
+\texttt{exact\_window.py} evaluates the exact criterion reported there, and
+\texttt{real\_data.py} produces the review-network comparison. Each writes a JSON record
 of every figure quoted in the text. The scripts depend only on \texttt{numpy} and
 \texttt{scipy}; the fraud graphs are fetched from public URLs given in the script.
 

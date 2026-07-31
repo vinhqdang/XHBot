@@ -28,7 +28,7 @@ Figure~\ref{fig:deflation} shows the same agreement graphically.
 
 \begin{table}[t]
 \centering
-\caption{Theory versus simulation for signal deflation and Bayes error
+\caption{Theory versus simulation for signal deflation and balanced error
 ($\pi_B = 0.3$, $\|\Delta\|=2$, $\sigma=1$, $D=16$).}
 \label{tab:deflation}
 \small
@@ -56,7 +56,7 @@ $\rho$ & $\eta$ & theory & sim. & theory & sim. & thy / sim. \\
     \includegraphics[width=\linewidth]{figures/theory_deflation.png}
     \caption{Theory versus simulation. (a) Post-aggregation separation decays
     linearly in $\rho$ exactly as Proposition~\ref{prop:deflation} predicts.
-    (b) Bayes error against the graph-free baseline; the predicted critical ratio
+    (b) Balanced error against the attribute-only baseline; the predicted critical ratio
     $\rho^\star = 0.464$ coincides with the crossing point.}
     \label{fig:deflation}
 \end{figure}
@@ -107,9 +107,13 @@ create.
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.72\linewidth]{figures/theory_critical_ratio.png}
-    \caption{Critical camouflage ratio against neighbourhood size. Below the curve
-    the graph improves on raw features; above it the graph is actively harmful.
-    The closed form is the noise-dominated limit of the exact crossover.}
+    \caption{Critical camouflage ratio against neighbourhood size. Below the lower
+    curve, averaging over alters improves on attributes alone; between the curves it is
+    actively harmful; above the upper edge $(1+D^{-1/2})/(1+c)$ the neighbourhood is
+    strongly anti-correlated with the label and informative again with the orientation
+    reversed. The closed form is the noise-dominated limit of the exact crossover, and
+    the upper edge exceeds $1$---so that no reversal regime exists---whenever
+    $c < D^{-1/2}$.}
     \label{fig:critical}
 \end{figure}
 
@@ -240,7 +244,7 @@ Table~\ref{tab:real} reports the result.
 $c = 0.369$). $\hat\rho$ is the mean genuine share of an automated account's alters,
 $\tilde\rho$ its median, $\tilde D$ the median degree over automated accounts having
 at least one tie of that relation. The last two columns evaluate the \emph{exact}
-criterion of Theorem~\ref{thm:error} at $r = 2.31$ (Section~\ref{sec:r-estimate}),
+criterion of Theorem~\ref{thm:error} at $r = 2.32$ (Section~\ref{sec:r-estimate}),
 not the noise-dominated window~\eqref{eq:window}: $\rho_{\mathrm{cross}}$ is the
 crossover and the final column is
 $\mathrm{SNR}_{\mathrm{agg}}/\mathrm{SNR}_{\mathrm{raw}}$ at the measured $\hat\rho$,
@@ -276,16 +280,17 @@ attributes. That figure is not usable: it implies an attribute-only error of
 $\Phi(-6.5) \approx 4\times10^{-11}$, i.e.\ that the attributes classify the
 population essentially perfectly and the question of whether the network helps does
 not arise. A held-out linear discriminant on the same attributes attains a balanced
-error of $0.124$. The discrepancy is the isotropy assumption: the per-dimension
+error of $0.123$. The discrepancy is the isotropy assumption: the per-dimension
 standard deviations span a factor of $28$, so a single pooled $\sigma$ is not
 meaningful, while $\|\Delta\|^2$ accumulates small differences over many correlated
 coordinates.
 
 We therefore calibrate $r$ from the achievable error rather than from the moments,
-taking $r = -2\Phi^{-1}(0.124) = 2.31$, and we use that value throughout
-Table~\ref{tab:real}. This matters: at $r = 13$ the mixture term
+taking $r = -2\Phi^{-1}(0.123) = 2.32$, and we use that value throughout
+Table~\ref{tab:real}. Resampling the split moves $r$ by under $0.02$, which changes
+no verdict in the table. This matters: at $r = 13$ the mixture term
 $\rho(1-\rho)\|\Delta\|^2$ reaches $1.67\sigma^2$ and the noise-dominated
-form~\eqref{eq:window} is invalid, whereas at $r = 2.31$ it is $0.05\sigma^2$ and the
+form~\eqref{eq:window} is invalid, whereas at $r = 2.32$ it is $0.05\sigma^2$ and the
 approximation is defensible. Any application of these thresholds should report $r$
 and how it was obtained.
 
@@ -298,7 +303,7 @@ analysis reached the opposite conclusion for the social relations by applying th
 noise-dominated window~\eqref{eq:window} at $r = 13$; the ``informative again with
 reversed sign'' regime that produced is an artefact of using an $r \to 0$
 approximation at large $r$, and it does not survive the exact criterion. Where the
-harmful interval does have an upper edge at $r = 2.31$---shared URL $(0.432, 0.995)$
+harmful interval does have an upper edge at $r = 2.32$---shared URL $(0.432, 0.995)$
 and shared hashtag $(0.585, 0.868)$---the measured $\hat\rho$ falls inside it.
 
 \paragraph{The layers still differ, in degree of harm and in mechanism.}
