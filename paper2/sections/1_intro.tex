@@ -21,7 +21,13 @@ numbers of genuine users so that their local neighbourhood is statistically
 indistinguishable from a genuine actor's---a strategy known in that literature as
 \emph{relation camouflage}~\cite{dou2020caregnn,cresci2020decade}. The strategy is
 purposive and cheap, and it targets the inferential mechanism rather than any
-particular detector.
+particular detector. Detection systems have responded by discarding suspicious ties,
+by treating similar and dissimilar neighbours through separate channels, or by holding
+an actor's own attributes apart from its neighbours'~\cite{dou2020caregnn,he2025bothp};
+our own earlier work combines all three~\cite{dang2026xhbot}. Those designs are
+justified empirically, by ablation. What has been missing is an account of the
+structural conditions under which the underlying inference works at all, which is what
+we supply here.
 
 We formalise it with one structural parameter, the \emph{camouflage ratio} $\rho$: the
 share of a strategic actor's ties directed at the other class. Two questions then
@@ -80,19 +86,22 @@ far edge pruning shifts the threshold.
     $\rho=0$. Our error term also retains a mixture-variance contribution that a
     naive $\sigma^2/D$ calculation misses, and which shifts the threshold by $13\%$.
 
-    \item \textbf{A closed form for what edge pruning buys.} We show the
-    Dirichlet-energy score underlying SGTR separates camouflage from genuine edges
-    by exactly $\|\Delta\|^2$ in expectation (Lemma~\ref{lem:energy}), and prove
-    that soft pruning raises the tolerated camouflage to
-    $\rho^\star_{\mathrm{SGTR}} = \rho^\star / (\rho^\star + (1-\bar e_c)(1-\rho^\star))$
-    for a pruner of quality $\bar e_c$ (Theorem~\ref{thm:sgtr}). The underlying
-    reweighting identity is known~\cite{weiss2026cost,fountoulakis2023graph}; what we
-    add is its composition with the finite-$D$ threshold to bound the
-    \emph{adversary's} budget, which requires a regime those analyses do not work in
-    (Remark~\ref{rem:sgtr-priority}). Because $\bar e_c$ is measurable for a deployed
-    pruner, this converts an ablation delta into an operating-range claim, and makes
-    explicit that no imperfect pruner attains immunity.
+    \item \textbf{What discarding ties can and cannot buy.} Selectively removing
+    suspicious ties is the standard remedy, and we show it is a trade rather than a
+    free improvement: down-weighting ties non-uniformly also reduces the number of
+    ties left to average over, so the benefit is bounded
+    (Proposition~\ref{prop:deff}). We give the tolerance as a closed function of the
+    discriminating power of whatever suspicion score is used, and bound that power
+    from the distribution of attribute discrepancies, which removes the free parameter
+    (Section~\ref{sec:achievable}). On the networks we measure, a score based on
+    attribute discrepancy alone is far too weak to restore the inference, while a
+    perfect one would suffice---so the operative quantity is the gap between the two.
 
+    \item \textbf{Measurement on real networks.} We give an estimator for $\rho$,
+    validate it against planted ground truth, and report it for several labelled
+    populations. Camouflage differs by an order of magnitude across relation types
+    recorded on the \emph{same} actors, which makes these per-relation quantities and
+    implies that pooling relations averages a usable signal with an unusable one.
 \end{itemize}
 
 Our aim is not to propose a detector. It is to characterise a structural mechanism
