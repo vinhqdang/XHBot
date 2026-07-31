@@ -20,13 +20,13 @@ half = rho_half_benefit(D)
 
 fig, ax = plt.subplots(figsize=(3.6, 2.7))
 ax.axhline(base, color=GREEN, lw=1.6, ls="--", label=rf"no pruning ($\rho^\star={base:.3f}$)")
-ax.plot(ec, tol, color=BLUE, lw=2, label="corrected (Prop. 5)")
+ax.plot(ec, tol, color=BLUE, lw=2, label="corrected")
 ax.fill_between(ec, base, tol, color=BLUE, alpha=0.10)
 # the withdrawn curve, shown for contrast
 old = [base/(base + (1-x)*(1-base)) for x in ec]
 ax.plot(ec, old, color=VERM, lw=1.4, ls=":", label="composition only (withdrawn)")
 ax.axhline(half, color=GREY, lw=1.2, ls="-.",
-           label=rf"half of nodes benefit ($\rho={half:.3f}$)")
+           label=rf"half of strategic actors benefit ($\rho={half:.3f}$)")
 ax.set_xlabel(r"attenuation of camouflage ties $\bar{e}_c$")
 ax.set_ylabel(r"tolerated camouflage")
 ax.set_ylim(0.45, 1.02); ax.set_xlim(0, 1)

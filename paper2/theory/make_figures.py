@@ -33,7 +33,7 @@ def fig1():
 
     fig, ax = plt.subplots(1, 2, figsize=(6.9, 2.6))
 
-    ax[0].plot(rho_t, sep_t, color=BLUE, lw=2, label="Theory (Prop. 3)")
+    ax[0].plot(rho_t, sep_t, color=BLUE, lw=2, label="Theory")
     ax[0].plot(rho_s, [s["sep"] for s in sims], ls="none", marker="o", ms=5,
                mfc="white", mec=VERM, mew=1.6, label="Simulation")
     ax[0].set_xlabel(r"camouflage ratio $\rho$")
@@ -42,7 +42,7 @@ def fig1():
     ax[0].grid(True, **GRID); ax[0].set_axisbelow(True)
     ax[0].legend(frameon=False, loc="upper right")
 
-    ax[1].plot(rho_t, err_t, color=BLUE, lw=2, label="Theory (Thm. 4)")
+    ax[1].plot(rho_t, err_t, color=BLUE, lw=2, label="Theory")
     ax[1].plot(rho_s, [s["err"] for s in sims], ls="none", marker="o", ms=5,
                mfc="white", mec=VERM, mew=1.6, label="Simulation")
     ax[1].axhline(raw, color=GREEN, lw=1.6, ls="--", label="Raw features (no graph)")
@@ -72,12 +72,13 @@ def fig2():
     c_ = pi_B / (1 - pi_B)
     upper = np.minimum((1 + Ds**-0.5) / (1 + c_), 1.0)
     ax.plot(Ds, upper, color=VERM, lw=1.6, ls="-.",
-            label=r"upper edge $\frac{1+D^{-1/2}}{1+c}$")
+            label=r"upper edge (low-SNR form)")
     ax.fill_between(Ds, 0, exact, color=BLUE, alpha=0.10)
     ax.fill_between(Ds, exact, upper, color=VERM, alpha=0.10)
     ax.text(40, 0.18, "network helps", fontsize=7.5, color="#33556b")
     ax.text(34, 0.62, "network harms", fontsize=7.5, color="#7a4a2a")
-    ax.text(28, 0.94, "helps again (sign reversed)", fontsize=6.5, color="#555555")
+    ax.text(21, 0.94, "helps again, sign reversed (low-SNR form only)",
+            fontsize=5.8, color="#555555")
     ax.set_xlabel("neighbourhood size $D$")
     ax.set_ylabel(r"critical camouflage ratio $\rho^\star$")
     ax.set_ylim(0, 1.0)
