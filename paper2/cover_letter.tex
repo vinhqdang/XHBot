@@ -1,0 +1,70 @@
+\documentclass[11pt]{letter}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{parskip}
+\usepackage[colorlinks,urlcolor=blue]{hyperref}
+\pagestyle{empty}
+\signature{Quang-Vinh Dang \\ Phuong-Lan Nguyen}
+\begin{document}
+\begin{letter}{The Editors \\ \textit{Social Networks} \\ Elsevier}
+
+\opening{Dear Editors,}
+
+We submit for your consideration our manuscript \textbf{``The Camouflage Ratio:
+Strategic Tie Formation and the Limits of Structural Detection''} as a research
+article.
+
+The paper concerns one of the oldest uses of relational data: inferring an actor's
+attributes from those of its alters. That inference rests on homophily, and the
+journal has published extensively both on measuring homophily and on the conditions
+under which neighbour-based inference is reliable. We ask what happens when an actor
+\emph{chooses} its ties in order to defeat the inference---and we show that the
+answer is not simply ``the inference degrades''.
+
+Three results may interest your readership. First, camouflage is not a private act.
+Because a tie has two ends, an actor that forms ties outside its own category
+necessarily contaminates its alters' neighbourhoods in turn, and edge-endpoint
+conservation fixes the rate at which it does so. The consequence is counterintuitive:
+prevalence acts as protection, so the commoner such actors are, the less camouflage
+each one needs. Second, we derive in closed form the point at which averaging over
+alters ceases to improve on attributes alone, and show that selectively discarding
+suspicious ties does not straightforwardly repair it---discarding trades bias against
+the number of ties left to average over, so its benefit is bounded by the quality of
+the suspicion score rather than by the discarding itself. Third, we measure the
+quantity on a population of $10{,}199$ labelled Twitter accounts and find that
+every recorded relation is one on which the inference is harmed, while the same
+accounts behave in opposite ways across relation layers: they avoid one another where
+ties are visible and converge where content is shared. The measurement is therefore a
+per-relation quantity, not a property of a population---a point on which we build
+directly on the journal's multiplexity literature.
+
+We would like to be explicit about priority, since it shapes what we claim. That a
+crossover of this kind exists is not our discovery: for balanced classes it is a
+result of Ma et al. (2022), and the bounded interval above which relational
+information becomes informative again is the second root of the same condition,
+discussed by Luan et al. (2023) as the mid-homophily pitfall. Our contribution is the
+asymmetric, class-imbalanced case, together with the empirical measurement. We state
+this in the abstract, the introduction and the conclusion rather than leaving a
+reader to discover it.
+
+We also note two things a referee may wish to probe, and which we have tried not to
+obscure. The attribute-separation parameter on which our empirical thresholds depend
+is calibrated from the achievable error of a held-out linear discriminant rather than
+from the moments of the attribute distributions, because the moments-based estimate is
+badly inflated on high-dimensional, anisotropic attributes; we report the calibration
+and its consequences. And our identity is exact in the model but requires a degree
+correction on data whose classes differ in mean degree, which we document.
+
+The manuscript is original, is not under consideration elsewhere, and has not been
+published previously. All authors have approved the submission and declare no
+competing interests. In accordance with the journal's double-anonymized review policy
+the manuscript itself carries no author information; author details and the CRediT
+statement are in the separate title page. All data analysed are third-party and
+publicly available, as set out in the data availability statement; we also supply the
+code needed to reproduce every reported number.
+
+Thank you for considering our work.
+
+\closing{Yours sincerely,}
+
+\end{letter}
+\end{document}
