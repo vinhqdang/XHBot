@@ -4,7 +4,109 @@
 \section{Related Work}
 \label{sec:related}
 
-\subsection{Analyses of graph convolution on block models}
+\subsection{Inferring attributes from alters}
+\label{sec:related-alters}
+
+The operation we analyse has a long history in network analysis under several names.
+In the network autocorrelation model an actor's outcome is regressed on a weighted
+average of its alters' outcomes, and Leenders~\cite{leenders2002modeling} makes the
+point on which this paper turns: the weight matrix is a substantive modelling
+commitment, not a technical detail, and the conclusions depend on it. Row-normalised
+weights---the natural choice, and the one implicit in most applications---are exactly
+the mean aggregation of Section~\ref{sec:model}. Everett and
+Borgatti~\cite{everett2026alter} give the general matrix formulation of \emph{alter
+composition}, the profile of categories an actor is exposed to through its alters,
+and extend it to overlapping memberships; our camouflage ratio is a two-category
+alter-composition measure, and the question we ask is what happens to it when one
+category chooses its ties.
+
+Two in-journal results bear directly on the reliability of this inference.
+Roeling and Nicholls~\cite{roeling2020imputation} impute unobserved attributes from
+network structure and find the procedure sensitive to model misspecification and to
+missingness. V\"or\"os et al.~\cite{voros2019limits} report a negative result of the
+same kind: across five countries, friendship relations turn out to be a poor proxy
+for status attributions, so one relation cannot be substituted for another. Both are
+warnings that neighbour-based inference is conditional rather than automatic; our
+contribution is to give one condition in closed form, for the case where the failure
+is \emph{induced deliberately}.
+
+Homophily is the assumption the inference rests on, and its measurement is a
+developed literature here: Bojanowski and Corten~\cite{bojanowski2014measuring}
+survey and axiomatise segregation and homophily indices, and
+McMillan~\cite{mcmillan2022worth} shows that homophily measured on strong and weak
+ties differs in magnitude, so that a single homophily figure for a population can be
+misleading. Noel and Nyhan~\cite{noel2011unfriending} demonstrate the consequence for
+inference, showing that homophily in tie \emph{retention} biases estimates of social
+influence. Our results are the adversarial limit of this concern: we treat the degree
+of homophily violation as a decision variable of one class rather than a property of
+the population.
+
+\subsection{Multiplexity, and why the analysis is per relation}
+\label{sec:related-multiplex}
+
+That different relations among the same actors have different structure is a founding
+observation of this journal~\cite{lazega1999multiplexity}, and its methodological
+consequence---that collapsing relations into a single adjacency destroys information,
+while modelling them jointly quickly becomes intractable---is treated directly by
+V\"or\"os and Snijders~\cite{voros2017cluster}. Snijders et
+al.~\cite{snijders2013model} show the stronger version: structure apparently present
+in an advice relation is substantially mediated by the friendship relation beneath
+it. An et al.~\cite{an2026estimating} find the same phenomenon quantitatively, with
+peer effects differing in magnitude between friends and classmates in a multilayer
+setting.
+
+This matters for us empirically rather than only in principle.
+Section~\ref{sec:measuring} finds camouflage differing by an order of magnitude
+between relations recorded on the \emph{same} actors, which means our thresholds are
+per-relation quantities and that a procedure pooling relations is averaging a usable
+signal with an unusable one.
+
+\subsection{Strategic tie formation}
+\label{sec:related-strategic}
+
+The premise that actors form ties instrumentally, and with an eye to how they will be
+perceived, is established here but thinly populated. Burt et al.~\cite{burt2021network}
+show experimentally that brokerage position causes attributions of leadership, and
+report participants re-shaping an assigned network to suit their preferences. Shea et
+al.~\cite{shea2019cheater} come closest to our mechanism: actors anticipating
+unethical behaviour activate sparser networks that better conceal it, while those who
+have already acted unethically activate denser ones for support---network structure
+managed as a function of what the actor wants inferred about it. Barone and
+Coscia~\cite{barone2018birds} estimate trustworthiness from mutually inconsistent
+self-reports and find homophily in it, which is both an instance of inferring a
+latent attribute that actors have an incentive to misreport and a demonstration that
+the inference can work.
+
+What is absent, so far as we can determine, is the case where the tie portfolio is
+\emph{engineered} to defeat the inference. We searched the journal's full record and
+found no treatment of automated or inauthentic accounts; the nearest work concerns
+misinformation susceptibility in personal networks~\cite{choi2026who}. We therefore
+take our terminology from this journal---alter composition, autocorrelation,
+exposure---and our substantive setting from the detection literature, rather than
+importing the latter's vocabulary wholesale.
+
+\subsection{Degree heterogeneity and the correction it forces}
+\label{sec:related-degree}
+
+Our edge-endpoint identity requires a degree correction, and the reason is a
+long-standing concern here. Snijders~\cite{snijders1981degree} introduced degree
+variance as an index of graph heterogeneity; Anderson et al.~\cite{anderson1999interaction}
+showed that graph-level indices are systematically confounded by size and density; and
+Krivitsky et al.~\cite{krivitsky2009representing} exhibit networks with identical,
+highly skewed degree distributions but entirely different structure, concluding that
+degree-based accounts cannot by themselves identify structure. Section~\ref{sec:measuring}
+finds exactly this: our identity holds to within $3\%$ where class mean degrees are
+comparable and requires correction where they are not.
+
+The stochastic blockmodel we build on originates in this
+journal~\cite{holland1983stochastic}. Degree correction \emph{within} blockmodels is
+much less developed here; the one instance we found, Yu et
+al.~\cite{yu2018detecting}, monitors node propensity in a dynamic degree-corrected
+blockmodel in order to detect anomalous nodes, which is close to our setting in both
+model and purpose.
+
+\subsection{Analyses of neighbourhood averaging in the machine-learning literature}
+
 
 The contextual stochastic block model~\cite{deshpande2018contextual} couples a
 stochastic block model with Gaussian node attributes and has become the standard
