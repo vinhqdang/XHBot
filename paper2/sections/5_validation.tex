@@ -22,8 +22,8 @@ Appendix~\ref{app:repro} records the remaining numerical choices.
 
 Table~\ref{tab:deflation} compares Proposition~\ref{prop:deflation} and
 Theorem~\ref{thm:error} against simulation. Separation matches to within
-$1.2\times 10^{-3}$ and the standard deviation---including the mixture term that a
-naive calculation omits---to within $4\times 10^{-4}$ across the whole range.
+$1.8\times 10^{-3}$ and the standard deviation---including the mixture term that a
+naive calculation omits---to within $8\times 10^{-4}$ across the whole range.
 Figure~\ref{fig:deflation} shows the same agreement graphically.
 
 \begin{table}[t]
@@ -75,7 +75,7 @@ Table~\ref{tab:critical} separates the two forms of the corollary. The exact
 crossover differs from the closed form~\eqref{eq:critical} at moderate SNR, as
 expected, since~\eqref{eq:critical} drops the mixture variance. Re-running the
 exact solver in the noise-dominated regime it was derived for ($\|\Delta\| = 0.2$,
-$\sigma = 1$) recovers the closed form to three decimal places at every degree,
+$\sigma = 1$) recovers the closed form to within $1.2\times10^{-3}$ at every degree,
 confirming that the discrepancy is the stated approximation and not an error.
 
 \begin{table}[t]
@@ -292,17 +292,16 @@ coordinates.
 
 We therefore calibrate $r$ from the achievable error rather than from the moments,
 taking $r = -2\Phi^{-1}(0.123) = 2.32$, and we use that value throughout
-Table~\ref{tab:real}. Resampling the split moves $r$ by under $0.02$, which changes
-no verdict in the table. This matters: at $r = 13$ the mixture term
+Table~\ref{tab:real}. Resampling the split moves $r$ materially---over twelve random splits we obtain $r = 2.24 \pm 0.07$, a range of $0.22$---so we report the mean rather than a single split. The verdicts are insensitive to it: re-solving the exact criterion across that whole range leaves every relation harmful, the largest SNR ratio moving only between $0.79$ and $0.82$. This matters: at $r = 13$ the mixture term
 $\rho(1-\rho)\|\Delta\|^2$ reaches $1.67\sigma^2$ and the noise-dominated
 form~\eqref{eq:window} is invalid, whereas at $r = 2.32$ it is $0.05\sigma^2$ and the
 approximation is defensible. Any application of these thresholds should report $r$
 and how it was obtained.
 
 \paragraph{On this population, every relation is one the network harms.}
-The last column of Table~\ref{tab:real} is below $1$ for all eight relations: under
+The last column of Table~\ref{tab:real} is below $1$ for all seven recorded relations, and for their social union: under
 the exact criterion, neighbour averaging on MGTAB is worse than using attributes alone
-on \emph{every} recorded relation, by factors between $1.3$ and $3.6$. We report this
+on \emph{every} one of the seven recorded relations, by factors between $1.3$ and $3.6$. We report this
 as the principal empirical finding, and we note that an earlier version of this
 analysis reached the opposite conclusion for the social relations by applying the
 noise-dominated window~\eqref{eq:window} at $r = 13$; the ``informative again with

@@ -37,7 +37,16 @@ McMillan~\citeyearpar{mcmillan2022worth} shows that homophily measured on strong
 ties differs in magnitude, so that a single homophily figure for a population can be
 misleading. Noel and Nyhan~\citeyearpar{noel2011unfriending} demonstrate the consequence for
 inference, showing that homophily in tie \emph{retention} biases estimates of social
-influence. Our results are the adversarial limit of this concern: we treat the degree
+influence. Recent work in the journal continues in both directions: Sch\"u{\ss}ler and
+Fuhse~\citeyearpar{schussler2025duality} argue that ties and attributes are mutually
+constituting rather than one being read off the other, which is the conceptual
+counterpart of our question; Espinosa-Rada et al.~\citeyearpar{espinosarada2026socioeconomic}
+measure the socioeconomic composition of alters directly; and Tang et
+al.~\citeyearpar{tang2026twomode} extend the autoregressive model to two-mode data with a
+core--periphery degree structure, which is the setting our degree correction speaks to.
+Where the network is only partially observed, Ajorlou et
+al.~\citeyearpar{ajorlou2025dirichlet} give a sampling estimator for homophily itself.
+Our results are the adversarial limit of this concern: we treat the degree
 of homophily violation as a decision variable of one class rather than a property of
 the population.
 
@@ -54,6 +63,18 @@ in an advice relation is substantially mediated by the friendship relation benea
 it. An et al.~\citeyearpar{an2026estimating} find the same phenomenon quantitatively, with
 peer effects differing in magnitude between friends and classmates in a multilayer
 setting.
+
+Two recent contributions sharpen the point. Fluer et
+al.~\citeyearpar{fluer2026survey} build multiplex models that carry interlayer
+correlation explicitly rather than treating layers as independent, and Chandrasekhar et
+al.~\citeyearpar{chandrasekhar2026multiplexing} show that multiplexity can have
+opposite-signed consequences depending on the process running over it---inhibiting
+low-reinforcement diffusion while enhancing high-reinforcement diffusion. That a
+quantity can reverse sign across layer configurations is precisely what we find for the
+usability of relational inference. Lakdawala et
+al.~\citeyearpar{lakdawala2026bonds} meanwhile partition dyads into latent interaction
+regimes, which is a complementary way of admitting that not all ties of a nominal type
+are the same.
 
 This matters for us empirically rather than only in principle.
 Section~\ref{sec:measuring} finds camouflage differing by a factor approaching two
@@ -77,6 +98,12 @@ self-reports and find homophily in it, which is both an instance of inferring a
 latent attribute that actors have an incentive to misreport and a demonstration that
 the inference can work.
 
+Nguyen~\citeyearpar{nguyen2026agency} adds the most recent instance, treating tie
+formation as strategic behaviour conditional on structural position, and
+Macdonald~\citeyearpar{macdonald2026wiretap} shows that covert networks carry
+structural signatures distinct from ordinary collaboration---evidence that concealment
+leaves traces in structure rather than erasing them.
+
 What is absent, so far as we can determine, is the case where the tie portfolio is
 \emph{engineered} to defeat the inference. We searched the journal's full record and
 found no treatment of automated or inauthentic accounts; the nearest work concerns
@@ -84,6 +111,19 @@ misinformation susceptibility in personal networks~\citep{choi2026who}. We there
 take our terminology from this journal---alter composition, autocorrelation,
 exposure---and our substantive setting from the detection literature, rather than
 importing the latter's vocabulary wholesale.
+
+Within that detection literature a small strand does measure the structure of such
+populations rather than only classifying them, and it is the strand closest to our
+purpose: Ran et al.~\citeyearpar{ran2025identifying} characterise automated accounts by
+motif frequencies across relation types, and Ariyarathne
+et al.~\citeyearpar{ariyarathne2026behavior} treat measured behavioural change as the
+discriminating signal in its own right. Two further results establish that camouflage is
+an active and adaptive strategy rather than a fixed property: Pan et
+al.~\citeyearpar{pan2026camera} document deliberate mimicry of benign users' content,
+which breaks the assumption that structural and attribute cues agree, and Mukherjee
+et al.~\citeyearpar{mukherjee2026optimal} show that detectors relying on aggregation can
+be defeated by rewiring under realistic budget constraints. Our threshold gives the
+condition under which such rewiring succeeds.
 
 \subsection{Degree heterogeneity and the correction it forces}
 \label{sec:related-degree}
@@ -97,6 +137,11 @@ highly skewed degree distributions but entirely different structure, concluding 
 degree-based accounts cannot by themselves identify structure. Section~\ref{sec:measuring}
 bears this out: the identity requires its degree factor wherever class mean degrees
 differ, and holds exactly once it is included.
+
+Kami\'nski et al.~\citeyearpar{kaminski2026relationships} extend the concern to
+hypergraphs, finding an association between node degree and hyperedge size in all but a
+small minority of $36$ empirical datasets, so degree is rarely separable from the
+structure one wishes to measure.
 
 The stochastic blockmodel we build on originates in this
 journal~\citep{holland1983stochastic}. Degree correction \emph{within} blockmodels is
@@ -123,9 +168,18 @@ Its follow-ups extend the positive results to multiple
 layers~\citep{baranwal2023effects} and characterise the locally Bayes-optimal
 architecture as one that \emph{interpolates} between an MLP in the low-graph-signal
 regime and a convolution in the high-signal regime~\citep{baranwal2023optimality}.
-Our Corollary~\ref{cor:critical} reduces to the $1/\sqrt{D}$ separability gain
-of~\citep{baranwal2021graph} when $\rho = 0$, which calibrates our model against this
-baseline.
+Our Corollary~\ref{cor:critical} reduces to the separability gain
+of~\citet{baranwal2021graph} when $\rho = 0$, which calibrates our model against this
+baseline. That line has continued: Duranthon and
+Zdeborov\'a~\citeyearpar{duranthon2025statistical} benchmark aggregation against the
+information-theoretic optimum in the same generative model, quantifying how far short it
+falls; Ma et al.~\citeyearpar{ma2025attention} show that attention---the closest
+analogue to reweighting ties---helps only when structural noise dominates attribute
+noise and hurts otherwise; and Baranwal~\citeyearpar{baranwal2026depth} obtains a sharp
+dichotomy for the value of aggregation depth on sparse graphs, governed by a single
+ratio. Our depth result in Section~\ref{sec:depth} is finite-$D$ and concerns the
+crossover rather than the asymptotic regime, but it points the same way: depth is not
+uniformly beneficial.
 
 \paragraph{The crossover is known; our contribution is the imbalanced and
 adversarial case.} We state the priority situation plainly, because it determines
@@ -195,7 +249,7 @@ treated it as one.
 
 The first replaces the mean with a robust estimator. In Byzantine-robust distributed
 learning a fraction of workers report corrupted updates, and aggregation rules such
-as Krum~\citeyearpar{blanchard2017machine} and coordinate-wise median or trimmed
+as Krum~\citep{blanchard2017machine} and coordinate-wise median or trimmed
 mean~\citep{yin2018byzantine} bound the resulting error. The idea has been imported
 into GNN neighbourhood aggregation directly: Geisler
 et al.~\citeyearpar{geisler2020reliable} construct an aggregation with the maximal
@@ -211,10 +265,10 @@ contamination---human features are not arbitrary---and marks where the $\sqrt{D}
 variance reduction ceases to pay for the $(1+c)\rho$ bias. The two quantities answer
 different questions, and $\rho^\star$ is the weaker of the two.
 
-The second literature attacks the topology. Nettack~\citeyearpar{zugner2018adversarial} and
-Metattack~\citeyearpar{zugner2019adversarial} insert or remove edges to flip predictions,
-and defences such as GNNGuard~\citeyearpar{zhang2020gnnguard} and
-Pro-GNN~\citeyearpar{jin2020graph} filter them, largely heuristically. Two results in this
+The second literature attacks the topology. Nettack~\citep{zugner2018adversarial} and
+Metattack~\citep{zugner2019adversarial} insert or remove edges to flip predictions,
+and defences such as GNNGuard~\citep{zhang2020gnnguard} and
+Pro-GNN~\citep{jin2020graph} filter them, largely heuristically. Two results in this
 line bear directly on ours. Zhu et al.~\citeyearpar{zhu2022how} prove the bridge our model
 assumes---that impactful structural attacks on homophilous data necessarily reduce
 homophily---and derive the ego/neighbour-separation design principle from it.
@@ -230,11 +284,11 @@ insensitive past the point of genuine semantic change.
 
 \subsection{Camouflage-resistant detectors}
 
-CARE-GNN~\citeyearpar{dou2020caregnn} introduced the camouflage framing to GNN-based fraud
+CARE-GNN~\citep{dou2020caregnn} introduced the camouflage framing to GNN-based fraud
 detection, using a label-aware similarity measure and a reinforcement-learning
 neighbour selector to filter uninformative edges. Bot-detection work has since
-adopted the pattern: BotHP~\citeyearpar{he2025bothp} separates ego and neighbour encoders
-to mitigate interaction camouflage, and XHBot~\citeyearpar{dang2026xhbot} combines
+adopted the pattern: BotHP~\citep{he2025bothp} separates ego and neighbour encoders
+to mitigate interaction camouflage, and XHBot~\citep{dang2026xhbot} combines
 spectral edge pruning, tri-channel aggregation, and contrastive disentanglement.
 
 These methods are validated by ablation. An ablation establishes that removing a
