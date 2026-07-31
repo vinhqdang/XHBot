@@ -117,7 +117,7 @@ create.
     \label{fig:critical}
 \end{figure}
 
-\subsection{SGTR}
+\subsection{The tie-scoring rule}
 
 Lemma~\ref{lem:energy} predicts expected squared discrepancies of $2d\sigma^2$ and
 $\|\Delta\|^2 + 2d\sigma^2$. At $d = 8$, $\sigma = 1$, $\|\Delta\| = 2$ these are
@@ -126,7 +126,7 @@ $20.005$, an error below $0.03\%$.
 
 For Theorem~\ref{thm:sgtr} we verify the closed
 form~\eqref{eq:rhostarsgtr} by round-trip: substituting
-$\rho^\star_{\mathrm{SGTR}}$ back into $\rho_{\mathrm{eff}}$ must return
+$\rho^\star_{\mathrm{prune}}$ back into $\rho_{\mathrm{eff}}$ must return
 $\rho^\star$. The maximum absolute deviation over
 $\bar e_c \in \{0.25, 0.5, 0.75, 0.9\}$ is $1.1\times 10^{-16}$, i.e.\ machine
 precision. Table~\ref{tab:sgtr} reports the resulting tolerance gains, and
@@ -134,7 +134,7 @@ Figure~\ref{fig:sgtr} plots the full curve.
 
 \begin{table}[t]
 \centering
-\caption{Effect of SGTR attenuation on tolerated camouflage under the
+\caption{Effect of the spectral rule attenuation on tolerated camouflage under the
 composition-only form~\eqref{eq:rhostarsgtr} ($D=16$, $\pi_B=0.3$, baseline
 $\rho^\star = 0.525$). These values ignore both the effective-degree cost and the
 correct $\eta_{\mathrm{eff}}$; Section~\ref{sec:validation-ext} gives the figures
@@ -143,7 +143,7 @@ we stand behind. The table is retained only to show the size of the two correcti
 \small
 \begin{tabular}{@{}ccc@{}}
 \toprule
-$\bar e_c$ & $\rho_{\mathrm{eff}}$ at $\rho = 0.4$ & $\rho^\star_{\mathrm{SGTR}}$ \\
+$\bar e_c$ & $\rho_{\mathrm{eff}}$ at $\rho = 0.4$ & $\rho^\star_{\mathrm{prune}}$ \\
 \midrule
 0.00 & 0.4000 & 0.5250 \\
 0.25 & 0.3333 & 0.5957 \\
@@ -211,10 +211,13 @@ distributed Twitter dataset of $10{,}199$ expert-annotated accounts
 carries a label, so that all ties are between labelled actors and the measurement is
 not diluted by unlabelled alters. MGTAB records seven relations on the same
 population, which lets us separate the social layer (following, friendship, mention,
-reply, quote) from a content-coordination layer (shared URLs, shared hashtags). For
-comparison we also report the two review networks of Dou
-et al.~\citeyearpar{dou2020caregnn}; these are not social ties, and we treat them only as a
-contrast case.
+reply, quote) from a content-coordination layer (shared URLs, shared hashtags). We also use the
+two review networks of Dou et al.~\citeyearpar{dou2020caregnn} as a contrast case,
+reported in the prose below rather than in Table~\ref{tab:real}; these are not social
+ties and we draw no structural conclusion from them, but they carry the attribute
+information needed to evaluate the tie-scoring bound of
+Section~\ref{sec:achievable}, which MGTAB's inflated attribute separation does not
+support.
 
 \paragraph{A negative result on the canonical benchmark.}
 It is worth recording why we do not use cresci-2015 or cresci-2017, the

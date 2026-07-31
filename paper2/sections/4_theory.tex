@@ -193,7 +193,7 @@ architectural mitigation is necessary rather than optional.
 \subsection{Spectral edge pruning provably extends the operating regime}
 \label{sec:sgtr-theory}
 
-SGTR~\citeyearpar{dang2026xhbot} scores each edge by a learned function of the feature
+the spectral tie-scoring rule of \citet{dang2026xhbot} (there called the spectral rule)~\citeyearpar{dang2026xhbot} scores each edge by a learned function of the feature
 discrepancy $(\mathbf{x}_u - \mathbf{x}_v)^2$, motivated by the per-edge
 decomposition of the Dirichlet energy $\mathbf{f}^\top L \mathbf{f} =
 \sum_{(u,v)\in\mathcal{E}} (f_u-f_v)^2$. The following lemma shows this quantity is
@@ -226,7 +226,7 @@ term $2d\sigma^2$ does; the score is therefore informative but increasingly nois
 high dimension, which is precisely why XHBot learns a projection rather than using
 the raw quadratic form. We now quantify the benefit of acting on this score.
 
-\begin{theorem}[SGTR raises the tolerated camouflage]
+\begin{theorem}[spectral tie scoring raises the tolerated camouflage]
 \label{thm:sgtr}
 Suppose soft pruning multiplies camouflage edge weights by $(1-\bar e_c)$ and
 within-class edge weights by $(1-\bar e_w)$ in expectation, with
@@ -240,7 +240,7 @@ at the \emph{effective} camouflage ratio
 \end{equation}
 Consequently, with $\bar e_w = 0$, the detector tolerates true camouflage up to
 \begin{equation}
-    \rho^\star_{\mathrm{SGTR}}
+    \rho^\star_{\mathrm{prune}}
     \;=\; \frac{\rho^\star}{\rho^\star + (1-\bar e_c)(1-\rho^\star)}
     \;\geq\; \rho^\star,
     \label{eq:rhostarsgtr}
@@ -251,7 +251,7 @@ with equality if and only if $\bar e_c = 0$.
 \noindent
 Equation~\eqref{eq:rhostarsgtr} accounts only for the change in neighbourhood
 \emph{composition}. It therefore appears to imply
-$\rho^\star_{\mathrm{SGTR}} \to 1$ as $\bar e_c \to 1$: that a sufficiently good
+$\rho^\star_{\mathrm{prune}} \to 1$ as $\bar e_c \to 1$: that a sufficiently good
 pruner tolerates any camouflage whatsoever. That conclusion is false, and
 Section~\ref{sec:achievable} shows why. Down-weighting edges non-uniformly also
 reduces the \emph{effective degree}, and hence forfeits part of the $\sqrt{D}$
@@ -282,7 +282,7 @@ average lifts the tolerated camouflage from $0.53$ to $0.82$ at $D=16$,
 $\pi_B = 0.3$. It also clarifies what pruning cannot do. Because
 $\rho_{\mathrm{eff}} \to 1$ as $\rho \to 1$ for any fixed $\bar e_c < 1$, no
 pruning rule with imperfect discrimination defeats a maximally camouflaged
-adversary; SGTR buys operating range, not immunity.
+adversary; the spectral rule buys operating range, not immunity.
 
 \begin{remark}[What is new here, and what is not]
 \label{rem:sgtr-priority}
@@ -422,7 +422,7 @@ which is $\rho = 0.897$ at $D=16$ and $0.974$ at $D=64$.
 \end{remark}
 
 \paragraph{Achievable $\theta$.}
-It remains to bound $\theta$ from below. SGTR scores an edge by the feature
+It remains to bound $\theta$ from below. the spectral rule scores an edge by the feature
 discrepancy $s_{uv} = \|\mathbf{x}_u - \mathbf{x}_v\|^2$, whose law under the CSBM
 is exactly
 \begin{equation}
@@ -591,8 +591,7 @@ more usefully, \emph{when}.
 
 Tie-discarding modules are the case analysed in Section~\ref{sec:achievable}, and the
 analysis is less encouraging than the ablations suggest: discarding ties trades bias
-against the number of ties left to average over, so its benefit is bounded by the
-quality of the underlying suspicion score, and on the networks we measure a score
+against the number of ties left to average over, so its benefit is bounded by the quality of the underlying suspicion score, and on the networks we measure a score
 based on attribute discrepancy alone is far too weak to restore inference
 (Section~\ref{sec:measuring}). Separating an actor's own attributes from its
 neighbours' is, by Theorem~\ref{thm:depth}, a way of making explicit and tunable a
