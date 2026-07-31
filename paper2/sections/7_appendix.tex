@@ -132,22 +132,38 @@ $\sqrt{d}$, so a fixed feature separation becomes progressively harder to detect
 from raw squared distances as the ambient dimension increases.
 \end{proof}
 
-\section{Reproducibility}
+\section{Computational details}
 \label{app:repro}
 
-All closed forms in the paper are checked numerically by the scripts in
-\texttt{theory/}. \texttt{csbm\_validation.py} and \texttt{refine\_and\_thca.py}
-cover Proposition~\ref{prop:deflation} through Theorem~\ref{thm:sgtr};
-\texttt{corrections.py} covers Proposition~\ref{prop:deff},
-Proposition~\ref{cor:ceiling} and Theorem~\ref{thm:depth}, and supersedes an earlier
-version retained in the repository only so that the two errors documented in
-Remark~\ref{rem:no-ceiling} and in this appendix can be reproduced;
-\texttt{measure\_rho.py} implements the camouflage estimator of
-Section~\ref{sec:measuring} together with a self-test against planted ground truth;
-\texttt{mgtab.py} produces Table~\ref{tab:real} from the released MGTAB tensors,
-\texttt{exact\_window.py} evaluates the exact criterion reported there, and
-\texttt{real\_data.py} produces the review-network comparison. Each writes a JSON record
-of every figure quoted in the text. The scripts depend only on \texttt{numpy} and
-\texttt{scipy}; the fraud graphs are fetched from public URLs given in the script.
+Every closed form reported in the paper is checked against Monte-Carlo simulation of
+Definition~\ref{def:ccsbm}, and every empirical quantity is computed directly from the
+released data. For completeness we record the numerical choices.
+
+Simulations draw $4\times10^{5}$ nodes per class per configuration, raised to
+$1.5\times10^{6}$ for the crossover sweep, and errors are obtained by exhaustive
+threshold search over the empirical distributions rather than by a plug-in formula, so
+the reported values are attained minima. Edge-score laws are evaluated exactly from the
+central and non-central $\chi^2$ distributions rather than by their Gaussian
+approximation, which is used only where stated. The depth quantities require the
+distance profile of an $L$-step walk on the $D$-regular tree; we obtain it by iterating
+the birth--death recursion of Appendix~\ref{app:depth} to the required depth, which is
+exact for the values of $L$ reported. Optimisations over a pruning operating point are
+solved by bounded scalar minimisation on the logit of $\bar e_w$, and we verify that the
+optimum is interior by re-solving on progressively wider domains; the reported values
+are stable under that enlargement.
+
+For the empirical networks, ties are treated as undirected and deduplicated, and
+self-loops are removed. The camouflage ratio for an actor is the share of its labelled
+alters belonging to the other class, and the reported $\hat\rho$ is the mean of that
+share over strategic actors having at least one labelled tie; $\tilde D$ is the median
+degree over the same set. Where a ratio of sums is compared against a prediction
+derived from sums, both sides use the ratio-of-sums estimator, for the reason set out
+in Section~\ref{sec:measuring}. The attribute separation $r$ is calibrated from the
+balanced error of a linear discriminant fitted on a random $70\%$ of accounts and
+evaluated on the remainder, rather than from the moments of the attribute
+distributions, for the reason given in Section~\ref{sec:r-estimate}.
+
+All computations use double-precision floating point and standard scientific Python
+libraries, and run to completion in a few minutes on a single CPU core.
 
 \end{document}

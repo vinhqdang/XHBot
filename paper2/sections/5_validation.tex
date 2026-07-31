@@ -15,8 +15,8 @@ Unless stated otherwise we use $\pi_B = 0.3$ ($c \approx 0.4286$),
 $\|\Delta\| = 2$, $\sigma = 1$, and $D = 16$, drawing $4\times 10^5$ nodes per class
 per configuration ($1.5 \times 10^6$ for the crossover sweep). Errors are computed
 by exhaustive threshold search over the empirical distributions, so the reported
-figures are attained minima rather than plug-in estimates. All code is released
-with the paper and runs in a few minutes on CPU.
+figures are attained minima rather than plug-in estimates.
+Appendix~\ref{app:repro} records the remaining numerical choices.
 
 \subsection{Deflation and error}
 
@@ -190,8 +190,8 @@ $\bar e_c = 0.25, 0.5, 0.75, 0.9$, against $0.594$, $0.679$, $0.788$ and $0.869$
 under the incorrect form. The error was therefore pessimistic, and by up to six
 percentage points.
 
-For depth, \texttt{theory/corrections.py} evaluates~\eqref{eq:depth-exact}
-directly. The weight profile $\sum_j (q^{(L)}_j)^2/N_j$ exceeds the
+For depth we evaluate~\eqref{eq:depth-exact} directly, iterating the
+distance recursion for the walk profile and summing the weighted contributions. The weight profile $\sum_j (q^{(L)}_j)^2/N_j$ exceeds the
 non-backtracking value $D^{-L}$ by factors of $1.94$, $4.63$, $12.3$ and $35.0$ at
 $L = 2,\dots,5$, which is the quantitative size of the term
 that~\eqref{eq:backtrack} restores. The resulting crossovers are
@@ -375,8 +375,9 @@ numbers above should be read as locating these graphs approximately, not as a
 certified verdict, and the agreement of $\eta$ with $c\rho$ on YelpChi is the one
 quantity here that constitutes a genuine test of the theory rather than an
 application of it. Measuring $\rho$ on TwiBot remains the natural next step and
-requires only data access; \texttt{theory/measure\_rho.py} implements the estimator
-and validates it against planted ground truth, recovering $\rho$ exactly and
-confirming $\eta = c\rho$ on synthetic graphs with regular degrees.
+requires only data access. The estimator itself is a direct count, and on synthetic
+graphs with a planted camouflage ratio it recovers that ratio exactly and reproduces
+$\eta = c\rho$ to machine precision under regular degrees, so the measurement is
+limited by data availability rather than by method.
 
 \end{document}
