@@ -62,10 +62,12 @@ of the majority to be $\eta = c\rho$, where $c$ is the minority-to-majority rati
 that \emph{prevalence acts as protection}---the more common the strategic actors, the
 less camouflage each one needs to defeat relational inference. Second, this yields a
 threshold $\rho^\star = (1-D^{-1/2})/(1+c)$ in the mean neighbourhood size $D$, above
-which averaging over neighbours is worse than ignoring the network entirely, and a
-bounded interval above which relational information becomes informative again with
-its sign reversed: the most damaging strategy is \emph{intermediate}, not maximal,
-camouflage. We are explicit that a crossover of this kind is not new---at $c = 1$ it
+which averaging over neighbours is worse than ignoring the network entirely, and---in
+the noise-dominated regime, and only where the minority is large enough relative to
+$D^{-1/2}$---a bounded interval above which relational information becomes informative
+again with its sign reversed, so that within the model the most damaging strategy is
+\emph{intermediate} rather than maximal camouflage. We show that the networks we
+measure do not fall in that regime, and are harmful without any such reversal. We are explicit that a crossover of this kind is not new---at $c = 1$ it
 recovers a result of Ma et al.\ (2022) and the interval is the second root of the
 same condition---and that our contribution is the asymmetric, class-imbalanced case
 together with a variance correction that shifts the threshold by $11.5\%$. Third,
@@ -75,19 +77,21 @@ discrimination achievable from attribute discrepancies alone.
 
 We then measure $\rho$ on MGTAB, a Twitter dataset of $10{,}199$ expert-annotated
 accounts in which every account is labelled, so that no tie is lost to unlabelled
-alters. Automated accounts turn out to be almost perfectly camouflaged on every
-social relation---the median one has \emph{no} automated alter, and
-automated--automated ties number $212$ against $40{,}263$ automated--genuine
-ties---which places those relations at or beyond the \emph{upper} edge of the harmful
-interval rather than inside it: a neighbourhood that is entirely genuine, in a
-population that is $27\%$ automated, is itself anomalous. The relations that do defeat
-inference are content-coordination ties (shared URLs and hashtags) at intermediate
-$\rho \approx 0.6$. The same accounts therefore avoid one another where ties are
-visible and converge where content is shared, and $\rho$ differs between the two
-layers by a factor approaching two on identical actors---so multiplexity, not
-aggregate density, decides whether relational inference is usable. We also document
-why the canonical bot benchmarks cannot support this measurement at all, and confirm
-the edge-endpoint identity to machine precision in its degree-corrected form.
+alters. Evaluating the exact criterion at each relation's own parameters, \emph{every}
+recorded relation turns out to be one on which averaging over alters is worse than
+using attributes alone, by factors between $1.3$ and $3.6$. The layers nevertheless
+differ sharply in mechanism: on every social relation the automated accounts are almost
+perfectly camouflaged---the median one has \emph{no} automated alter, and
+automated--automated ties number $212$ against $40{,}263$ automated--genuine ties---
+whereas on content-coordination relations (shared URLs, shared hashtags) the same
+accounts converge, with automated--automated ties rising to $15{,}963$ and $28{,}203$.
+They avoid one another where ties are visible and meet where content is shared, and
+$\rho$ differs between the layers by a factor approaching two on identical actors, so
+multiplexity rather than aggregate density decides whether relational inference is
+usable. We also document why the canonical bot benchmarks cannot support this
+measurement at all, and confirm the edge-endpoint identity to machine precision in its
+degree-corrected form.
+
 \end{abstract}
 
 \begin{keyword}
