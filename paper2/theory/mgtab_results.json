@@ -1,0 +1,129 @@
+{
+  "c": 0.36880955576432695,
+  "r": 13.000679969787598,
+  "d": 788,
+  "kappa": 2.1287469884156627,
+  "n": 10199,
+  "n_bot": 2748,
+  "relations": [
+    {
+      "relation": "followers",
+      "n_undirected": 231829,
+      "rho_mean": 0.9693103037889279,
+      "rho_median": 1.0,
+      "eta_mean": 0.040597406841809,
+      "c_rho": 0.3574909025381793,
+      "deg_ratio": 0.13133731274114976,
+      "D_median_bot": 4.0,
+      "window": [
+        0.3652809098931268,
+        1.0958427296793802
+      ],
+      "verdict": "HARMFUL"
+    },
+    {
+      "relation": "friends",
+      "n_undirected": 327035,
+      "rho_mean": 0.9888809877681295,
+      "rho_median": 1.0,
+      "eta_mean": 0.032814292202004304,
+      "c_rho": 0.3647087578025527,
+      "deg_ratio": 0.1847004550075753,
+      "D_median_bot": 8.0,
+      "window": [
+        0.4722692113628314,
+        0.9888544282096757
+      ],
+      "verdict": "flip"
+    },
+    {
+      "relation": "mention",
+      "n_undirected": 107794,
+      "rho_mean": 0.9940865918874381,
+      "rho_median": 1.0,
+      "eta_mean": 0.021628749816329403,
+      "c_rho": 0.3666286343452798,
+      "deg_ratio": 0.25489257288730227,
+      "D_median_bot": 4.0,
+      "window": [
+        0.3652809098931268,
+        1.0958427296793802
+      ],
+      "verdict": "HARMFUL"
+    },
+    {
+      "relation": "reply",
+      "n_undirected": 20700,
+      "rho_mean": 0.9909961315280463,
+      "rho_median": 1.0,
+      "eta_mean": 0.00869588114173464,
+      "c_rho": 0.36548884303302526,
+      "deg_ratio": 0.19051072020052817,
+      "D_median_bot": 1.0,
+      "window": [
+        0.0,
+        1.4611236395725071
+      ],
+      "verdict": "degen"
+    },
+    {
+      "relation": "quoted",
+      "n_undirected": 20536,
+      "rho_mean": 0.9991765206526266,
+      "rho_median": 1.0,
+      "eta_mean": 0.014092067864548075,
+      "c_rho": 0.36850584871204106,
+      "deg_ratio": 0.22061744791794896,
+      "D_median_bot": 2.0,
+      "window": [
+        0.21397660293940915,
+        1.247147036633098
+      ],
+      "verdict": "HARMFUL"
+    },
+    {
+      "relation": "url",
+      "n_undirected": 263800,
+      "rho_mean": 0.5950874947996144,
+      "rho_median": 0.625,
+      "eta_mean": 0.1946481006210251,
+      "c_rho": 0.21947395459795202,
+      "deg_ratio": 0.6375587522976032,
+      "D_median_bot": 12.0,
+      "window": [
+        0.5196667881296254,
+        0.9414568514428817
+      ],
+      "verdict": "HARMFUL"
+    },
+    {
+      "relation": "hashtag",
+      "n_undirected": 300000,
+      "rho_mean": 0.6272014753119373,
+      "rho_median": 0.6480177360459051,
+      "eta_mean": 0.27883691609920347,
+      "c_rho": 0.23131789748452605,
+      "deg_ratio": 1.115774331723058,
+      "D_median_bot": 53.0,
+      "window": [
+        0.6302114362210333,
+        0.8309122033514739
+      ],
+      "verdict": "HELPS"
+    },
+    {
+      "relation": "followers+friends",
+      "n_undirected": 331251,
+      "rho_mean": 0.9889455336775957,
+      "rho_median": 1.0,
+      "eta_mean": 0.032312443530816,
+      "c_rho": 0.3647325629507493,
+      "deg_ratio": 0.1842160277460809,
+      "D_median_bot": 8.0,
+      "window": [
+        0.4722692113628314,
+        0.9888544282096757
+      ]
+    }
+  ]
+}

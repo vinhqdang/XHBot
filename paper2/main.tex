@@ -79,14 +79,22 @@ selectively discarding suspicious ties does not straightforwardly restore infere
 it trades bias against the number of ties left to average over, and we bound the
 discrimination achievable from attribute discrepancies alone.
 
-We then measure $\rho$ on three labelled empirical networks, finding
-$\hat\rho \approx 0.80$--$0.90$ on dense relations, that $\eta \approx c\rho$ holds
-to within $3\%$ where its degree assumption is met, and that camouflage varies by an
-order of magnitude \emph{across relation types within the same population}---so that
-multiplexity, not aggregate density, determines whether relational inference is
-usable. We provide the estimator and discuss the implications for automated
-detection, where these mechanisms are currently addressed by architectural heuristics
-rather than by measurement.
+We then measure $\rho$ on MGTAB, a Twitter dataset of $10{,}199$ expert-annotated
+accounts in which every account is labelled, so that no tie is lost to unlabelled
+alters. Automated accounts turn out to be almost perfectly camouflaged on every
+social relation---the median one has \emph{no} automated alter, and
+automated--automated ties number $212$ against $40{,}263$ automated--genuine
+ties---which places those relations at or beyond the \emph{upper} edge of the harmful
+interval rather than inside it: a neighbourhood that is entirely genuine, in a
+population that is $27\%$ automated, is itself anomalous. The relations that do defeat
+inference are content-coordination ties (shared URLs and hashtags) at intermediate
+$\rho \approx 0.6$. The same accounts therefore avoid one another where ties are
+visible and converge where content is shared, and $\rho$ differs between the two
+layers by a factor approaching two on identical actors---so multiplexity, not
+aggregate density, decides whether relational inference is usable. We also document
+why the canonical bot benchmarks cannot support this measurement at all, and report
+where the $\eta = c\rho$ identity fails: it needs a degree correction, and remains
+approximate under strong degree asymmetry.
 
 }
 
@@ -131,6 +139,9 @@ Oono K, Suzuki T. Graph neural networks exponentially lose expressive power for 
 
 \bibitem{nt2019revisiting}
 NT H, Maehara T. Revisiting graph neural networks: all we have is low-pass filters. arXiv preprint. 2019. doi:10.48550/arXiv.1905.09550
+
+\bibitem{shi2023mgtab}
+Shi S, Qiao K, Liu Z, Yang J, Chen C, Chen J, et al. MGTAB: a multi-relational graph-based Twitter account detection benchmark. Neurocomputing. 2025;647:130490. doi:10.1016/j.neucom.2025.130490
 
 \bibitem{dou2020caregnn}
 Dou Y, Liu Z, Sun L, Deng Y, Peng H, Yu PS. Enhancing graph neural network-based fraud detectors against camouflaged fraudsters. In: Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM 2020). ACM; 2020. doi:10.1145/3340531.3411903

@@ -194,96 +194,109 @@ crossover is \emph{not} depth-independent.
 
 The theory is parameterised by $\rho$, which has so far been a modelling device. We
 now measure it. TwiBot-20 and TwiBot-22 require author approval for access, which we
-did not have; we therefore use the two graphs from
-CARE-GNN~\cite{dou2020caregnn}---the work that introduced the camouflage framing---
-together with the Elliptic bitcoin graph, all openly available. We report every
-relation we measured, including the two whose median degree is $1$: those are
-excluded from the window comparison because a single neighbour offers no variance
-reduction to trade against, but they are also the two lowest-camouflage
-measurements, and omitting them would flatter the narrative. These are fraud
-rather than bot graphs. The mechanism is the same (a fraudulent node attaching to
-benign ones to dilute its neighbourhood) but the domain is not, and we draw no
-conclusion about Twitter from them.
+did not have. We therefore use \textbf{MGTAB}~\cite{shi2023mgtab}, an openly
+distributed Twitter dataset of $10{,}199$ expert-annotated accounts
+($2{,}748$ automated, $7{,}451$ genuine; $c = 0.369$) in which \emph{every} account
+carries a label, so that all ties are between labelled actors and the measurement is
+not diluted by unlabelled alters. MGTAB records seven relations on the same
+population, which lets us separate the social layer (following, friendship, mention,
+reply, quote) from a content-coordination layer (shared URLs, shared hashtags). For
+comparison we also report the two review networks of Dou
+et al.~\cite{dou2020caregnn}; these are not social ties, and we treat them only as a
+contrast case.
 
-For each relation we compute $\rho$ as the mean over fraud nodes of the fraction of
-neighbours that are benign, and $\eta$ symmetrically. Table~\ref{tab:real} reports
-the result.
+\paragraph{A negative result on the canonical benchmark.}
+It is worth recording why we do not use cresci-2015 or cresci-2017, the
+longest-standing bot benchmarks. In the openly distributed preprocessed release,
+cresci-2017 contains \emph{no} interpersonal ties at all: all $6{,}637{,}615$ of its
+edges are account-to-tweet postings. cresci-2015 does contain following and
+friendship ties, but only $0.41\%$ of the $1.29$ million accounts they span are
+labelled, and the labelled-to-labelled subgraph reduces to $4{,}275$ ties with the
+mixing pattern $3{,}823$ genuine--genuine, $373$ automated--automated and just
+$\mathbf{79}$ cross-class. Only $698$ of $3{,}351$ automated accounts ($20.8\%$) have
+any labelled tie, the median such account has degree $0$, and the median camouflage
+ratio is therefore $0$. A quantity resting on $79$ ties cannot support a
+distributional claim, and we obtained the same counts from a second, independently
+preprocessed release of the same data, so this is a property of the dataset rather
+than of one pipeline. We report it because it explains a gap in the literature: the
+benchmark most used for bot detection cannot be used to measure the structural
+mechanism the field attributes to bots.
+
+For each relation we compute $\rho$ as the mean over automated accounts of the
+fraction of their alters that are genuine, and $\eta$ symmetrically.
+Table~\ref{tab:real} reports the result.
 
 \begin{table}[t]
 \centering
 \small
-\caption{Camouflage measured on real labelled graphs. $\hat\rho$ is the mean benign
-share of a fraud node's neighbourhood; the window is
-$\bigl((1-D^{-1/2})/(1+c),\,(1+D^{-1/2})/(1+c)\bigr)$ from~\eqref{eq:window}
-evaluated at the median fraud degree. Relations with median degree $1$ are omitted as
-degenerate: with a single neighbour there is no variance reduction to be had.}
+\caption{Camouflage measured on MGTAB ($10{,}199$ Twitter accounts, all labelled;
+$c = 0.369$, $r = 13.0$ over $d = 788$ attributes). $\hat\rho$ is the mean genuine
+share of an automated account's alters, $\tilde\rho$ its median. The window is
+\eqref{eq:window} at the median automated degree $\tilde D$. Ties are undirected and
+deduplicated.}
 \label{tab:real}
-\begin{tabular}{llrrrr}
+\begin{tabular}{lrrrrrl}
 \toprule
-Graph & Relation & $\hat\rho$ & $\hat\eta$ & $c\hat\rho$ & Window \\
+Relation & ties & $\hat\rho$ & $\tilde\rho$ & $\hat\eta$ & $\tilde D$ & position \\
 \midrule
-YelpChi & \texttt{homo}    & 0.805 & 0.133 & 0.137 & (0.79, 0.92) \\
-        & \texttt{net\_rtr} & 0.820 & 0.140 & 0.139 & (0.68, 1.03) \\
-        & \texttt{net\_rsr} & 0.795 & 0.135 & 0.135 & (0.78, 0.93) \\
+\multicolumn{7}{@{}l}{\emph{social layer}}\\
+following   & 231{,}829 & 0.969 & 1.00 & 0.041 & 4  & inside \\
+friendship  & 327{,}035 & 0.989 & 1.00 & 0.033 & 8  & at upper edge \\
+mention     & 107{,}794 & 0.994 & 1.00 & 0.022 & 4  & inside \\
+quote       & 20{,}536  & 0.999 & 1.00 & 0.014 & 2  & inside \\
+reply       & 20{,}700  & 0.991 & 1.00 & 0.009 & 1  & degenerate \\
+\;\;union   & 331{,}251 & 0.989 & 1.00 & 0.032 & 8  & at upper edge \\
 \midrule
-Amazon  & \texttt{homo}    & 0.897 & 0.033 & 0.066 & (0.85, 1.01) \\
-        & \texttt{net\_usu} & 0.897 & 0.036 & 0.066 & (0.84, 1.03) \\
-        & \texttt{net\_uvu} & 0.818 & 0.030 & 0.060 & (0.67, 1.19) \\
-\midrule
-\multicolumn{6}{@{}l}{\emph{degenerate ($\tilde D = 1$; no variance reduction is
-available at all)}}\\
-YelpChi & \texttt{net\_rur} & 0.075 & 0.004 & 0.013 & --- \\
-Elliptic & \texttt{tx}      & 0.490 & 0.018 & 0.053 & --- \\
+\multicolumn{7}{@{}l}{\emph{content-coordination layer}}\\
+shared URL     & 263{,}800 & 0.595 & 0.62 & 0.195 & 12 & inside \\
+shared hashtag & 300{,}000 & 0.627 & 0.65 & 0.279 & 53 & below \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Three observations, and one caveat we consider important.
+Three findings, and one honest failure.
 
-\paragraph{The edge-balance identity holds where its assumptions do.}
-On YelpChi the prediction $\eta = c\rho$ is accurate to within $3\%$ on
-\texttt{homo} ($0.137$ predicted against $0.133$ observed) and to three decimal
-places on \texttt{net\_rsr} ($0.135$ against $0.135$). On Amazon it overestimates by
-roughly a factor of two. The discrepancy is explained by degree heterogeneity:
-\eqref{eq:balance} counts edge endpoints under the model's regular-degree assumption,
-and generalises to $\eta = c\rho\,(\bar d_B/\bar d_H)$ when the classes have
-different mean degree. YelpChi has $\bar d_B/\bar d_H \approx 0.95$--$1.01$, Amazon
-$0.31$--$0.35$ on its dense relations. The corrected form improves Amazon's
-\texttt{homo} prediction from $0.066$ to $0.023$ against an observed $0.033$, but
-overshoots on \texttt{net\_upu} ($\bar d_B/\bar d_H = 1.80$), because $\eta$ is a
-mean of per-node ratios rather than a ratio of means and the two differ under
-within-class degree skew. We therefore report the identity as validated on graphs
-with comparable class degrees and as requiring the degree correction otherwise.
+\paragraph{The layers behave completely differently, and the theory says which one
+matters.} On every social relation the automated accounts are almost perfectly
+camouflaged: $\tilde\rho = 1.00$, meaning the median automated account has
+\emph{no} automated alter at all. Automated--automated ties number $212$ in the
+following-and-friendship union against $40{,}263$ automated--genuine ties. On the
+content-coordination relations the same accounts behave in the opposite way:
+$\hat\rho$ falls to $0.60$--$0.63$ and automated--automated ties rise to $15{,}963$
+(shared URL) and $28{,}203$ (shared hashtag). These accounts avoid each other where
+ties are visible and converge where content is shared.
 
-\paragraph{Real fraud graphs sit inside the harmful window, marginally.}
-Every dense relation in Table~\ref{tab:real} has $\hat\rho$ above the lower edge of
-its window, so the theory predicts that \emph{plain mean aggregation} on these graphs
-is worse than ignoring the topology. The margins are small---$0.805$ against a
-threshold of $0.787$ on YelpChi \texttt{homo}---which is the interesting part. These
-graphs sit close to the boundary, which is precisely the regime in which the choice
-of aggregator decides the outcome, and it is consistent with the empirical fact that
-camouflage-resistant architectures were needed on exactly these datasets.
+This is where the non-monotonicity of~\eqref{eq:window} does real work. Because
+camouflage on the social layer is close to \emph{total}, those relations sit at or
+beyond the \emph{upper} edge of the harmful window rather than inside it: a
+neighbourhood that is $100\%$ genuine, in a population that is $27\%$ automated, is
+itself anomalous, and relational inference is informative again with its sign
+reversed. The relations that actually defeat inference are the content ones at
+intermediate $\rho \approx 0.6$, which fall inside the window. The most damaging
+strategy is not maximal camouflage but partial camouflage---and the accounts in this
+population overshoot it on precisely the layer a detector is most likely to use.
 
-\paragraph{Raw-discrepancy pruning is far too weak to rescue them.}
-Using the measured feature separations ($r = 1.17$ over $d=32$ for YelpChi,
-$r = 2.04$ over $d=25$ for Amazon), \eqref{eq:kappa} gives $\kappa = 0.086$ and
-$0.295$: the edge score is close to uninformative. Optimising the threshold
-under~\eqref{eq:deff-hard} then moves the tolerance almost not at all---from
-$0.787$ to $0.788$ on YelpChi \texttt{homo}, and from $0.854$ to $0.863$ on
-Amazon \texttt{homo}---leaving every relation still below its measured
-$\hat\rho$. A \emph{flawless} pruner, by contrast, would comfortably rescue
-them: half of all nodes still benefit up to $\rho = 0.989$ at $D=158$.
+\paragraph{Multiplexity, not density, decides usability.} The two layers are recorded
+on the \emph{same} $10{,}199$ accounts, and $\hat\rho$ differs between them by a
+factor approaching two, with the qualitative verdict differing as well. A procedure
+that pools relations into one adjacency therefore averages a signal that is
+informative-with-reversed-sign together with one that is genuinely uninformative. This
+is the concrete form of the concern raised by V\"or\"os and
+Snijders~\cite{voros2017cluster} and by Snijders et al.~\cite{snijders2013model}: the
+quantity is a property of a relation, not of a population.
 
-The operative quantity is therefore the \emph{gap} between achievable and ideal
-edge scoring, and on these graphs it is wide. This is a sharper and more useful
-claim than the one the inconsistent soft/hard pairing produces: it says the
-component that decides the outcome is not pruning as such but the \emph{quality} of
-the edge score, and that a raw feature-discrepancy statistic does not supply it. That
-is a concrete account of why CARE-GNN~\cite{dou2020caregnn} needs a label-aware
-learned similarity with a reinforcement-learned selector rather than a fixed
-distance, and why XHBot learns a projection before scoring. It is also falsifiable:
-substituting a better-calibrated $\kappa$ for a learned scorer should move the
-tolerance past $\hat\rho$, and if it does not, the theory is wrong.
+\paragraph{The edge-balance identity requires its degree correction here, and is
+still only approximate.} On the social union, $\eta = c\rho$ predicts $0.365$ against
+a measured $0.032$---wrong by a factor of $11$. The reason is visible in the degrees:
+automated accounts have mean degree $14.8$ against $83.5$ for genuine ones, a ratio of
+$0.18$, so the regular-degree assumption behind~\eqref{eq:balance} fails badly. The
+degree-corrected form $\eta = c\rho\,(\bar d_B/\bar d_H)$ gives $0.067$, within a
+factor of two but still not close. We take this as the honest boundary of the
+identity: it holds to within $3\%$ on YelpChi, where class degrees are comparable, and
+degrades in proportion to degree asymmetry. Since $\eta$ is a mean of per-node ratios
+rather than a ratio of means, no single scalar correction will recover it under strong
+within-class degree skew, and the identity should be read as exact in the model and
+diagnostic---not predictive---on data.
 
 \paragraph{Caveat.}
 The window is derived for a CSBM with regular degrees, isotropic Gaussian features,
