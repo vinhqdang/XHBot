@@ -84,7 +84,7 @@ far edge pruning shifts the threshold.
     $\rho^\star = (1 - D^{-1/2})/(1+c)$ (Corollary~\ref{cor:critical}), which
     recovers~\cite{ma2022homophily} at $c=1$ and~\cite{baranwal2021graph} at
     $\rho=0$. Our error term also retains a mixture-variance contribution that a
-    naive $\sigma^2/D$ calculation misses, and which shifts the threshold by $13\%$.
+    naive $\sigma^2/D$ calculation misses, and which shifts the threshold by $11.5\%$.
 
     \item \textbf{What discarding ties can and cannot buy.} Selectively removing
     suspicious ties is the standard remedy, and we show it is a trade rather than a
@@ -93,13 +93,14 @@ far edge pruning shifts the threshold.
     (Proposition~\ref{prop:deff}). We give the tolerance as a closed function of the
     discriminating power of whatever suspicion score is used, and bound that power
     from the distribution of attribute discrepancies, which removes the free parameter
-    (Section~\ref{sec:achievable}). On the networks we measure, a score based on
-    attribute discrepancy alone is far too weak to restore the inference, while a
-    perfect one would suffice---so the operative quantity is the gap between the two.
+    (Section~\ref{sec:achievable}). On the review networks we measure, a score based on
+    attribute discrepancy alone moves the threshold by less than $0.01$ and does not
+    restore the inference, while a flawless one would---so the operative quantity is
+    the gap between achievable and ideal tie scoring.
 
     \item \textbf{Measurement on real networks.} We give an estimator for $\rho$,
     validate it against planted ground truth, and report it for several labelled
-    populations. Camouflage differs by an order of magnitude across relation types
+    populations. Camouflage differs by a factor approaching two across relation types
     recorded on the \emph{same} actors, which makes these per-relation quantities and
     implies that pooling relations averages a usable signal with an unusable one.
 \end{itemize}

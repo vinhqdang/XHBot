@@ -56,7 +56,7 @@ peer effects differing in magnitude between friends and classmates in a multilay
 setting.
 
 This matters for us empirically rather than only in principle.
-Section~\ref{sec:measuring} finds camouflage differing by an order of magnitude
+Section~\ref{sec:measuring} finds camouflage differing by a factor approaching two
 between relations recorded on the \emph{same} actors, which means our thresholds are
 per-relation quantities and that a procedure pooling relations is averaging a usable
 signal with an unusable one.
@@ -95,8 +95,8 @@ showed that graph-level indices are systematically confounded by size and densit
 Krivitsky et al.~\cite{krivitsky2009representing} exhibit networks with identical,
 highly skewed degree distributions but entirely different structure, concluding that
 degree-based accounts cannot by themselves identify structure. Section~\ref{sec:measuring}
-finds exactly this: our identity holds to within $3\%$ where class mean degrees are
-comparable and requires correction where they are not.
+bears this out: the identity requires its degree factor wherever class mean degrees
+differ, and holds exactly once it is included.
 
 The stochastic blockmodel we build on originates in this
 journal~\cite{holland1983stochastic}. Degree correction \emph{within} blockmodels is
@@ -152,7 +152,7 @@ harmful''. It is that the adversarial, class-imbalanced case is not a relabellin
 the balanced one: the two classes deflate asymmetrically, which moves the decision
 boundary and invalidates a fixed-boundary comparison; bot prevalence enters the
 threshold through $\eta = c\rho$ as a robustness parameter; and the mixture-variance
-term omitted in~\cite{ma2022homophily} shifts the threshold by $13\%$. Read this way,
+term omitted in~\cite{ma2022homophily} shifts the threshold by $11.5\%$. Read this way,
 the closest antecedent to Theorem~\ref{thm:sgtr} is~\cite{fountoulakis2023graph},
 which gives the qualitative guarantee for attention; we give a closed form for how
 far a pruner of a given quality moves the threshold.

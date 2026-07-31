@@ -1,0 +1,114 @@
+[
+  {
+    "relation": "following",
+    "D": 4,
+    "rho": 0.9693,
+    "noise_dom": [
+      0.36528079134430635,
+      1.095842374032919
+    ],
+    "exact_roots": [
+      0.25198159722972124
+    ],
+    "snr_ratio_at_rho": 0.5089490797068279,
+    "verdict": "HARMFUL"
+  },
+  {
+    "relation": "friendship",
+    "D": 8,
+    "rho": 0.9889,
+    "noise_dom": [
+      0.47226905809186537,
+      0.98885410728536
+    ],
+    "exact_roots": [
+      0.37201945463154124
+    ],
+    "snr_ratio_at_rho": 0.7924339544286838,
+    "verdict": "HARMFUL"
+  },
+  {
+    "relation": "mention",
+    "D": 4,
+    "rho": 0.9941,
+    "noise_dom": [
+      0.36528079134430635,
+      1.095842374032919
+    ],
+    "exact_roots": [
+      0.25198159722972124
+    ],
+    "snr_ratio_at_rho": 0.5744412023359746,
+    "verdict": "HARMFUL"
+  },
+  {
+    "relation": "quote",
+    "D": 2,
+    "rho": 0.9992,
+    "noise_dom": [
+      0.21397653349511794,
+      1.2471466318821074
+    ],
+    "exact_roots": [
+      0.12100378079055939
+    ],
+    "snr_ratio_at_rho": 0.41612425213734294,
+    "verdict": "HARMFUL"
+  },
+  {
+    "relation": "reply",
+    "D": 1,
+    "rho": 0.991,
+    "noise_dom": [
+      0.0,
+      1.4611231653772254
+    ],
+    "exact_roots": [],
+    "snr_ratio_at_rho": 0.28300317757427257,
+    "verdict": "HARMFUL"
+  },
+  {
+    "relation": "union",
+    "D": 8,
+    "rho": 0.9889,
+    "noise_dom": [
+      0.47226905809186537,
+      0.98885410728536
+    ],
+    "exact_roots": [
+      0.37201945463154124
+    ],
+    "snr_ratio_at_rho": 0.7924339544286838,
+    "verdict": "HARMFUL"
+  },
+  {
+    "relation": "shared URL",
+    "D": 12,
+    "rho": 0.5951,
+    "noise_dom": [
+      0.5196666194761779,
+      0.9414565459010474
+    ],
+    "exact_roots": [
+      0.43221963925921203,
+      0.9951626081355267
+    ],
+    "snr_ratio_at_rho": 0.4436829933189114,
+    "verdict": "HARMFUL"
+  },
+  {
+    "relation": "shared hashtag",
+    "D": 53,
+    "rho": 0.6272,
+    "noise_dom": [
+      0.630211231691258,
+      0.8309119336859673
+    ],
+    "exact_roots": [
+      0.5853260931551146,
+      0.8680186658522077
+    ],
+    "snr_ratio_at_rho": 0.711520802394056,
+    "verdict": "HARMFUL"
+  }
+]

@@ -38,7 +38,7 @@ Section~\ref{sec:validation} should be read as such. Our simulations verify
 algebra; they are not empirical evidence about Twitter or any other platform.
 
 Three specific gaps deserve naming. First, the single-relation restriction is real: our measurements show camouflage
-differs by an order of magnitude across relations of the same graph
+differs by a factor approaching two across relations of the same graph
 (Table~\ref{tab:real}), and a multi-relational treatment would need to model how a
 detector pools them. Second, although Section~\ref{sec:depth} extends the analysis
 to $L$ layers, it does so in the noise-dominated regime and on a regular tree; a
@@ -100,7 +100,7 @@ window rather than a half-line is the second root of their condition, discussed 
 the name mid-homophily pitfall by Luan et al.~\cite{luan2023when}. What we add is the
 class-imbalanced adversarial case: the edge-balance identity $\eta = c\rho$, which
 makes bot prevalence a robustness parameter and which we confirm on real data; a
-mixture-variance correction worth $13\%$ of the threshold; the observation that
+mixture-variance correction worth $11.5\%$ of the threshold; the observation that
 pruning trades bias against effective degree, so that a bound on achievable edge-score
 quality is needed before any tolerance claim means anything; and the finding that mean
 aggregation's backtracking term acts as an implicit residual connection, so that the
@@ -114,14 +114,7 @@ stochastic block model, we proved that mean aggregation deflates the class signa
 by exactly $1-(1+c)\rho$, derived the resulting Bayes error, and obtained a
 critical camouflage ratio $\rho^\star = (1-D^{-1/2})/(1+c)$ beyond which a
 homophilic GNN is provably worse than ignoring the graph---a result that recovers
-the known $1/\sqrt{D}$ separability gain of graph convolution at $\rho = 0$. We
-then showed that spectral edge pruning separates camouflage edges by exactly
-$\|\Delta\|^2$ in expectation and raises the tolerated camouflage to
-$\rho^\star/(\rho^\star + (1-\bar e_c)(1-\rho^\star))$; that tri-channel
-aggregation is strictly more expressive than any single homophilic aggregator; and
-that the contrastive prototype objective maximises a variational lower bound on
-label information while its orthogonality penalty guarantees independence only
-under a joint-Gaussian assumption. All closed forms were verified numerically, with
+the known $1/\sqrt{D}$ separability gain of graph convolution at $\rho = 0$. All closed forms were verified numerically, with
 the predicted critical ratio falling inside the measured crossover bracket.
 
 The contribution is not a new detector but a criterion. Practitioners currently

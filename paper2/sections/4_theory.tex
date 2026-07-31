@@ -170,7 +170,7 @@ prevalence a robustness parameter rather than a training-time nuisance. (iii) Th
 mixture-variance term $\rho(1-\rho)\|\Delta\|^2$ is absent from the covariance
 $I/\sqrt{\deg(i)}$ reported in~\cite{ma2022homophily}; including it moves
 $\rho^\star$ from $0.53$ to $0.46$ in the configuration of
-Remark~\ref{rem:practical}, a $13\%$ correction to the threshold.
+Remark~\ref{rem:practical}, an $11.5\%$ correction to the threshold.
 \end{remark}
 
 \begin{remark}[Practical reading]
@@ -249,8 +249,11 @@ pruner tolerates any camouflage whatsoever. That conclusion is false, and
 Section~\ref{sec:achievable} shows why. Down-weighting edges non-uniformly also
 reduces the \emph{effective degree}, and hence forfeits part of the $\sqrt{D}$
 variance reduction that made aggregation worthwhile in the first place. Once that
-cost is included, the ceiling is $1 - 1/D$ rather than $1$, and the operating point
-is an interior optimum rather than the corner $\bar e_c \to 1$.
+cost is included the naive reading fails, though not in the direction it first
+appears: Proposition~\ref{cor:ceiling} shows there is no hard ceiling at all, because
+a perfect pruner leaves the aggregate unbiased. What changes is the \emph{rate} at
+which the advantage thins out, and the fact that the operating point must be chosen on
+a detection trade-off rather than by pushing $\bar e_c \to 1$.
 
 \begin{proof}
 Weighted mean aggregation computes $\sum_e w_e \mathbf{x}_{u_e} / \sum_e w_e$. In
@@ -373,11 +376,10 @@ Under perfect pruning every retained neighbour shares the node's label, so the
 retained count is $K \sim \mathrm{Bin}(D, 1-\rho)$ and the aggregate is
 \emph{unbiased} with variance $\sigma^2/K$. Consequently, for every $\rho<1$,
 pruned aggregation is never worse than the graph-free classifier: it is strictly
-better on the event $\{K\geq2\}$, and ties when $K\in\{0,1\}$. The fraction of nodes
+better on the event $\{K\geq2\}$, and ties when $K\in\{0,1\}$. The fraction of \emph{strategic actors}
 that strictly benefit is
 \begin{equation}
-    \Pr[K \geq 2] \;=\; 1 - (1-\rho)^{\!D}\!\cdot\!\bigl(\ldots\bigr)
-    \;=\; 1 - \rho^{D} - D(1-\rho)\rho^{D-1},
+    \Pr[K \geq 2] \;=\; 1 - \rho^{D} - D(1-\rho)\rho^{D-1},
     \label{eq:benefit}
 \end{equation}
 and the variance-equivalent degree is $1/\mathbb{E}[1/K \mid K\geq1]$, not
@@ -404,12 +406,12 @@ conclusion that even perfect pruning requires $\rho < 1-1/D$. That is wrong, and
 instructively so. The substitution replaces a random $K$ by its mean in a quantity
 that depends on $1/K$, and it is applied in precisely the regime where the
 replacement is least defensible: at $\rho = 1-1/D$ and $D=16$ we have
-$\mathbb{E}[K] = 1.55$ but $1/\mathbb{E}[1/K \mid K\geq1] = 1.29$, and $36\%$ of
+$\mathbb{E}[K] = 1.00$ exactly, yet $1/\mathbb{E}[1/K \mid K\geq1] = 1.29$, and $36\%$ of
 nodes have $K=0$. Proposition~\ref{cor:ceiling} shows the qualitative conclusion
 inverts: there is no hard ceiling. What does happen as $\rho \to 1$ is that the
 \emph{proportion} of nodes for which the graph carries any information at all decays;
-a useful summary is the point at which half of them still benefit, which
-is $\rho = 0.897$ at $D=16$ and $0.974$ at $D=64$.
+a useful summary is the point at which half of the strategic actors still benefit,
+which is $\rho = 0.897$ at $D=16$ and $0.974$ at $D=64$.
 \end{remark}
 
 \paragraph{Achievable $\theta$.}
@@ -578,7 +580,7 @@ neighbours' is, by Theorem~\ref{thm:depth}, a way of making explicit and tunable
 term that iterated averaging already supplies at the fixed weight $1/D$---which
 explains why the device helps most in exactly the regime, low degree and high
 camouflage, where that fixed weight is least appropriate. And the finding that
-camouflage differs by an order of magnitude across relation types within one
+camouflage differs by a factor approaching two across relation types within one
 population implies that a detector pooling relations into a single adjacency is
 averaging a usable signal with an unusable one; our thresholds apply per relation, and
 suggest treating relation selection as a measurement question prior to model choice.
