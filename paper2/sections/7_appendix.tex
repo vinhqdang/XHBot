@@ -158,10 +158,13 @@ alters belonging to the other class, and the reported $\hat\rho$ is the mean of 
 share over strategic actors having at least one labelled tie; $\tilde D$ is the median
 degree over the same set. Where a ratio of sums is compared against a prediction
 derived from sums, both sides use the ratio-of-sums estimator, for the reason set out
-in Section~\ref{sec:measuring}. The attribute separation $r$ is calibrated from the
+in Section~\ref{sec:measuring}. The attribute separation $r$ is calibrated, for every dataset, from the
 balanced error of a linear discriminant fitted on a random $70\%$ of accounts and
 evaluated on the remainder, rather than from the moments of the attribute
-distributions, for the reason given in Section~\ref{sec:r-estimate}.
+distributions, for the reason given in Section~\ref{sec:r-estimate}. The decision
+threshold is selected on the training split, not the evaluation split. Because the
+estimate varies with the split, we average over repeated random splits and report the
+spread.
 
 All computations use double-precision floating point and standard scientific Python
 libraries, and run to completion in a few minutes on a single CPU core.
