@@ -1,0 +1,2132 @@
+\documentclass[iicol,pdflatex,sn-basic,Numbered]{sn-jnl}
+
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+\usepackage[title]{appendix}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+\theoremstyle{thmstyleone}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{thmstylethree}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{remark}[theorem]{Remark}
+
+\raggedbottom
+
+\begin{document}
+
+\title[The Camouflage Ratio]{The Camouflage Ratio: Strategic Tie Formation and the\\
+       Limits of Structural Detection}
+
+\author*[1]{\fnm{Quang-Vinh} \sur{Dang}}\email{vinh.dq4@buv.edu.vn}
+
+\author[1]{\fnm{Phuong-Lan} \sur{Nguyen}}
+
+\affil*[1]{\orgname{British University Vietnam}, \orgaddress{\city{Hung Yen}, \country{Vietnam}}}
+
+\abstract{Inferring an actor's attributes from those of its network neighbours rests on
+homophily: neighbours are assumed informative. We ask what happens when an actor
+\emph{chooses} its ties in order to defeat that inference, as automated accounts on
+social platforms do when they form ties to genuine users so that their neighbourhood
+resembles a genuine one. We formalise this with one structural parameter, the
+\emph{camouflage ratio} $\rho$. Three results follow. First, camouflage is not
+private: because a tie has two ends, edge-endpoint conservation forces the induced
+contamination of the majority to be $\eta = c\rho$, where $c$ is the
+minority-to-majority ratio, so prevalence acts as protection---the more common such
+actors are, the less camouflage each needs. Second, a threshold
+$\rho^\star = (1-D^{-1/2})/(1+c)$ in the mean neighbourhood size $D$ marks where
+averaging over alters ceases to improve on attributes alone; we are explicit that a
+crossover of this kind is not new, and that our contribution is the class-imbalanced
+case. Third, selectively discarding suspicious ties does not straightforwardly repair
+the inference, because it trades bias against the number of ties left to average
+over. Measuring $\rho$ on $10{,}199$ expert-annotated Twitter accounts, every
+recorded relation is one the network harms; yet the same accounts avoid one another
+where ties are visible and converge where content is shared, so multiplexity rather
+than aggregate density decides whether relational inference is usable.}
+
+\keywords{Relational inference, Homophily, Strategic tie formation, Multiplexity, Social bots, Stochastic block models}
+
+\maketitle
+
+\section{Introduction}
+\label{sec:intro}
+
+One of the oldest uses of relational data is to infer something about an actor from
+the actors it is connected to. The inference rests on \emph{homophily}: if ties are
+formed preferentially between similar actors, then a neighbourhood is informative
+about its centre, and averaging over it estimates the centre's attributes more
+precisely than the centre's own noisy attributes do. Variants of this logic underpin
+network autocorrelation models, peer-influence estimation, and relational
+classification.
+
+This paper asks what happens when an actor \emph{chooses} its ties in order to defeat
+that inference. The setting where this is most consequential, and where labelled data
+exists, is the detection of automated accounts on social platforms. Early generations
+of such accounts formed dense, mutually connected clusters and were consequently easy
+to identify collectively. Contemporary ones do the opposite: they form ties to large
+numbers of genuine users so that their local neighbourhood is statistically
+indistinguishable from a genuine actor's---a strategy known in that literature as
+\emph{relation camouflage}~\citep{dou2020caregnn,cresci2020decade}. The strategy is
+purposive and cheap, and it targets the inferential mechanism rather than any
+particular detector. Detection systems have responded by discarding suspicious ties,
+by treating similar and dissimilar neighbours through separate channels, or by holding
+an actor's own attributes apart from its neighbours'~\citep{dou2020caregnn,he2025bothp},
+and recent detectors combine all three~\citep{dang2026xhbot}. Those designs are
+justified empirically, by ablation. What has been missing is an account of the
+structural conditions under which the underlying inference works at all, which is what
+we supply here.
+
+We formalise it with one structural parameter, the \emph{camouflage ratio} $\rho$: the
+share of a strategic actor's ties directed at the other class. Two questions then
+have precise answers.
+
+\begin{enumerate}
+    \item \textbf{When is relational information worth using at all?} If camouflage
+    is severe enough, averaging over neighbours must eventually be worse than
+    ignoring the network and using attributes alone. Practitioners have no criterion
+    for where that point lies, and---as we show---it depends on quantities they can
+    already measure.
+    \item \textbf{Does selectively discarding suspicious ties restore the
+    inference?} Discarding ties is the standard remedy, and it is justified almost
+    entirely by ablation: removing the step costs accuracy on a benchmark. That is
+    not a statement about the conditions under which it works.
+\end{enumerate}
+
+Our analysis is conducted in a contextual stochastic block
+model~\citep{deshpande2018contextual}---a stochastic block model with attributes on
+the nodes---augmented with $\rho$ as an explicit strategic parameter, and we study
+what neighbourhood averaging does to the separation between the two classes as $\rho$
+grows.
+
+\paragraph{What is already known.} We are explicit about priority from the outset.
+For a \emph{balanced} symmetric CSBM, Ma et al.~\citep[Thm.~2]{ma2022homophily}
+already established a closed-form threshold at which aggregation ceases to beat the
+graph-free classifier, and our critical ratio reduces to their condition exactly when
+the two classes are equal in size (Remark~\ref{rem:ma}); related crossover analyses
+appear in~\citep{luan2023when,mao2023demystifying,fountoulakis2023graph}. The
+existence of a crossover is therefore not our discovery, and we do not claim it.
+Our contribution is the \emph{class-imbalanced adversarial} case, where the two
+classes deflate by different amounts---which moves the decision boundary and makes
+bot prevalence itself a robustness parameter---together with a closed form for how
+far edge pruning shifts the threshold.
+
+\paragraph{Contributions.}
+
+\begin{itemize}
+    \item \textbf{The edge-balance identity, and bot prevalence as a robustness
+    parameter.} Camouflage edges have two ends, so a bot that points an edge at a
+    human necessarily pollutes that human's neighbourhood too. We show this forces
+    $\eta = c\rho$, where $c$ is the bot-to-human ratio, so that the total deflation
+    is $1-(1+c)\rho$ (Proposition~\ref{prop:deflation}). The consequence is that
+    bot prevalence enters the robustness threshold directly: as bots become more
+    common, each one needs \emph{less} camouflage to break the detector. This is not
+    a class-imbalance problem that resampling addresses.
+
+    \item \textbf{A Bayes-error crossover valid under class imbalance.} When
+    $c \neq 1$ the two classes deflate asymmetrically, the post-aggregation class
+    midpoint moves, and a comparison against a fixed decision boundary is no longer
+    valid---the objection Luan et al.~\citep{luan2023when} raise
+    against~\citep{ma2022homophily}. We compare Bayes errors instead
+    (Theorem~\ref{thm:error}), obtaining
+    $\rho^\star = (1 - D^{-1/2})/(1+c)$ (Corollary~\ref{cor:critical}), which
+    recovers~\citep{ma2022homophily} at $c=1$ and~\citep{baranwal2021graph} at
+    $\rho=0$. Our error term also retains a mixture-variance contribution that a
+    naive $\sigma^2/D$ calculation misses, and which shifts the threshold by $11.5\%$.
+
+    \item \textbf{What discarding ties can and cannot buy.} Selectively removing
+    suspicious ties is the standard remedy, and we show it is a trade rather than a
+    free improvement: down-weighting ties non-uniformly also reduces the number of
+    ties left to average over, so the benefit is bounded
+    (Proposition~\ref{prop:deff}). We give the tolerance as a closed function of the
+    discriminating power of whatever suspicion score is used, and bound that power
+    from the distribution of attribute discrepancies, which removes the free parameter
+    (Section~\ref{sec:achievable}). On the review networks we measure, a score based on
+    attribute discrepancy alone moves the threshold by less than $0.01$ and does not
+    restore the inference, while a flawless one would---so the operative quantity is
+    the gap between achievable and ideal tie scoring.
+
+    \item \textbf{Measurement on real networks.} We give an estimator for $\rho$,
+    validate it against planted ground truth, and report it for several labelled
+    populations. Camouflage differs by a factor approaching two across relation types
+    recorded on the \emph{same} actors, which makes these per-relation quantities and
+    implies that pooling relations averages a usable signal with an unusable one.
+\end{itemize}
+
+Our aim is not to propose a detector. It is to characterise a structural mechanism
+that limits what ties can reveal, to show that its governing quantities are
+measurable, and to report what they are on real networks. The practical consequence is
+that ``should I use the network here?'' becomes a question that can be answered from
+data before any model is fitted, and answered separately for each type of tie.
+
+
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Inferring attributes from alters}
+\label{sec:related-alters}
+
+The operation we analyse has a long history in network analysis under several names.
+In the network autocorrelation model an actor's outcome is regressed on a weighted
+average of its alters' outcomes, and Leenders~\citep{leenders2002modeling} makes the
+point on which this paper turns: the weight matrix is a substantive modelling
+commitment, not a technical detail, and the conclusions depend on it. Row-normalised
+weights---the natural choice, and the one implicit in most applications---are exactly
+the mean aggregation of Section~\ref{sec:model}. Everett and
+Borgatti~\citep{everett2026alter} give the general matrix formulation of \emph{alter
+composition}, the profile of categories an actor is exposed to through its alters,
+and extend it to overlapping memberships; our camouflage ratio is a two-category
+alter-composition measure, and the question we ask is what happens to it when one
+category chooses its ties.
+
+Two in-journal results bear directly on the reliability of this inference.
+Roeling and Nicholls~\citep{roeling2020imputation} impute unobserved attributes from
+network structure and find the procedure sensitive to model misspecification and to
+missingness. V\"or\"os et al.~\citep{voros2019limits} report a negative result of the
+same kind: across five countries, friendship relations turn out to be a poor proxy
+for status attributions, so one relation cannot be substituted for another. Both are
+warnings that neighbour-based inference is conditional rather than automatic; our
+contribution is to give one condition in closed form, for the case where the failure
+is \emph{induced deliberately}.
+
+Homophily is the assumption the inference rests on, and its measurement is a
+developed literature here: Bojanowski and Corten~\citep{bojanowski2014measuring}
+survey and axiomatise segregation and homophily indices, and
+McMillan~\citep{mcmillan2022worth} shows that homophily measured on strong and weak
+ties differs in magnitude, so that a single homophily figure for a population can be
+misleading. Noel and Nyhan~\citep{noel2011unfriending} demonstrate the consequence for
+inference, showing that homophily in tie \emph{retention} biases estimates of social
+influence. Recent work in the journal continues in both directions: Sch\"u{\ss}ler and
+Fuhse~\citep{schussler2025duality} argue that ties and attributes are mutually
+constituting rather than one being read off the other, which is the conceptual
+counterpart of our question; Espinosa-Rada et al.~\citep{espinosarada2026socioeconomic}
+measure the socioeconomic composition of alters directly; and Tang et
+al.~\citep{tang2026twomode} extend the autoregressive model to two-mode data with a
+core--periphery degree structure, which is the setting our degree correction speaks to.
+Where the network is only partially observed, Ajorlou et
+al.~\citep{ajorlou2025dirichlet} give a sampling estimator for homophily itself.
+Our results are the adversarial limit of this concern: we treat the degree
+of homophily violation as a decision variable of one class rather than a property of
+the population.
+
+\subsection{Multiplexity, and why the analysis is per relation}
+\label{sec:related-multiplex}
+
+That different relations among the same actors have different structure is a founding
+observation of this journal~\citep{lazega1999multiplexity}, and its methodological
+consequence---that collapsing relations into a single adjacency destroys information,
+while modelling them jointly quickly becomes intractable---is treated directly by
+V\"or\"os and Snijders~\citep{voros2017cluster}. Snijders et
+al.~\citep{snijders2013model} show the stronger version: structure apparently present
+in an advice relation is substantially mediated by the friendship relation beneath
+it. An et al.~\citep{an2026estimating} find the same phenomenon quantitatively, with
+peer effects differing in magnitude between friends and classmates in a multilayer
+setting.
+
+Two recent contributions sharpen the point. Fluer et
+al.~\citep{fluer2026survey} build multiplex models that carry interlayer
+correlation explicitly rather than treating layers as independent, and Chandrasekhar et
+al.~\citep{chandrasekhar2026multiplexing} show that multiplexity can have
+opposite-signed consequences depending on the process running over it---inhibiting
+low-reinforcement diffusion while enhancing high-reinforcement diffusion. That a
+quantity can reverse sign across layer configurations is precisely what we find for the
+usability of relational inference. Lakdawala et
+al.~\citep{lakdawala2026bonds} meanwhile partition dyads into latent interaction
+regimes, which is a complementary way of admitting that not all ties of a nominal type
+are the same.
+
+This matters for us empirically rather than only in principle.
+Section~\ref{sec:measuring} finds camouflage differing by a factor approaching two
+between relations recorded on the \emph{same} actors, which means our thresholds are
+per-relation quantities and that a procedure pooling relations is averaging a usable
+signal with an unusable one.
+
+\subsection{Strategic tie formation}
+\label{sec:related-strategic}
+
+The premise that actors form ties instrumentally, and with an eye to how they will be
+perceived, is established here but thinly populated. Burt et al.~\citep{burt2021network}
+show experimentally that brokerage position causes attributions of leadership, and
+report participants re-shaping an assigned network to suit their preferences. Shea et
+al.~\citep{shea2019cheater} come closest to our mechanism: actors anticipating
+unethical behaviour activate sparser networks that better conceal it, while those who
+have already acted unethically activate denser ones for support---network structure
+managed as a function of what the actor wants inferred about it. Barone and
+Coscia~\citep{barone2018birds} estimate trustworthiness from mutually inconsistent
+self-reports and find homophily in it, which is both an instance of inferring a
+latent attribute that actors have an incentive to misreport and a demonstration that
+the inference can work.
+
+Nguyen~\citep{nguyen2026agency} adds the most recent instance, treating tie
+formation as strategic behaviour conditional on structural position, and
+Macdonald~\citep{macdonald2026wiretap} shows that covert networks carry
+structural signatures distinct from ordinary collaboration---evidence that concealment
+leaves traces in structure rather than erasing them.
+
+What is absent, so far as we can determine, is the case where the tie portfolio is
+\emph{engineered} to defeat the inference. We searched the journal's full record and
+found no treatment of automated or inauthentic accounts; the nearest work concerns
+misinformation susceptibility in personal networks~\citep{choi2026who}. We therefore
+take our terminology from this journal---alter composition, autocorrelation,
+exposure---and our substantive setting from the detection literature, rather than
+importing the latter's vocabulary wholesale.
+
+Within that detection literature a small strand does measure the structure of such
+populations rather than only classifying them, and it is the strand closest to our
+purpose: Ran et al.~\citep{ran2025identifying} characterise automated accounts by
+motif frequencies across relation types, and Ariyarathne
+et al.~\citep{ariyarathne2026behavior} treat measured behavioural change as the
+discriminating signal in its own right. Two further results establish that camouflage is
+an active and adaptive strategy rather than a fixed property: Pan et
+al.~\citep{pan2026camera} document deliberate mimicry of benign users' content,
+which breaks the assumption that structural and attribute cues agree, and Mukherjee
+et al.~\citep{mukherjee2026optimal} show that detectors relying on aggregation can
+be defeated by rewiring under realistic budget constraints. Our threshold gives the
+condition under which such rewiring succeeds.
+
+\subsection{Degree heterogeneity and the correction it forces}
+\label{sec:related-degree}
+
+Our edge-endpoint identity requires a degree correction, and the reason is a
+long-standing concern here. Snijders~\citep{snijders1981degree} introduced degree
+variance as an index of graph heterogeneity; Anderson et al.~\citep{anderson1999interaction}
+showed that graph-level indices are systematically confounded by size and density; and
+Krivitsky et al.~\citep{krivitsky2009representing} exhibit networks with identical,
+highly skewed degree distributions but entirely different structure, concluding that
+degree-based accounts cannot by themselves identify structure. Section~\ref{sec:measuring}
+bears this out: the identity requires its degree factor wherever class mean degrees
+differ, and holds exactly once it is included.
+
+Kami\'nski et al.~\citep{kaminski2026relationships} extend the concern to
+hypergraphs, finding an association between node degree and hyperedge size in all but a
+small minority of $36$ empirical datasets, so degree is rarely separable from the
+structure one wishes to measure.
+
+The stochastic blockmodel we build on originates in this
+journal~\citep{holland1983stochastic}. Degree correction \emph{within} blockmodels is
+much less developed here; the one instance we found, Yu et
+al.~\citep{yu2018detecting}, monitors node propensity in a dynamic degree-corrected
+blockmodel in order to detect anomalous nodes, which is close to our setting in both
+model and purpose.
+
+\subsection{Analyses of neighbourhood averaging in the machine-learning literature}
+
+
+The contextual stochastic block model~\citep{deshpande2018contextual} couples a
+stochastic block model with Gaussian node attributes and has become the standard
+setting for asking what message passing does to statistical separability. Baranwal
+et al.~\citep{baranwal2021graph} established the central positive result: for a
+two-class CSBM, one graph convolution improves the regime of linear separability by
+a factor of roughly $1/\sqrt{D}$ in the expected degree $D$, and the resulting
+classifier generalises out of distribution to graphs with different edge
+probabilities.
+
+That analysis assumes the generative process is homophilic---inter-class edges arise
+from a fixed, non-adversarial probability---and establishes only the positive side.
+Its follow-ups extend the positive results to multiple
+layers~\citep{baranwal2023effects} and characterise the locally Bayes-optimal
+architecture as one that \emph{interpolates} between an MLP in the low-graph-signal
+regime and a convolution in the high-signal regime~\citep{baranwal2023optimality}.
+Our Corollary~\ref{cor:critical} reduces to the separability gain
+of~\citet{baranwal2021graph} when $\rho = 0$, which calibrates our model against this
+baseline. That line has continued: Duranthon and
+Zdeborov\'a~\citep{duranthon2025statistical} benchmark aggregation against the
+information-theoretic optimum in the same generative model, quantifying how far short it
+falls; Ma et al.~\citep{ma2025attention} show that attention---the closest
+analogue to reweighting ties---helps only when structural noise dominates attribute
+noise and hurts otherwise; and Baranwal~\citep{baranwal2026depth} obtains a sharp
+dichotomy for the value of aggregation depth on sparse graphs, governed by a single
+ratio. Our depth result in Section~\ref{sec:depth} is finite-$D$ and concerns the
+crossover rather than the asymptotic regime, but it points the same way: depth is not
+uniformly beneficial.
+
+\paragraph{The crossover is known; our contribution is the imbalanced and
+adversarial case.} We state the priority situation plainly, because it determines
+what this paper does and does not claim. A closed-form threshold at which mean
+aggregation becomes worse than the graph-free classifier was established by Ma
+et al.~\citep[Thm.~2]{ma2022homophily} for the \emph{balanced} symmetric CSBM, and
+Corollary~\ref{cor:critical} recovers their condition exactly at $c = 1$
+(Remark~\ref{rem:ma} works the algebra through). Related crossover analyses have
+since appeared: Luan et al.~\citep{luan2023when} compute the Bayes error of
+graph-aware against graph-agnostic classifiers under a homophily parameter with
+per-class variances and degrees, locating the intersection points directly and
+criticising the fixed-classifier comparison used in~\citep{ma2022homophily}; Mao
+et al.~\citep{mao2023demystifying} prove the per-node version, that a GCN beats an
+MLP on homophilic nodes and loses on heterophilic ones \emph{within the same graph};
+and the graph-attention analysis of Fountoulakis
+et al.~\citep{fountoulakis2023graph} both identifies the same signal-deflation
+factor and proves that attention---the closest analogue to soft edge
+pruning---is lower-bounded by the better of convolution and the graph-free
+classifier, while also showing (their Theorems~9 and~13) that no attention
+mechanism separates intra- from inter-class edges in the hard regime.
+
+Against this background our claim is narrower than ``we show when the graph is
+harmful''. It is that the adversarial, class-imbalanced case is not a relabelling of
+the balanced one: the two classes deflate asymmetrically, which moves the decision
+boundary and invalidates a fixed-boundary comparison; bot prevalence enters the
+threshold through $\eta = c\rho$ as a robustness parameter; and the mixture-variance
+term omitted in~\citep{ma2022homophily} shifts the threshold by $11.5\%$. Read this way,
+the closest antecedent to Theorem~\ref{thm:sgtr} is~\citep{fountoulakis2023graph},
+which gives the qualitative guarantee for attention; we give a closed form for how
+far a pruner of a given quality moves the threshold.
+
+A parallel literature studies the limits of repeated aggregation. Over-smoothing
+analyses~\citep{li2018deeper,oono2020graph} show node representations converge to
+an uninformative subspace as depth grows, and spectral
+accounts~\citep{nt2019revisiting} characterise graph convolution as a low-pass
+filter. These results concern degradation with \emph{depth} under a fixed graph.
+The effect we analyse is orthogonal: a single layer already suffers signal loss
+when the \emph{topology itself} is adversarial. The two mechanisms compound, but
+our critical ratio is present at $L = 1$.
+
+\subsection{Heterophily in graph learning}
+
+The finding that homophily-assuming GNNs degrade on heterophilic graphs motivated a
+family of architectures that separate ego from neighbour representations, aggregate
+over higher-order neighbourhoods, or combine low- and high-frequency
+signals~\citep{zhu2020beyond,luan2022revisiting}. Ma et al.~\citep{ma2022homophily}
+show in addition that homophily is not strictly necessary: GNNs can succeed on
+heterophilic graphs when inter-class neighbourhood \emph{distributions} are
+sufficiently distinguishable.
+
+That observation matters for our setting, and we take a position on it. Under
+adversarial camouflage the distinguishability Ma et al.\ rely on is precisely what
+the adversary is optimising away: a bot that matches the human neighbourhood
+distribution eliminates the signal their argument requires. The distinction between
+benign heterophily---structured, and therefore exploitable---and adversarial
+heterophily, engineered to be unexploitable, is in our view the conceptual point
+separating bot detection from general heterophilic node classification. It is a
+distinction about the \emph{provenance} of the inter-class edges, not about the
+algebra of aggregation, which is why our threshold coincides with theirs in the
+balanced case while the interpretation of the parameter differs.
+
+\subsection{Robust aggregation and adversarial topology}
+\label{sec:related-robust}
+
+Camouflage is a contamination phenomenon, and two mature literatures have already
+treated it as one.
+
+The first replaces the mean with a robust estimator. In Byzantine-robust distributed
+learning a fraction of workers report corrupted updates, and aggregation rules such
+as Krum~\citep{blanchard2017machine} and coordinate-wise median or trimmed
+mean~\citep{yin2018byzantine} bound the resulting error. The idea has been imported
+into GNN neighbourhood aggregation directly: Geisler
+et al.~\citep{geisler2020reliable} construct an aggregation with the maximal
+breakdown point of $0.5$, so the bias stays bounded while fewer than half of a
+node's edges are adversarial, and Chen et al.~\citep{chen2021understanding} attribute
+the structural vulnerability of GCNs specifically to the non-robustness of the
+weighted mean, analysed through the breakdown point.
+
+We therefore avoid the term for our own threshold. A breakdown point asks when an
+adversary can drive an estimate arbitrarily far under unbounded contamination;
+$\rho^\star$ is instead a bias--variance crossover under \emph{bounded}
+contamination---human features are not arbitrary---and marks where the $\sqrt{D}$
+variance reduction ceases to pay for the $(1+c)\rho$ bias. The two quantities answer
+different questions, and $\rho^\star$ is the weaker of the two.
+
+The second literature attacks the topology. Nettack~\citep{zugner2018adversarial} and
+Metattack~\citep{zugner2019adversarial} insert or remove edges to flip predictions,
+and defences such as GNNGuard~\citep{zhang2020gnnguard} and
+Pro-GNN~\citep{jin2020graph} filter them, largely heuristically. Two results in this
+line bear directly on ours. Zhu et al.~\citep{zhu2022how} prove the bridge our model
+assumes---that impactful structural attacks on homophilous data necessarily reduce
+homophily---and derive the ego/neighbour-separation design principle from it.
+Mujkanovic et al.~\citep{mujkanovic2022are} show empirically that under adaptive
+attack, defended GNNs can underperform an MLP that ignores the topology outright;
+our Corollary~\ref{cor:critical} can be read as a closed-form account of when that
+should be expected. Certified-robustness work~\citep{bojchevski2019certifiable} is
+orthogonal: it certifies that a prediction is unchanged within a perturbation
+budget, never that the graph has become net-harmful beyond one. Gosch
+et al.~\citep{gosch2023revisiting} come closest in combining a CSBM, an adversary,
+and a Bayes-optimal yardstick, but use it to show GNNs are \emph{over}-robust,
+insensitive past the point of genuine semantic change.
+
+\subsection{Camouflage-resistant detectors}
+
+CARE-GNN~\citep{dou2020caregnn} introduced the camouflage framing to GNN-based fraud
+detection, using a label-aware similarity measure and a reinforcement-learning
+neighbour selector to filter uninformative edges. Bot-detection work has since
+adopted the pattern: BotHP~\citep{he2025bothp} separates ego and neighbour encoders
+to mitigate interaction camouflage, and XHBot~\citep{dang2026xhbot} combines
+spectral edge pruning, tri-channel aggregation, and contrastive disentanglement.
+
+These methods are validated by ablation. An ablation establishes that removing a
+component costs accuracy on a particular benchmark; it does not establish the
+\emph{range of conditions} under which the component helps, nor whether a
+multi-channel design is more expressive or merely better parameterised. The present
+paper supplies exactly those missing statements for the three mechanisms XHBot
+employs. We analyse XHBot's components because they instantiate the dominant design
+pattern, not because the analysis is specific to that system: the edge-scoring
+result applies to any feature-discrepancy pruning rule, and the expressivity result
+to any aggregator that adds a permutation-invariant non-mean channel.
+
+
+
+\section{The Camouflage-CSBM}
+\label{sec:model}
+
+We work in a two-class contextual stochastic block model augmented with an
+adversarial parameter controlling how aggressively bots attach to humans.
+
+\begin{definition}[Camouflage-CSBM]
+\label{def:ccsbm}
+Let $\mathcal{V}$ be a set of $N$ nodes partitioned into bots $\mathcal{B}$ and
+humans $\mathcal{H}$, with bot prevalence $\pi_B = |\mathcal{B}|/N \in (0,1)$ and
+bot-to-human ratio $c = \pi_B/(1-\pi_B)$. Each node $v$ carries a feature vector
+\begin{equation}
+    \mathbf{x}_v \sim \mathcal{N}(\boldsymbol{\mu}_{y_v},\, \sigma^2 I_d),
+    \qquad y_v \in \{\mathrm{B}, \mathrm{H}\},
+\end{equation}
+and we write $\Delta = \boldsymbol{\mu}_{\mathrm{B}} - \boldsymbol{\mu}_{\mathrm{H}}$
+for the class-mean gap. Every node has neighbourhood size $D$. Neighbours are drawn
+independently: a bot's neighbour is human with probability $\rho$ (the
+\emph{camouflage ratio}) and a bot otherwise; a human's neighbour is a bot with
+probability $\eta$ and a human otherwise.
+\end{definition}
+
+The two mixing parameters are not free. Counting bot--human edge endpoints from
+both sides gives $|\mathcal{B}| D \rho = |\mathcal{H}| D \eta$, hence the
+\emph{edge-balance identity}
+\begin{equation}
+    \eta(\rho) \;=\; \frac{\pi_B}{1-\pi_B}\,\rho \;=\; c\,\rho .
+    \label{eq:balance}
+\end{equation}
+Camouflage is therefore doubly harmful: it not only pollutes bot neighbourhoods but
+necessarily pollutes human neighbourhoods as well, at a rate set by the bot
+prevalence. Every result below accounts for this coupling; treating $\eta$ as
+independent of $\rho$ overstates a detector's robustness.
+
+\begin{assumption}[Regularity used by the depth analysis]
+\label{as:tree}
+Definition~\ref{def:ccsbm} samples each actor's alters independently, which suffices
+for the single-layer results. Section~\ref{sec:depth} additionally requires that the
+tie relation be \emph{symmetric}---so that $v \in \mathcal{N}(u)$ whenever
+$u \in \mathcal{N}(v)$, which is what makes~\eqref{eq:backtrack} hold---and that the
+neighbourhood be locally tree-like with branching $D$, so that the number of actors at
+distance $j$ is $N_j = D(D-1)^{j-1}$. Both are standard for sparse networks in which
+short cycles are rare, and neither is needed before Section~\ref{sec:depth}. We also
+take $\rho \le 1/c$, so that $\eta \le 1$, which holds automatically whenever the
+strategic class is the minority.
+\end{assumption}
+
+\begin{remark}[Modelling choices]
+Independent neighbour sampling at fixed size $D$ makes the analysis exact and is
+the discrete analogue of the degree-concentration assumptions used
+in~\citep{baranwal2021graph}. Isotropic within-class covariance and a common $D$ are
+simplifications; Section~\ref{sec:limitations} discusses what changes without them.
+We emphasise that $\rho$ is an \emph{adversarial} parameter chosen by the attacker,
+not a fixed property of the generative process---this is the substantive
+difference from the standard CSBM setting.
+\end{remark}
+
+\paragraph{Aggregation operator.}
+We analyse one round of mean aggregation, the canonical homophilic operator,
+\begin{equation}
+    \mathbf{h}_v \;=\; \frac{1}{D}\sum_{u \in \mathcal{N}(v)} \mathbf{x}_u ,
+    \label{eq:meanagg}
+\end{equation}
+which isolates the effect of neighbourhood averaging from the confounds of learned
+weights and nonlinearity. Because all the quantities we need are governed by the
+projection onto the discriminant direction, define
+$\mathbf{w} = \Delta/\|\Delta\|$ and $t_v = \mathbf{w}^\top \mathbf{h}_v$.
+
+\paragraph{Baseline for comparison.}
+The natural point of reference is the graph-free classifier, which uses
+$\mathbf{x}_v$ directly. For two isotropic Gaussians with equal priors its Bayes
+error is
+\begin{equation}
+    \varepsilon_{\mathrm{raw}} \;=\; \Phi\!\left(-\frac{\|\Delta\|}{2\sigma}\right),
+    \label{eq:rawerr}
+\end{equation}
+with $\Phi$ the standard normal CDF. The question driving Section~\ref{sec:theory}
+is when aggregation beats~\eqref{eq:rawerr} and when it does not.
+
+
+
+\section{Theory}
+\label{sec:theory}
+
+\subsection{Camouflage deflates the signal}
+
+We first quantify what aggregation does to the class signal.
+
+\begin{proposition}[Signal deflation]
+\label{prop:deflation}
+Under Definition~\ref{def:ccsbm} with mean aggregation~\eqref{eq:meanagg}, the
+expected post-aggregation separation along the discriminant direction is
+\begin{equation}
+    \delta(\rho) \;=\; \mathbb{E}[t_v \mid y_v = \mathrm{B}]
+                     - \mathbb{E}[t_u \mid y_u = \mathrm{H}]
+                \;=\; \bigl(1 - \rho - \eta(\rho)\bigr)\,\|\Delta\| ,
+    \label{eq:deflation}
+\end{equation}
+and with the edge-balance identity~\eqref{eq:balance},
+$\delta(\rho) = \bigl(1 - (1+c)\rho\bigr)\|\Delta\|$.
+\end{proposition}
+
+\begin{proof}
+Centre the projection so that $\mathbf{w}^\top\boldsymbol{\mu}_{\mathrm{B}} =
++\|\Delta\|/2$ and $\mathbf{w}^\top\boldsymbol{\mu}_{\mathrm{H}} = -\|\Delta\|/2$.
+For a bot $v$, each of its $D$ neighbours is human with probability $\rho$, so by
+linearity
+$\mathbb{E}[t_v] = (1-\rho)\tfrac{\|\Delta\|}{2} + \rho\bigl(-\tfrac{\|\Delta\|}{2}\bigr)
+= \tfrac{\|\Delta\|}{2}(1-2\rho)$.
+Symmetrically $\mathbb{E}[t_u] = -\tfrac{\|\Delta\|}{2}(1-2\eta)$ for a human $u$.
+Subtracting gives $\tfrac{\|\Delta\|}{2}\bigl[(1-2\rho)+(1-2\eta)\bigr] =
+(1-\rho-\eta)\|\Delta\|$. Substituting~\eqref{eq:balance} yields the second form.
+\end{proof}
+
+Two consequences are worth stating. The signal vanishes entirely at
+$\rho_{\mathrm{null}} = 1/(1+c)$, at which point the two classes have identical
+post-aggregation means and \emph{no} classifier acting on aggregated features
+alone can do better than chance. And the deflation is linear in $\rho$ with slope
+$(1+c)\|\Delta\|$, so higher bot prevalence makes the detector more fragile, not
+less---a counterintuitive point, since prevalence is usually treated as a
+class-imbalance nuisance rather than a robustness parameter.
+
+The noise term requires more care than the signal term.
+
+\begin{theorem}[Post-aggregation error]
+\label{thm:error}
+Under Definition~\ref{def:ccsbm}, the projected statistics are asymptotically
+Gaussian with separation $\delta(\rho)$ from~\eqref{eq:deflation} and per-class
+variances
+\begin{equation}
+    s_{\mathrm{B}}^2 = \frac{\sigma^2 + \rho(1-\rho)\|\Delta\|^2}{D},
+    \qquad
+    s_{\mathrm{H}}^2 = \frac{\sigma^2 + \eta(1-\eta)\|\Delta\|^2}{D}.
+    \label{eq:variances}
+\end{equation}
+Defining the post-aggregation signal-to-noise ratio
+\begin{equation}
+    \mathrm{SNR}(\rho) \;=\; \frac{|\delta(\rho)|}{s_{\mathrm{B}} + s_{\mathrm{H}}},
+    \label{eq:snr}
+\end{equation}
+the balanced error of the variance-equalised linear rule is
+$\Phi(-\mathrm{SNR}(\rho))$. This is an upper bound on the Bayes error, tight when
+$s_{\mathrm{B}} = s_{\mathrm{H}}$.
+\end{theorem}
+
+\begin{remark}[What this quantity is, and is not]
+\label{rem:not-bayes}
+Three clarifications, since the distinction matters for how the comparisons below
+should be read. (i) When $s_{\mathrm{B}} \neq s_{\mathrm{H}}$ the likelihood ratio of
+two unequal-variance Gaussians is quadratic, so the Bayes rule is an interval and
+$\Phi(-\mathrm{SNR})$ is the error of the equal-error-rate \emph{threshold} rule, an
+upper bound. That bound is loose in one direction, but at finite $D$ it is not the
+dominant approximation: the central limit theorem is. The aggregate is exactly a
+mixture of $D+1$ Gaussians, and $\Phi(-\mathrm{SNR})$ \emph{under}-states its error
+by $41\%$ relative at $\rho = 0.1$, $18\%$ at $\rho = 0.2$ and $6\%$ at
+$\rho = 0.3$ (Table~\ref{tab:deflation}), while the attribute-only baseline is exact
+because raw attributes are exactly Gaussian. Comparisons therefore \emph{overstate}
+how much aggregation helps, and are optimistic rather than conservative. The
+crossover itself is barely affected---exact $0.4642$ against $0.4644$---but the
+direction should not be misreported.
+(ii) The criterion is \emph{balanced} error, weighting the two classes equally, not
+the prior-weighted risk---a deliberate choice in a paper about class imbalance,
+where a prior-weighted criterion rewards predicting the majority class and would
+obscure the effect being measured. At $D=16$, $\pi_B=0.3$ the two differ little in
+practice ($\rho^\star = 0.4644$ balanced against $0.4694$ prior-weighted), but the
+choice should be explicit. (iii) The absolute value in~\eqref{eq:snr} is necessary:
+without it the expression exceeds $1/2$ once $\rho$ passes the point where
+$\delta$ changes sign, which no error probability may do. With it,
+$\Phi(-\mathrm{SNR})$ correctly records that strongly anti-correlated neighbourhoods
+are informative again---the effect made explicit in~\eqref{eq:window}.
+\end{remark}
+
+\begin{proof}
+Condition on a single neighbour of a bot. Its projected feature equals
+$\pm\|\Delta\|/2$ according to a Bernoulli$(\rho)$ draw, plus independent
+$\mathcal{N}(0,\sigma^2)$ noise. By the law of total variance, the mean component
+contributes $\|\Delta\|^2\rho(1-\rho)$ and the noise contributes $\sigma^2$, so each
+neighbour has variance $\sigma^2 + \rho(1-\rho)\|\Delta\|^2$. The $D$ neighbours are
+independent, so averaging divides the variance by $D$, giving $s_{\mathrm{B}}^2$;
+the human case is identical with $\eta$ in place of $\rho$. Asymptotic normality of
+$t_v$ follows from the central limit theorem as $D$ grows. For two equal-prior
+Gaussians with common standard deviation $s$ and mean gap $\delta$, the
+likelihood-ratio test thresholds at the midpoint and attains error
+$\Phi(-\delta/2s)$, which is~\eqref{eq:snr} when $s_{\mathrm{B}} = s_{\mathrm{H}} = s$.
+\end{proof}
+
+\begin{remark}
+The mixture term $\rho(1-\rho)\|\Delta\|^2$ is easy to miss: a calculation that
+models only the additive noise obtains $\sigma^2/D$ and therefore
+\emph{under}-estimates the post-aggregation error, most severely at intermediate
+$\rho$ where the mixture variance peaks. Section~\ref{sec:validation} confirms
+the corrected form matches simulation to four decimal places.
+\end{remark}
+
+\subsection{The critical camouflage ratio}
+
+We can now answer the deployment question directly.
+
+\begin{corollary}[Critical camouflage ratio]
+\label{cor:critical}
+Mean aggregation yields a lower Bayes error than the graph-free
+classifier~\eqref{eq:rawerr} if and only if $\mathrm{SNR}(\rho) > \|\Delta\|/(2\sigma)$.
+Writing $\rho^\star$ for the value of $\rho$ at which equality holds, aggregation
+helps precisely when $\rho < \rho^\star$. In the noise-dominated regime
+$\sigma^2 \gg \rho(1-\rho)\|\Delta\|^2$ this takes the closed form
+\begin{equation}
+    \rho^\star \;=\; \frac{1 - D^{-1/2}}{1+c}.
+    \label{eq:critical}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+The ``if and only if'' is immediate from monotonicity of $\Phi$. In the
+noise-dominated regime the mixture terms in~\eqref{eq:variances} are negligible, so
+$s_{\mathrm{B}} \approx s_{\mathrm{H}} \approx \sigma/\sqrt{D}$ and
+$\mathrm{SNR}(\rho) \approx (1-\rho-\eta)\|\Delta\|\sqrt{D}/(2\sigma)$. Setting this
+equal to $\|\Delta\|/(2\sigma)$ gives $(1-\rho-\eta)\sqrt{D} = 1$; substituting
+$\eta = c\rho$ and solving for $\rho$ yields~\eqref{eq:critical}.
+\end{proof}
+
+Equation~\eqref{eq:critical} is the paper's most directly actionable result, and it
+says three things. First, at $\rho = 0$ the condition reduces to
+$\mathrm{SNR}_{\mathrm{agg}}/\mathrm{SNR}_{\mathrm{raw}} = \sqrt{D}$: aggregation
+improves separability by $\sqrt{D}$, recovering the $1/\sqrt{D}$ gain established
+by Baranwal et al.~\citep{baranwal2021graph} and confirming our model is calibrated
+against the known homophilic baseline. Second, $\rho^\star$ increases with $D$, so
+detectors operating on densely connected accounts tolerate more camouflage---the
+graph is a genuine asset for hub accounts long after it has become a liability for
+sparse ones. Third, $\rho^\star$ decreases in $c$: as bots become more prevalent,
+the camouflage budget they need in order to break the detector shrinks.
+
+\begin{remark}[Relation to Ma et al.]
+\label{rem:ma}
+Equation~\eqref{eq:critical} is not new in the balanced case, and we want to be
+explicit about what is and is not ours. For a symmetric CSBM with intra- and
+inter-class edge probabilities $p$ and $q$, Ma et al.~\citep[Thm.~2]{ma2022homophily}
+prove that a node is better classified after aggregation than before whenever
+$\deg(i) > (p+q)^2/(p-q)^2$. Their inter-class neighbour fraction is
+$\rho = q/(p+q)$, so $(p-q)/(p+q) = 1-2\rho$ and their condition rearranges to
+$\sqrt{D}\,(1-2\rho) > 1$, i.e.\ $\rho < (1 - D^{-1/2})/2$. This is
+exactly~\eqref{eq:critical} at $c = 1$. A closed-form threshold for when mean
+aggregation is worse than discarding the graph was therefore established at
+ICLR~2022, and our corollary is its extension to $c \neq 1$.
+
+What the extension adds is not merely a symbol. Three things change when the classes
+are imbalanced. (i) The two classes deflate by \emph{different} amounts, $\rho$ for
+bots and $\eta = c\rho$ for humans, so the post-aggregation class midpoint
+\emph{moves}; a comparison against a decision boundary held fixed at the raw-feature
+midpoint---as in~\citep{ma2022homophily}---is then no longer the right one, which is
+precisely the criticism Luan et al.~\citep{luan2023when} raise against that
+analysis. Our Theorem~\ref{thm:error} compares Bayes errors instead, and is
+insensitive to this. (ii) The edge-balance identity $\eta = c\rho$
+in~\eqref{eq:balance} is what couples the two, and it is what makes bot
+prevalence a robustness parameter rather than a training-time nuisance. (iii) The
+mixture-variance term $\rho(1-\rho)\|\Delta\|^2$ is absent from the covariance
+$I/\sqrt{\deg(i)}$ reported in~\citep{ma2022homophily}; including it moves
+$\rho^\star$ from $0.5250$ to $0.4644$ in the configuration of
+Remark~\ref{rem:practical}, an $11.5\%$ correction to the threshold.
+\end{remark}
+
+\begin{remark}[Practical reading]
+\label{rem:practical}
+For a detector with typical $D = 16$ and bot prevalence $\pi_B = 0.3$
+($c \approx 0.43$), \eqref{eq:critical} gives $\rho^\star \approx 0.5250$ in the
+noise-dominated regime and $0.4644$ once the mixture variance is included---an
+$11.5\%$ correction. A bot that
+directs roughly half its edges at genuine users has therefore neutralised the graph
+entirely. This is not an extreme adversary; it is a modest one, which is why
+architectural mitigation is necessary rather than optional.
+\end{remark}
+
+\subsection{Spectral edge pruning provably extends the operating regime}
+\label{sec:sgtr-theory}
+
+The spectral tie-scoring rule of \citet{dang2026xhbot} scores each edge by a learned function of the feature
+discrepancy $(\mathbf{x}_u - \mathbf{x}_v)^2$, motivated by the per-edge
+decomposition of the Dirichlet energy $\mathbf{f}^\top L \mathbf{f} =
+\sum_{(u,v)\in\mathcal{E}} (f_u-f_v)^2$. The following lemma shows this quantity is
+the right statistic: it separates camouflage from genuine edges by exactly the
+squared class gap, independently of the feature dimension.
+
+\begin{lemma}[Energy separability]
+\label{lem:energy}
+Under Definition~\ref{def:ccsbm}, for a within-class edge $(u,v)$ and a
+cross-class (camouflage) edge $(u',v')$,
+\begin{equation}
+    \mathbb{E}\bigl\|\mathbf{x}_u - \mathbf{x}_v\bigr\|^2 = 2d\sigma^2,
+    \qquad
+    \mathbb{E}\bigl\|\mathbf{x}_{u'} - \mathbf{x}_{v'}\bigr\|^2 = \|\Delta\|^2 + 2d\sigma^2,
+\end{equation}
+so the expected energy gap is exactly $\|\Delta\|^2$.
+\end{lemma}
+
+\begin{proof}
+For a within-class edge both endpoints share a mean, so
+$\mathbf{x}_u - \mathbf{x}_v \sim \mathcal{N}(0, 2\sigma^2 I_d)$ and the expected
+squared norm is $2d\sigma^2$. For a cross-class edge
+$\mathbf{x}_{u'} - \mathbf{x}_{v'} \sim \mathcal{N}(\Delta, 2\sigma^2 I_d)$, and
+$\mathbb{E}\|Z\|^2 = \|\mathbb{E}Z\|^2 + \mathrm{tr}\,\mathrm{Cov}(Z)$ gives
+$\|\Delta\|^2 + 2d\sigma^2$.
+\end{proof}
+
+The gap is a \emph{location} shift that does not grow with $d$, whereas the common
+term $2d\sigma^2$ does; the score is therefore informative but increasingly noisy in
+high dimension, which is precisely why XHBot learns a projection rather than using
+the raw quadratic form. We now quantify the benefit of acting on this score.
+
+\begin{theorem}[spectral tie scoring raises the tolerated camouflage]
+\label{thm:sgtr}
+Suppose soft pruning multiplies camouflage edge weights by $(1-\bar e_c)$ and
+within-class edge weights by $(1-\bar e_w)$ in expectation, with
+$\bar e_c > \bar e_w$. Then weighted aggregation behaves as unweighted aggregation
+at the \emph{effective} camouflage ratio
+\begin{equation}
+    \rho_{\mathrm{eff}}(\rho)
+    \;=\; \frac{\rho(1-\bar e_c)}{\rho(1-\bar e_c) + (1-\rho)(1-\bar e_w)}
+    \;<\; \rho .
+    \label{eq:rhoeff}
+\end{equation}
+Consequently, with $\bar e_w = 0$, the detector tolerates true camouflage up to
+\begin{equation}
+    \rho^\star_{\mathrm{prune}}
+    \;=\; \frac{\rho^\star}{\rho^\star + (1-\bar e_c)(1-\rho^\star)}
+    \;\geq\; \rho^\star,
+    \label{eq:rhostarsgtr}
+\end{equation}
+with equality if and only if $\bar e_c = 0$.
+\end{theorem}
+
+\noindent
+Equation~\eqref{eq:rhostarsgtr} accounts only for the change in neighbourhood
+\emph{composition}. It therefore appears to imply
+$\rho^\star_{\mathrm{prune}} \to 1$ as $\bar e_c \to 1$: that a sufficiently good
+pruner tolerates any camouflage whatsoever. That conclusion is false, and
+Section~\ref{sec:achievable} shows why. Down-weighting edges non-uniformly also
+reduces the \emph{effective degree}, and hence forfeits part of the $\sqrt{D}$
+variance reduction that made aggregation worthwhile in the first place. Once that
+cost is included the naive reading fails, though not in the direction it first
+appears: Proposition~\ref{cor:ceiling} shows there is no hard ceiling at all, because
+a perfect pruner leaves the aggregate unbiased. What changes is the \emph{rate} at
+which the advantage thins out, and the fact that the operating point must be chosen on
+a detection trade-off rather than by pushing $\bar e_c \to 1$.
+
+\begin{proof}
+Weighted mean aggregation computes $\sum_e w_e \mathbf{x}_{u_e} / \sum_e w_e$. In
+expectation a fraction $\rho$ of a bot's edges are camouflage edges carrying weight
+$(1-\bar e_c)$ and $(1-\rho)$ are within-class edges carrying $(1-\bar e_w)$;
+normalising gives the weight share~\eqref{eq:rhoeff} on human neighbours, which is
+exactly the role $\rho$ plays in Proposition~\ref{prop:deflation}. The inequality
+$\rho_{\mathrm{eff}} < \rho$ follows since $\bar e_c > \bar e_w$ makes the numerator
+shrink faster than the denominator. For~\eqref{eq:rhostarsgtr}, set
+$\rho_{\mathrm{eff}}(\rho) = \rho^\star$ with $\bar e_w = 0$ and solve: writing
+$\beta = 1-\bar e_c$, the equation $\rho\beta = \rho^\star(\rho\beta + 1 - \rho)$
+rearranges to $\rho[\beta(1-\rho^\star) + \rho^\star] = \rho^\star$, giving the
+stated form. Monotonicity in $\bar e_c$ and the limits are immediate.
+\end{proof}
+
+Theorem~\ref{thm:sgtr} converts an ablation delta into a statement about the
+operating regime: a pruning module that attenuates camouflage edges by $75\%$ on
+average lifts the tolerated camouflage from $0.53$ to $0.82$ at $D=16$,
+$\pi_B = 0.3$. It also clarifies what pruning cannot do. Because
+$\rho_{\mathrm{eff}} \to 1$ as $\rho \to 1$ for any fixed $\bar e_c < 1$, no
+pruning rule with imperfect discrimination defeats a maximally camouflaged
+adversary; the spectral rule buys operating range, not immunity.
+
+\begin{remark}[What is new here, and what is not]
+\label{rem:sgtr-priority}
+The \emph{mechanism} in~\eqref{eq:rhoeff}---that edge reweighting acts by rescaling
+the effective inter-class edge share, so that weights enter only through the products
+of weight and edge rate---is not new. Weiss~\citep[Thm.~2]{weiss2026cost} proves the
+corresponding statement for cost-sensitive aggregation with within- and
+cross-class weights $w_+ > w_-$, and shows the class-mean direction is preserved iff
+$w_+/w_- > q/p$; our~\eqref{eq:rhoeff} is that identity with $w_+ = 1-\bar e_w$ and
+$w_- = 1-\bar e_c$. The observation that only a perfect discriminator tolerates
+arbitrary heterophily is the contrapositive of the same condition. The related
+guarantee for graph attention in~\citep{fountoulakis2023graph} is qualitative but
+similar in spirit.
+
+What~\eqref{eq:rhostarsgtr} adds is the \emph{inversion}: composing that rescaling
+with the finite-$D$ threshold of Corollary~\ref{cor:critical} to obtain a bound on the
+\emph{adversary's} budget as an explicit function of pruner quality $\bar e_c$. This
+is a short derivation, and we present it as a corollary of two known ingredients
+rather than as an independent discovery. Its value is operational: $\bar e_c$ is
+measurable for a deployed pruner, so~\eqref{eq:rhostarsgtr} turns a component
+ablation into a quantitative operating-range claim. We note also
+that~\citep{weiss2026cost} works in the dense regime where degree effects are absorbed
+into $O(1/n)$, which removes the $D^{-1/2}$ term that our threshold depends on; the
+finite-$D$ setting is therefore necessary for a statement of this form.
+\end{remark}
+
+\subsection{What pruning quality is achievable, and what it costs}
+\label{sec:achievable}
+
+Theorem~\ref{thm:sgtr} takes the pruner's quality $\bar e_c$ as given. Two things
+are then missing: whether a given $\bar e_c$ is attainable at all by a
+feature-based score, and what is given up in exchange. We supply both, which
+removes the free parameter and corrects the limit noted above.
+
+\paragraph{Only the retained-weight ratio matters.}
+Write $a = 1-\bar e_c$ and $b = 1-\bar e_w$ for the surviving weight on camouflage
+and within-class edges. Weighted mean aggregation is invariant to a common rescaling
+of all weights, so $a$ and $b$ enter only through the ratio
+\begin{equation}
+    \theta \;=\; a/b \;\in\; (0,1] ,
+    \label{eq:theta}
+\end{equation}
+which we call the \emph{retained-weight ratio}; $\theta = 1$ is no pruning and
+$\theta = 0$ is perfect pruning. This is the same quantity that governs the
+cost-sensitive condition $w_+/w_- > q/p$ of~\citep{weiss2026cost}. In terms of
+$\theta$, the effective camouflage ratio of Theorem~\ref{thm:sgtr} is
+$\rho_{\mathrm{eff}} = \rho\theta/(\rho\theta + 1-\rho)$.
+
+\begin{proposition}[Pruning forfeits effective degree]
+\label{prop:deff}
+A weighted mean of $D$ unit-variance terms has the variance of an unweighted mean
+of
+\begin{equation}
+    D_{\mathrm{eff}}
+    \;=\; D\,\frac{\bigl[(1-\rho) + \rho\theta\bigr]^2}
+                   {(1-\rho) + \rho\theta^{2}}
+    \;\leq\; D
+    \label{eq:deff}
+\end{equation}
+terms, with equality if and only if $\theta = 1$.
+
+Pruning acts on \emph{both} ends of a camouflage edge, so the human side is
+rescaled too and its cross-class share becomes
+$\eta_{\mathrm{eff}} = \eta\theta/(\eta\theta + 1-\eta)$ with $\eta = c\rho$. Note
+that $\eta_{\mathrm{eff}} \neq c\,\rho_{\mathrm{eff}}$ unless $c=1$ or $\theta=1$:
+the edge-balance identity holds for the \emph{raw} ratios and is not preserved by
+pruning. Writing
+$\lambda_{\mathrm{eff}} = 1 - \rho_{\mathrm{eff}} - \eta_{\mathrm{eff}}$ and
+$D^{B}_{\mathrm{eff}}, D^{H}_{\mathrm{eff}}$ for~\eqref{eq:deff} evaluated at $\rho$
+and at $\eta$ respectively, pruned aggregation beats the graph-free classifier if and
+only if
+\begin{equation}
+    \frac{|\lambda_{\mathrm{eff}}|}
+         {\sqrt{\tfrac12\bigl(1/D^{B}_{\mathrm{eff}} + 1/D^{H}_{\mathrm{eff}}\bigr)}}
+    \;>\; 1 .
+    \label{eq:pruned-condition}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The variance of $\sum_e w_e z_e / \sum_e w_e$ for independent unit-variance $z_e$ is
+$\sum_e w_e^2/(\sum_e w_e)^2$, so the variance-equivalent count is
+$(\sum_e w_e)^2/\sum_e w_e^2$. Substituting $\rho D$ edges of weight $a$ and
+$(1-\rho)D$ of weight $b$, and cancelling $b^2$, gives~\eqref{eq:deff}; the
+inequality is Cauchy--Schwarz, with equality iff the weights are constant.
+Combining with Proposition~\ref{prop:deflation} applied at $\rho_{\mathrm{eff}}$
+yields~\eqref{eq:pruned-condition}.
+\end{proof}
+
+This resolves a degeneracy that~\eqref{eq:rhostarsgtr} alone does not. Uniform
+attenuation ($\theta = 1$, any common scale) leaves both $\rho_{\mathrm{eff}}$ and
+$D_{\mathrm{eff}}$ unchanged and so achieves exactly nothing, as it must; and
+aggressive pruning is now penalised rather than free.
+
+\begin{proposition}[A perfect pruner never loses, but its benefit thins out]
+\label{cor:ceiling}
+Under perfect pruning every retained neighbour shares the node's label, so the
+retained count is $K \sim \mathrm{Bin}(D, 1-\rho)$ and the aggregate is
+\emph{unbiased} with variance $\sigma^2/K$. Consequently, for every $\rho<1$,
+pruned aggregation is never worse than the graph-free classifier: it is strictly
+better on the event $\{K\geq2\}$, and ties when $K\in\{0,1\}$. The fraction of \emph{strategic actors}
+that strictly benefit is
+\begin{equation}
+    \Pr[K \geq 2] \;=\; 1 - \rho^{D} - D(1-\rho)\rho^{D-1},
+    \label{eq:benefit}
+\end{equation}
+and the variance-equivalent degree is $1/\mathbb{E}[1/K \mid K\geq1]$, not
+$\mathbb{E}[K]$.
+\end{proposition}
+
+\begin{proof}
+With all camouflage edges removed the surviving neighbours are same-class, so their
+mean has the node's own class mean as its expectation: the bias is zero regardless of
+$\rho$. Conditional on $K=k\geq1$ the variance is $\sigma^2/k \leq \sigma^2$, with
+strict inequality iff $k\geq2$; nodes with $K=0$ have no neighbourhood and fall back
+on their own features, tying exactly. Since $K$ is Binomial, $\Pr[K\leq1]$ is the sum
+of its first two terms, giving~\eqref{eq:benefit}. That the variance-equivalent
+degree is the harmonic rather than arithmetic mean follows because the variance of a
+mean of $K$ terms is $\sigma^2\mathbb{E}[1/K]$, and
+$\mathbb{E}[1/K] \geq 1/\mathbb{E}[K]$ by Jensen.
+\end{proof}
+
+\begin{remark}[A tempting but incorrect ceiling]
+\label{rem:no-ceiling}
+Substituting the \emph{mean} retained count $D(1-\rho)$
+into~\eqref{eq:deff} yields $D_{\mathrm{eff}} = D(1-\rho)$ and hence the clean-looking
+conclusion that even perfect pruning requires $\rho < 1-1/D$. That is wrong, and
+instructively so. The substitution replaces a random $K$ by its mean in a quantity
+that depends on $1/K$, and it is applied in precisely the regime where the
+replacement is least defensible: at $\rho = 1-1/D$ and $D=16$ we have
+$\mathbb{E}[K] = 1.00$ exactly, yet $1/\mathbb{E}[1/K \mid K\geq1] = 1.29$, and $36\%$ of
+nodes have $K=0$. Proposition~\ref{cor:ceiling} shows the qualitative conclusion
+inverts: there is no hard ceiling. What does happen as $\rho \to 1$ is that the
+\emph{proportion} of nodes for which the graph carries any information at all decays;
+a useful summary is the point at which half of the strategic actors still benefit,
+which is $\rho = 0.897$ at $D=16$ and $0.974$ at $D=64$.
+\end{remark}
+
+\paragraph{Achievable $\theta$.}
+It remains to bound $\theta$ from below. The spectral rule scores an edge by the feature
+discrepancy $s_{uv} = \|\mathbf{x}_u - \mathbf{x}_v\|^2$, whose law under the CSBM
+is exactly
+\begin{equation}
+    s \sim 2\sigma^2\chi^2_{d}
+    \quad\text{(within class)},
+    \qquad
+    s \sim 2\sigma^2\chi^2_{d}\!\left(\tfrac{r^2}{2}\right)
+    \quad\text{(camouflage)},
+    \label{eq:scorelaw}
+\end{equation}
+with $r = \|\Delta\|/\sigma$ and $\chi^2_d(\lambda)$ the noncentral chi-square. Any
+threshold rule therefore has an operating point $(\bar e_w, \bar e_c)$ on the ROC
+of~\eqref{eq:scorelaw}, and $\theta$ is the ratio of its complements. In the
+large-$d$ Gaussian approximation the discriminability index is
+\begin{equation}
+    \kappa \;=\; \frac{\|\Delta\|^2}{2\sigma^2\sqrt{2d}}
+            \;=\; \frac{r^2}{2\sqrt{2d}} ,
+    \label{eq:kappa}
+\end{equation}
+so $\bar e_c \approx \Phi(\Phi^{-1}(\bar e_w) + \kappa)$.
+
+Two consequences follow. First, $\bar e_w \to 0$ forces $\bar e_c \to 0$: there is no
+threshold that removes camouflage edges without also removing genuine ones, so the
+idealisation $\bar e_w = 0$ used in~\eqref{eq:rhostarsgtr} is not attainable and the
+joint form is required. Second, because $\kappa$ scales as $d^{-1/2}$, the raw
+discrepancy score \emph{degrades} as the feature dimension grows---the two score
+distributions concentrate and overlap. This is the formal content of the remark that
+motivates learning a projection: mapping to $k \ll d$ dimensions while preserving
+$\|\Delta\|$ multiplies $\kappa$ by $\sqrt{d/k}$.
+
+\paragraph{The soft-weight and hard-threshold models must not be mixed.}
+Equation~\eqref{eq:deff} assigns every camouflage edge the same weight $a$ and every
+genuine edge the same $b$, so it is invariant to a common rescaling and depends only
+on $\theta$. A \emph{threshold} rule is different: it deletes edges outright, so the
+neighbourhood shrinks in absolute terms and the effective degree is
+\begin{equation}
+    D^{\mathrm{hard}}_{\mathrm{eff}}
+    = D\bigl[(1-\rho)(1-\bar e_w) + \rho\,(1-\bar e_c)\bigr] ,
+    \label{eq:deff-hard}
+\end{equation}
+which collapses as $\bar e_w \to 1$. Optimising the operating point under the
+scale-invariant model~\eqref{eq:deff} while reading $(\bar e_w, \bar e_c)$ off a
+threshold ROC is therefore inconsistent, and the inconsistency is not benign: it
+rewards discarding almost every genuine edge at no modelled cost, so the apparent
+optimum runs to $\bar e_w \to 1$ and no interior solution exists. We therefore
+optimise~\eqref{eq:deff-hard} together with the ROC of~\eqref{eq:scorelaw}, which has
+a genuine interior optimum and is stable under enlargement of the search domain.
+The resulting tolerance depends only on $(D, c, r, d)$, all measurable.
+Section~\ref{sec:validation} reports the values, which are considerably less
+flattering to raw-discrepancy pruning than the inconsistent pairing suggests.
+
+\subsection{Depth}
+\label{sec:depth}
+
+Everything so far concerns a single layer. Since deployed detectors stack two or
+more, we record how the picture changes. The analysis requires care, because the
+obvious recursion---each layer multiplying the separation by $\lambda$---is
+\emph{not} what mean aggregation does.
+
+\paragraph{Mean aggregation backtracks.}
+On a $D$-regular tree, two rounds of neighbourhood averaging give
+\begin{equation}
+    \mathbf{h}^{(2)}_v
+    = \frac{1}{D^2}\sum_{u\in\mathcal{N}(v)}\sum_{w\in\mathcal{N}(u)}\mathbf{x}_w
+    = \frac{1}{D}\,\mathbf{x}_v
+      + \Bigl(1-\frac{1}{D}\Bigr)\overline{\mathbf{x}}_{2\text{-hop}} ,
+    \label{eq:backtrack}
+\end{equation}
+because $v \in \mathcal{N}(u)$ for every $u \in \mathcal{N}(v)$: the walk can step
+back. The ego node therefore receives weight exactly $1/D$, and it carries
+\emph{undeflated} signal. A recursion that propagates only outwards describes the
+\emph{non-backtracking} operator, not $L$ rounds of mean aggregation, and the
+tree-like assumption does not license the substitution---the backtracking term is
+present on an infinite tree. We therefore work with the true operator
+$P = D^{-1}A$.
+
+\begin{theorem}[Depth]
+\label{thm:depth}
+Let $q^{(L)}_j$ be the probability that an $L$-step simple random walk from $v$ on
+the $D$-regular tree ends at distance $j$, and $N_j = D(D-1)^{j-1}$ ($N_0=1$) the
+number of nodes at that distance. Then, in the noise-dominated regime,
+\begin{equation}
+    \frac{\mathrm{SNR}_L}{\mathrm{SNR}_{\mathrm{raw}}}
+    \;=\;
+    \frac{\bigl|\sum_j q^{(L)}_j \lambda^{j}\bigr|}
+         {\sqrt{\sum_j \bigl(q^{(L)}_j\bigr)^2 / N_j}},
+    \qquad \lambda = 1-(1+c)\rho .
+    \label{eq:depth-exact}
+\end{equation}
+The label sequence along the walk is a two-state Markov chain with second
+eigenvalue $\lambda$, which is why the depth-$j$ contribution is deflated by
+$\lambda^{j}$ rather than by $\lambda^{L}$.
+\end{theorem}
+
+\begin{proof}
+Deferred to Appendix~\ref{app:depth}.
+\end{proof}
+
+At $L=1$, $q_1 = 1$ and $N_1 = D$, so~\eqref{eq:depth-exact} reduces to
+$|\lambda|\sqrt D$ and recovers Corollary~\ref{cor:critical}. For $L \geq 2$ it does
+not factorise, and two consequences follow.
+
+First, \textbf{the crossover is not depth-independent}. Solving
+\eqref{eq:depth-exact} $= 1$ at $D=16$, $\pi_B = 0.3$ gives
+$\rho^\star_1 = 0.525$, $\rho^\star_2 = 0.587$, $\rho^\star_3 = 0.553$,
+$\rho^\star_4 = 0.576$, $\rho^\star_5 = 0.557$. Every value for $L\geq2$ exceeds the
+single-layer threshold, so \textbf{depth buys tolerance to camouflage}.
+
+The mechanism is that backtracking retains weight at distances $j < L$, which are
+deflated by $\lambda^{j}$ rather than by $\lambda^{L}$; the ego term $j=0$
+of~\eqref{eq:backtrack} is the extreme case, being undeflated entirely. It is worth
+being precise about this, because the ego term is \emph{not} present at every layer:
+the tree is bipartite, so $q^{(L)}_0 = 0$ for all odd $L$. At $L=3$ the ego weight is
+zero, yet $\rho^\star_3 = 0.553$ still exceeds $\rho^\star_1$---there the gain comes
+from mass returned to distance $1$ ($q^{(3)}_1 = 0.121$). The oscillation in $L$ is
+this parity: even $L$ admits an ego term, odd $L$ does not.
+
+Two qualifications matter. Deleting the ego term at $L=2$ and renormalising drops the
+crossover from $0.587$ to $0.522$, so at even depths it does carry most of the effect.
+And the benefit is specific to the camouflaged regime: backtracking \emph{costs}
+separability when camouflage is absent, since the retained near-origin mass is
+over-weighted noise. At $\rho=0$ the SNR ratios are $4.00, 11.49, 29.73, 72.91$ for
+$L=1,\dots,4$ against $4.00, 15.49, 60.0, 232.4$ for a non-backtracking walk. Depth
+under backtracking therefore trades peak separability at low $\rho$ for a higher
+crossover---a bias--variance trade rather than a free gain, and one that favours
+architectures able to tune the ego weight rather than inherit it at
+$1/D$~\citep{zhu2020beyond,zhu2022how}.
+
+Second, the harmful region is \emph{bounded above}. Only $|\lambda|$ enters, so at
+$L=1$ aggregation is harmful precisely on the window
+\begin{equation}
+    \rho \;\in\;
+    \left(\frac{1 - D^{-1/2}}{1+c},\;\; \frac{1 + D^{-1/2}}{1+c}\right)
+    \cap (0,1] ,
+    \label{eq:window}
+\end{equation}
+and helps again above it: a bot with $\rho \to 1$ attaches almost exclusively to
+humans, so its neighbourhood is strongly \emph{anti}-correlated with its label and
+informative once more, with the orientation reversed. We claim no novelty for this.
+It is the second root of the same inequality
+$\sqrt{D}\,|1-2\rho| > 1$ that Remark~\ref{rem:ma} attributes to
+Ma et al.~\citep{ma2022homophily}, whose symmetry in $|p-q|$ those authors discuss
+directly, and the resulting ``intermediate heterophily is worst'' phenomenon is the
+mid-homophily pitfall named by Luan et al.~\citep{luan2023when}. We record it because
+it identifies the dangerous adversarial strategy as \emph{intermediate} rather than
+maximal camouflage, and because the upper edge exceeds $1$---so that the window
+degenerates to a one-sided threshold and no ``helps again'' regime exists---whenever
+$c < D^{-1/2}$. Among the relations measured in Section~\ref{sec:measuring}
+($c = 0.369$), this holds for the sparser social ties (following, mention, quote,
+reply, all $\tilde D \le 4$), but not for friendship or for the denser
+content-coordination relations, where $D^{-1/2} < c$ and a finite upper edge
+survives instead; Section~\ref{sec:r-estimate} reports that edge directly, under
+the exact criterion, for shared URL and shared hashtag, and finds the measured
+$\hat\rho$ still inside the harmful, non-reversed part of the window in both
+cases.
+
+\subsection{Implications for automated detection}
+\label{sec:implications}
+
+The three results above are statements about network structure, but they bear directly
+on how automated accounts are detected in practice, and it is worth making the
+connection explicit because the current literature addresses these mechanisms
+architecturally rather than by measurement.
+
+Detectors built on neighbourhood aggregation now routinely include a module that
+down-weights or removes suspicious ties, a second aggregation channel for
+dissimilar neighbours, or an explicit separation of an actor's own attributes from its
+neighbours'~\citep{dou2020caregnn,he2025bothp,dang2026xhbot}. Each of these is
+justified in the literature by an ablation: removing the module costs accuracy on a
+benchmark. Our analysis supplies the missing account of \emph{why} they help and,
+more usefully, \emph{when}.
+
+Tie-discarding modules are the case analysed in Section~\ref{sec:achievable}, and the
+analysis is less encouraging than the ablations suggest: discarding ties trades bias
+against the number of ties left to average over, so its benefit is bounded by the quality of the underlying suspicion score, and on the networks we measure a score
+based on attribute discrepancy alone is far too weak to restore inference
+(Section~\ref{sec:measuring}). Separating an actor's own attributes from its
+neighbours' is, by Theorem~\ref{thm:depth}, a way of making explicit and tunable a
+term that iterated averaging already supplies at the fixed weight $1/D$---which
+explains why the device helps most in exactly the regime, low degree and high
+camouflage, where that fixed weight is least appropriate. And the finding that
+camouflage differs by a factor approaching two across relation types within one
+population implies that a detector pooling relations into a single adjacency is
+averaging a usable signal with an unusable one; our thresholds apply per relation, and
+suggest treating relation selection as a measurement question prior to model choice.
+
+We draw one broader methodological conclusion. Because $\rho$, $c$, $D$ and the
+attribute separation are all estimable from data a practitioner already has, the
+question ``is relational information worth using here?'' can be answered before
+fitting any model, and per relation rather than for a network as a whole. That is a
+more informative starting point than an ablation, which reports only that a component
+helped on one benchmark without indicating the conditions under which it would stop
+helping.
+
+
+
+\section{Numerical Validation}
+\label{sec:validation}
+
+Every closed form in Section~\ref{sec:theory} is checked against Monte-Carlo
+simulation of Definition~\ref{def:ccsbm}. Our purpose here is verification of the
+analysis, not a performance claim: the results below establish that the derivations
+are correct, and say nothing on their own about accuracy on real bot graphs.
+Section~\ref{sec:limitations} addresses that gap directly.
+
+\paragraph{Protocol.}
+Unless stated otherwise we use $\pi_B = 0.3$ ($c \approx 0.4286$),
+$\|\Delta\| = 2$, $\sigma = 1$, and $D = 16$, drawing $4\times 10^5$ nodes per class
+per configuration ($1.5 \times 10^6$ for the crossover sweep). Errors are computed
+by exhaustive threshold search over the empirical distributions, so the reported
+figures are attained minima rather than plug-in estimates.
+Appendix~\ref{app:repro} records the remaining numerical choices.
+
+\subsection{Deflation and error}
+
+Table~\ref{tab:deflation} compares Proposition~\ref{prop:deflation} and
+Theorem~\ref{thm:error} against simulation. Separation matches to within
+$1.8\times 10^{-3}$ and the standard deviation---including the mixture term that a
+naive calculation omits---to within $8\times 10^{-4}$ across the whole range.
+Figure~\ref{fig:deflation} shows the same agreement graphically.
+
+\begin{table}[t]
+\centering
+\caption{Theory versus simulation for signal deflation and balanced error
+($\pi_B = 0.3$, $\|\Delta\|=2$, $\sigma=1$, $D=16$).}
+\label{tab:deflation}
+\small
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}ccccccc@{}}
+\toprule
+& & \multicolumn{2}{c}{separation $\delta$} & \multicolumn{2}{c}{$s_{\mathrm{B}}$} & error \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+$\rho$ & $\eta$ & theory & sim. & theory & sim. & thy / sim. \\
+\midrule
+0.00 & 0.000 & 2.0000 & 2.0000 & 0.2500 & 0.2499 & 0.00003 / 0.00003 \\
+0.10 & 0.043 & 1.7143 & 1.7142 & 0.2915 & 0.2918 & 0.00113 / 0.00160 \\
+0.20 & 0.086 & 1.4286 & 1.4283 & 0.3202 & 0.3204 & 0.00925 / 0.01095 \\
+0.30 & 0.129 & 1.1429 & 1.1441 & 0.3391 & 0.3391 & 0.03698 / 0.03895 \\
+0.40 & 0.171 & 0.8571 & 0.8586 & 0.3500 & 0.3499 & 0.09785 / 0.09898 \\
+0.50 & 0.214 & 0.5714 & 0.5696 & 0.3536 & 0.3528 & 0.19898 / 0.19974 \\
+0.60 & 0.257 & 0.2857 & 0.2864 & 0.3500 & 0.3500 & 0.33734 / 0.33680 \\
+\botrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/theory_deflation.png}
+    \caption{Theory versus simulation. (a) Post-aggregation separation decays
+    linearly in $\rho$ exactly as Proposition~\ref{prop:deflation} predicts.
+    (b) Balanced error against the attribute-only baseline; the predicted critical ratio
+    $\rho^\star = 0.464$ coincides with the crossing point.}
+    \label{fig:deflation}
+\end{figure}
+
+\subsection{The critical ratio}
+
+The central prediction is Corollary~\ref{cor:critical}. Solving
+$\mathrm{SNR}(\rho) = \|\Delta\|/(2\sigma)$ numerically at $D=16$ gives
+$\rho^\star = 0.4644$. Sweeping $\rho$ in steps of $0.01$ with $1.5\times 10^6$
+samples per point, aggregation beats raw features at $\rho = 0.46$
+($\varepsilon = 0.1545$ against $\varepsilon_{\mathrm{raw}} = 0.1587$) and loses at
+$\rho = 0.47$ ($\varepsilon = 0.1648$). The measured crossover therefore lies in
+$[0.46, 0.47]$, containing the predicted value.
+
+Table~\ref{tab:critical} separates the two forms of the corollary. The exact
+crossover differs from the closed form~\eqref{eq:critical} at moderate SNR, as
+expected, since~\eqref{eq:critical} drops the mixture variance. Re-running the
+exact solver in the noise-dominated regime it was derived for ($\|\Delta\| = 0.2$,
+$\sigma = 1$) recovers the closed form to within $1.2\times10^{-3}$ at every degree,
+confirming that the discrepancy is the stated approximation and not an error.
+
+\begin{table}[t]
+\centering
+\caption{Critical camouflage ratio: closed form~\eqref{eq:critical} against the
+exact SNR crossover, at moderate and low SNR.}
+\label{tab:critical}
+\small
+\begin{tabular}{@{}cccc@{}}
+\toprule
+$D$ & closed form~\eqref{eq:critical} & exact ($\|\Delta\|/\sigma = 2$) & exact (low SNR) \\
+\midrule
+4  & 0.3500 & 0.2604 & 0.3488 \\
+9  & 0.4667 & 0.3913 & 0.4657 \\
+16 & 0.5250 & 0.4644 & 0.5243 \\
+25 & 0.5600 & 0.5102 & 0.5594 \\
+64 & 0.6125 & 0.5807 & 0.6121 \\
+\botrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:critical} plots both curves against degree. The tolerated
+camouflage rises steeply for sparsely connected accounts and flattens as $D$ grows,
+which has a concrete operational reading: the accounts most vulnerable to
+camouflage are those with few connections, and a deployment that aggregates over
+small neighbourhoods is fragile in exactly the regime where bots are cheapest to
+create.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.72\linewidth]{figures/theory_critical_ratio.png}
+    \caption{Critical camouflage ratio against neighbourhood size. Below the lower
+    curve, averaging over alters improves on attributes alone; between the curves it is
+    actively harmful; above the upper edge $(1+D^{-1/2})/(1+c)$ the neighbourhood is
+    strongly anti-correlated with the label and informative again with the orientation
+    reversed. The closed form is the noise-dominated limit of the exact crossover, and
+    the upper edge exceeds $1$---so that no reversal regime exists---whenever
+    $c < D^{-1/2}$.}
+    \label{fig:critical}
+\end{figure}
+
+\subsection{The tie-scoring rule}
+
+Lemma~\ref{lem:energy} predicts expected squared discrepancies of $2d\sigma^2$ and
+$\|\Delta\|^2 + 2d\sigma^2$. At $d = 8$, $\sigma = 1$, $\|\Delta\| = 2$ these are
+$16$ and $20$; simulation over $2\times10^5$ edge samples gives $16.005$ and
+$20.005$, an error below $0.03\%$.
+
+For Theorem~\ref{thm:sgtr} we verify the closed
+form~\eqref{eq:rhostarsgtr} by round-trip: substituting
+$\rho^\star_{\mathrm{prune}}$ back into $\rho_{\mathrm{eff}}$ must return
+$\rho^\star$. The maximum absolute deviation over
+$\bar e_c \in \{0.25, 0.5, 0.75, 0.9\}$ is $1.1\times 10^{-16}$, i.e.\ machine
+precision. Table~\ref{tab:sgtr} reports the resulting tolerance gains, and
+Figure~\ref{fig:sgtr} plots the full curve.
+
+\begin{table}[t]
+\centering
+\caption{Effect of the spectral rule attenuation on tolerated camouflage under the
+composition-only form~\eqref{eq:rhostarsgtr} ($D=16$, $\pi_B=0.3$, baseline
+$\rho^\star = 0.525$). These values ignore both the effective-degree cost and the
+correct $\eta_{\mathrm{eff}}$; Section~\ref{sec:validation-ext} gives the figures
+we stand behind. The table is retained only to show the size of the two corrections.}
+\label{tab:sgtr}
+\small
+\begin{tabular}{@{}ccc@{}}
+\toprule
+$\bar e_c$ & $\rho_{\mathrm{eff}}$ at $\rho = 0.4$ & $\rho^\star_{\mathrm{prune}}$ \\
+\midrule
+0.00 & 0.4000 & 0.5250 \\
+0.25 & 0.3333 & 0.5957 \\
+0.50 & 0.2500 & 0.6885 \\
+0.75 & 0.1429 & 0.8155 \\
+0.90 & 0.0625 & 0.9170 \\
+\botrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.78\linewidth]{figures/theory_pruning_tolerance.png}
+    \caption{Tolerated camouflage against the attenuation applied to camouflage ties.
+    The solid curve is the corrected analysis (Proposition~\ref{prop:deff}, with
+    $\eta_{\mathrm{eff}}$ as in~\eqref{eq:pruned-condition}); the dotted curve is the
+    composition-only form~\eqref{eq:rhostarsgtr}. The correction is \emph{upward} over
+    the plotted range: treating the majority side correctly matters more than the
+    effective-degree penalty. The curve is truncated at $\bar e_c = 0.9$ deliberately.
+    Equation~\eqref{eq:deff} replaces the random retained count by its mean, which is
+    defensible while many ties survive but is exactly the substitution
+    Remark~\ref{rem:no-ceiling} shows to be invalid as $\bar e_c \to 1$; that limit is
+    governed instead by Proposition~\ref{cor:ceiling}, which says perfect pruning never
+    loses. The dash-dotted line marks where half of the \emph{strategic actors} still
+    retain enough ties to benefit; majority actors are barely affected.}
+    \label{fig:sgtr}
+\end{figure}
+
+\subsection{The extensions: achievable pruning and depth}
+\label{sec:validation-ext}
+
+The effective-degree formula~\eqref{eq:deff} matches Monte-Carlo variance to
+within $0.5\%$ for $\theta \geq 0.5$. At $\theta = 0$ it is off by $7.3\%$
+($8.00$ predicted against $7.41$ measured at $\rho=0.5$, $D=16$), and the cause is
+not sampling: it is Jensen's inequality on $\mathbb{E}[1/K]$ for the random retained
+count $K$, exactly the effect quantified in Remark~\ref{rem:no-ceiling}. Under
+perfect pruning the variance-equivalent degree is $1.29$ rather than the $1.00$ that
+$\mathbb{E}[K]$ predicts at $\rho = 1-1/D$, $D=16$, and $35.6\%$ of nodes retain no
+neighbour at all; the proportion still benefiting falls to one half at
+$\rho = 0.897$ ($D=16$) and $0.974$ ($D=64$).
+
+Correcting $\eta_{\mathrm{eff}}$ as in~\eqref{eq:pruned-condition} raises the
+tolerances relative to the $c\,\rho_{\mathrm{eff}}$ substitution: at $D=16$,
+$\pi_B=0.3$ we obtain $0.609$, $0.715$, $0.847$ and $0.928$ for
+$\bar e_c = 0.25, 0.5, 0.75, 0.9$, against $0.594$, $0.679$, $0.788$ and $0.869$
+under the incorrect form. The error was therefore pessimistic, and by up to six
+percentage points.
+
+For depth we evaluate~\eqref{eq:depth-exact} directly, iterating the
+distance recursion for the walk profile and summing the weighted contributions. The weight profile $\sum_j (q^{(L)}_j)^2/N_j$ exceeds the
+non-backtracking value $D^{-L}$ by factors of $1.94$, $4.63$, $12.3$ and $35.0$ at
+$L = 2,\dots,5$, which is the quantitative size of the term
+that~\eqref{eq:backtrack} restores. The resulting crossovers are
+$\rho^\star_1 = 0.5250$, $\rho^\star_2 = 0.5868$, $\rho^\star_3 = 0.5528$,
+$\rho^\star_4 = 0.5756$ and $\rho^\star_5 = 0.5567$: every multi-layer value lies
+above the single-layer one, so depth increases the tolerated camouflage, and the
+crossover is \emph{not} depth-independent.
+
+\subsection{Measuring the camouflage ratio on real graphs}
+\label{sec:measuring}
+
+The theory is parameterised by $\rho$, which has so far been a modelling device. We
+now measure it. TwiBot-20 and TwiBot-22 require author approval for access, which we
+did not have. We therefore use \textbf{MGTAB}~\citep{shi2023mgtab}, an openly
+distributed Twitter dataset of $10{,}199$ expert-annotated accounts
+($2{,}748$ automated, $7{,}451$ genuine; $c = 0.369$) in which \emph{every} account
+carries a label, so that all ties are between labelled actors and the measurement is
+not diluted by unlabelled alters. MGTAB records seven relations on the same
+population, which lets us separate the social layer (following, friendship, mention,
+reply, quote) from a content-coordination layer (shared URLs, shared hashtags). We also use the
+two review networks of Dou et al.~\citep{dou2020caregnn} as a contrast case,
+reported in the prose below rather than in Table~\ref{tab:real}; these are not social
+ties and we draw no structural conclusion from them, but they carry the attribute
+information needed to evaluate the tie-scoring bound of
+Section~\ref{sec:achievable}, which MGTAB's inflated attribute separation does not
+support.
+
+\paragraph{A negative result on the canonical benchmark.}
+It is worth recording why we do not use cresci-2015 or cresci-2017, the
+longest-standing bot benchmarks. In the openly distributed preprocessed release,
+cresci-2017 contains \emph{no} interpersonal ties at all: all $6{,}637{,}615$ of its
+edges are account-to-tweet postings. cresci-2015 does contain following and
+friendship ties, but only $0.41\%$ of the $1.29$ million accounts they span are
+labelled, and the labelled-to-labelled subgraph reduces to $4{,}275$ ties with the
+mixing pattern $3{,}823$ genuine--genuine, $373$ automated--automated and just
+$\mathbf{79}$ cross-class. Only $698$ of $3{,}351$ automated accounts ($20.8\%$) have
+any labelled tie, the median such account has degree $0$, and the median camouflage
+ratio is therefore $0$. A quantity resting on $79$ ties cannot support a
+distributional claim, and we obtained the same counts from a second, independently
+preprocessed release of the same data, so this is a property of the dataset rather
+than of one pipeline. We report it because it explains a gap in the literature: the
+benchmark most used for bot detection cannot be used to measure the structural
+mechanism the field attributes to bots.
+
+For each relation we compute $\rho$ as the mean over automated accounts of the
+fraction of their alters that are genuine, and $\eta$ symmetrically.
+Table~\ref{tab:real} reports the result.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Camouflage measured on MGTAB ($10{,}199$ Twitter accounts, all labelled;
+$c = 0.369$). $\hat\rho$ is the mean genuine share of an automated account's alters,
+$\tilde\rho$ its median, $\tilde D$ the median degree over automated accounts having
+at least one tie of that relation. The last two columns evaluate the \emph{exact}
+criterion of Theorem~\ref{thm:error} at $r = 2.32$ (Section~\ref{sec:r-estimate}),
+not the noise-dominated window~\eqref{eq:window}: $\rho_{\mathrm{cross}}$ is the
+crossover and the final column is
+$\mathrm{SNR}_{\mathrm{agg}}/\mathrm{SNR}_{\mathrm{raw}}$ at the measured $\hat\rho$,
+so values below $1$ mean the relation is worse than using attributes alone. The
+penultimate column evaluates that ratio with the model-implied $\eta = c\rho$; the final
+column substitutes the \emph{measured} $\hat\eta$, which on this population is far
+smaller because automated accounts have much lower degree
+(Section~\ref{sec:balance-check}). The verdict is unchanged either way; the magnitude is
+not.}
+\label{tab:real}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+Relation & ties & $\hat\rho$ & $\tilde\rho$ & $\hat\eta$ & $\tilde D$
+ & $\rho_{\mathrm{cross}}$
+ & $\frac{\mathrm{SNR}_{\mathrm{agg}}}{\mathrm{SNR}_{\mathrm{raw}}}$
+ & \,''\,($\hat\eta$) \\
+\midrule
+\multicolumn{9}{@{}l}{\emph{social layer}}\\
+following   & 231{,}829 & 0.969 & 1.00 & 0.041 & 4  & 0.252 & 0.51 & 0.02 \\
+friendship  & 327{,}035 & 0.989 & 1.00 & 0.033 & 8  & 0.372 & 0.79 & 0.06 \\
+mention     & 107{,}794 & 0.994 & 1.00 & 0.022 & 4  & 0.252 & 0.57 & 0.03 \\
+quote       & 20{,}536  & 0.999 & 1.00 & 0.014 & 2  & 0.121 & 0.42 & 0.02 \\
+reply       & 20{,}700  & 0.991 & 1.00 & 0.009 & 1  & ---   & 0.28 & 0.00 \\
+\;\;union   & 331{,}251 & 0.989 & 1.00 & 0.032 & 8  & 0.372 & 0.79 & 0.06 \\
+\midrule
+\multicolumn{9}{@{}l}{\emph{content-coordination layer}}\\
+shared URL     & 263{,}800 & 0.595 & 0.62 & 0.195 & 12 & 0.432 & 0.44 & 0.51 \\
+shared hashtag & 300{,}000 & 0.627 & 0.65 & 0.279 & 53 & 0.585 & 0.71 & 0.47 \\
+\botrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Estimating the attribute separation}
+\label{sec:r-estimate}
+
+The criterion depends on $r = \|\Delta\|/\sigma$, and this quantity is easy to
+overstate. The obvious plug-in---$\|\Delta\|$ from the class-mean difference and
+$\sigma$ from the mean per-dimension variance---gives $r = 13.0$ on MGTAB's $788$
+attributes. That figure is not usable: it implies an attribute-only error of
+$\Phi(-6.5) \approx 4\times10^{-11}$, i.e.\ that the attributes classify the
+population essentially perfectly and the question of whether the network helps does
+not arise. A held-out linear discriminant on the same attributes attains a balanced
+error of $0.123$. The discrepancy is the isotropy assumption: the per-dimension
+standard deviations span a factor of $28$, so a single pooled $\sigma$ is not
+meaningful, while $\|\Delta\|^2$ accumulates small differences over many correlated
+coordinates.
+
+We therefore calibrate $r$ from the achievable error rather than from the moments,
+taking $r = -2\Phi^{-1}(0.123) = 2.32$, and we use that value throughout
+Table~\ref{tab:real}. Resampling the split moves $r$ materially---over twelve random splits we obtain $r = 2.24 \pm 0.07$, a range of $0.22$---so we report the mean rather than a single split. The verdicts are insensitive to it: re-solving the exact criterion across that whole range leaves every relation harmful, the largest SNR ratio moving only between $0.79$ and $0.82$. This matters: at $r = 13$ the mixture term
+$\rho(1-\rho)\|\Delta\|^2$ reaches $1.67\sigma^2$ and the noise-dominated
+form~\eqref{eq:window} is invalid, whereas at $r = 2.32$ it is $0.05\sigma^2$ and the
+approximation is defensible. Any application of these thresholds should report $r$
+and how it was obtained.
+
+\paragraph{On this population, every relation is one the network harms.}
+The last column of Table~\ref{tab:real} is below $1$ for all seven recorded relations, and for their social union: under
+the exact criterion, neighbour averaging on MGTAB is worse than using attributes alone
+on \emph{every} one of the seven recorded relations. The size of the shortfall depends
+on which $\eta$ is used: with the model-implied $\eta = c\rho$ the factors run from
+$1.3$ to $3.6$, whereas substituting the measured $\hat\eta$---which is the honest
+choice on a population whose classes differ in degree by a factor of five---they run from
+$2$ on the content relations to more than an order of magnitude on the social ones. We
+report both, because the gap between them is itself the degree effect of
+Section~\ref{sec:balance-check} and not a modelling detail to be hidden. We report this
+as the principal empirical finding, and we note that an earlier version of this
+analysis reached the opposite conclusion for the social relations by applying the
+noise-dominated window~\eqref{eq:window} at $r = 13$; the ``informative again with
+reversed sign'' regime that produced is an artefact of using an $r \to 0$
+approximation at large $r$, and it does not survive the exact criterion. Where the
+harmful interval does have an upper edge at $r = 2.32$---shared URL $(0.432, 0.995)$
+and shared hashtag $(0.585, 0.868)$---the measured $\hat\rho$ falls inside it.
+
+\paragraph{The layers still differ, in degree of harm and in mechanism.}
+What survives, and is not an artefact, is the contrast between the two layers.
+On every social relation the automated accounts are almost perfectly camouflaged:
+$\tilde\rho = 1.00$, so the median automated account has \emph{no} automated alter,
+and automated--automated ties number $212$ in the following-and-friendship union
+against $40{,}263$ automated--genuine ties. On the content relations the same accounts
+behave in the opposite way: $\hat\rho$ falls to $0.60$--$0.63$ and
+automated--automated ties rise to $15{,}963$ (shared URL) and $28{,}203$ (shared
+hashtag). These accounts avoid one another where ties are visible and converge where
+content is shared. The ratio $\hat\rho_{\text{social}}/\hat\rho_{\text{content}}$ is
+$1.68$, and the resulting harm differs correspondingly: the SNR ratio ranges from
+$0.79$ on friendship to $0.44$ on shared URLs.
+
+\paragraph{What attribute-based tie scoring achieves.}
+Section~\ref{sec:achievable} bounds the tolerance attainable by a threshold rule on
+attribute discrepancy; we report the values here, calibrating $r$ on these networks the
+same way as on MGTAB, from the balanced error of a held-out linear discriminant. That
+matters, because the moment-based plug-in disagrees with it in \emph{both} directions:
+on YelpChi it gives $1.17$ against a held-out $1.05$, and on Amazon $2.04$ against
+$2.65$. Reporting a single method for all three datasets is the only defensible choice.
+
+On YelpChi \texttt{homo} ($c=0.170$, $\tilde D=158$, $d=32$) the optimum moves the
+tolerance from $0.7867$ to $0.7870$; on Amazon \texttt{homo} ($c=0.074$, $\tilde D=145$,
+$d=25$) from $0.8539$ to $0.8808$. Both remain below the measured $\hat\rho$ of $0.805$
+and $0.897$, so attribute-discrepancy scoring does not restore the inference on either
+network---but we note the margins are not large, $0.018$ and $0.016$ respectively, and
+that the Amazon margin halves under the corrected calibration. A modestly better score
+would close it. The optimum is interior: it falls to zero as $\bar e_w \to 1$, because a
+threshold rule that discards nearly every tie leaves nothing to average, and it is
+stable under enlarging the search domain, which the scale-invariant soft-weight model
+of~\eqref{eq:deff} is not.
+
+These two tolerances are computed in the noise-dominated regime, unlike the MGTAB
+figures in Table~\ref{tab:real}, which use the exact criterion. At these networks'
+$\hat\rho$ the mixture term is $0.22\sigma^2$ (YelpChi) and $0.65\sigma^2$ (Amazon), so
+the approximation is loose; the exact criterion gives slightly lower tolerances
+($0.780$ and $0.840$) and therefore strengthens rather than weakens the conclusion. We
+report the noise-dominated values because they are the ones the closed form yields, and
+flag the discrepancy rather than let it pass silently.
+
+\paragraph{Multiplexity, not density, decides usability.} These relations are recorded
+on the \emph{same} $10{,}199$ accounts, and both $\hat\rho$ and the crossover differ
+substantially between them. A procedure that pools relations into a single adjacency
+is therefore averaging quantities with different thresholds, which is the concrete
+form of the concern raised by V\"or\"os and Snijders~\citep{voros2017cluster} and by
+Snijders et al.~\citep{snijders2013model}: the quantity is a property of a relation,
+not of a population.
+
+\paragraph{The degree-corrected identity is exact, once the estimators match.}
+\label{sec:balance-check}
+On the social union, the identity in its degree-corrected form
+$\eta = c\rho\,(\bar d_B/\bar d_H)$ predicts $0.0647508$ against a measured
+$0.0647508$: agreement to machine precision. This is not a coincidence but a
+consequence of what~\eqref{eq:balance} is---an accounting identity over edge
+endpoints---and it holds on \emph{any} graph provided $\rho$, $\eta$ and the mean
+degrees are all estimated as ratios of sums, matching the sums the derivation counts.
+The uncorrected form $\eta = c\rho$ predicts $0.365$, so the degree factor
+$\bar d_B/\bar d_H = 0.177$ is doing essential work here: automated accounts have mean
+degree $14.8$ against $83.5$ for genuine ones.
+
+We flag the estimator sensitivity because it caught us out. Computing $\hat\eta$ as a
+\emph{mean of per-node ratios}, while predicting it from a \emph{ratio of means},
+yields $0.032$ against a predicted $0.067$ and the appearance of a factor-of-two
+failure. The discrepancy is entirely an artefact of mixing the two estimators, com\-pounded
+by averaging degrees over connected nodes only. Since a mean of ratios weights
+low-degree actors equally with hubs, the two estimators diverge exactly in proportion
+to within-class degree skew, which on this population is severe. The practical
+guidance is that~\eqref{eq:balance} is a constraint an analyst can \emph{check} on
+their own data, and a failed check indicates an estimator mismatch or a violated
+regularity assumption rather than a violated identity.
+
+\paragraph{Caveat.}
+The window is derived for a CSBM with regular degrees, isotropic Gaussian features,
+and a single relation. Real graphs violate all three: degrees are heavy-tailed,
+features are neither Gaussian nor isotropic, and the relations interact. The
+numbers above should be read as locating these graphs approximately, not as a
+certified verdict, and the agreement of $\eta$ with $c\rho$ on YelpChi is the one
+quantity here that constitutes a genuine test of the theory rather than an
+application of it. Measuring $\rho$ on TwiBot remains the natural next step and
+requires only data access. The estimator itself is a direct count, and on synthetic
+graphs with a planted camouflage ratio it recovers that ratio exactly and reproduces
+$\eta = c\rho$ to machine precision under regular degrees, so the measurement is
+limited by data availability rather than by method.
+
+
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{From heuristic to criterion}
+
+The practical value of Corollary~\ref{cor:critical} is that it converts a design
+intuition into a quantity an operator can estimate. The inputs are the mean
+neighbourhood size $D$, the bot prevalence $\pi_B$, and the feature signal-to-noise
+ratio $\|\Delta\|/\sigma$---all measurable on a deployed system---and the output is
+a threshold on camouflage beyond which the graph is a liability. This reframes a
+question usually settled by ablation (``does the graph help on this benchmark?'')
+as one that can be answered per-cohort: for hub accounts with large $D$ the graph
+remains valuable at camouflage levels that make it actively harmful for sparse
+accounts. A detector that applies one aggregation policy to both is leaving
+accuracy on the table at one end and incurring damage at the other.
+
+The analysis also isolates an under-appreciated coupling. Because
+$\eta = c\rho$, bot prevalence enters the critical ratio directly: a platform whose
+bot population doubles does not merely face more bots, it faces a detector whose
+tolerance to each bot's camouflage has fallen. Class imbalance is normally treated
+as a training-time nuisance to be fixed by resampling; \eqref{eq:critical} shows it
+is also a structural robustness parameter, and resampling does not touch it.
+
+\subsection{What the theory does and does not license}
+
+We are deliberate about the boundaries of these claims.
+
+The results characterise \emph{one round of mean aggregation} in a stylised
+generative model. They explain why homophilic message passing fails under
+camouflage and why the three mitigations help, and they give the correct
+qualitative orderings---more pruning is better, larger neighbourhoods are safer,
+higher prevalence is more dangerous. They do not predict the accuracy of a trained
+multi-layer network on a real bot graph, and no number in
+Section~\ref{sec:validation} should be read as such. Our simulations verify
+algebra; they are not empirical evidence about Twitter or any other platform.
+
+Three specific gaps deserve naming. First, the single-relation restriction is real: our measurements show camouflage
+differs by a factor approaching two across relations of the same graph
+(Table~\ref{tab:real}), and a multi-relational treatment would need to model how a
+detector pools them. Second, although Section~\ref{sec:depth} extends the analysis
+to $L$ layers, it does so in the noise-dominated regime and on a regular tree; a
+treatment that keeps the mixture terms at depth, and that handles the finite graphs
+where receptive fields saturate, is open. Third, Section~\ref{sec:achievable} bounds
+the achievable pruning quality from the feature distributions but treats the scorer
+as a fixed threshold rule; bounding what a \emph{learned} scorer attains, as a
+function of sample size and hypothesis class, is the natural next step and is what
+our real-data measurements suggest matters most and would
+turn Theorem~\ref{thm:sgtr} from a conditional into an unconditional guarantee.\subsection{Limitations of the generative model}
+\label{sec:limitations}
+
+The camouflage-CSBM makes four simplifications, each of which trades realism for
+tractability.
+
+\emph{Isotropic, equal-covariance features.} Real account features are neither
+isotropic nor identically dispersed across classes. Anisotropy would replace
+$\|\Delta\|/\sigma$ with a Mahalanobis distance throughout; the structure of the
+results survives, but $\rho^\star$ becomes direction-dependent.
+
+\emph{Fixed neighbourhood size.} Social graphs are heavy-tailed. Since $\rho^\star$
+is concave in $D$, a mixture of degrees is \emph{not} well summarised by its mean:
+applying~\eqref{eq:critical} at the average degree overstates robustness for the
+low-degree majority. Per-degree stratification, which the theory directly supports,
+is the appropriate remedy.
+
+\emph{Independent neighbour sampling.} We ignore triadic closure and community
+structure, both prominent in real follow graphs. Correlated neighbourhoods reduce
+the effective sample size in the averaging step, which inflates the variance
+in~\eqref{eq:variances} and lowers $\rho^\star$; our thresholds are therefore
+optimistic.
+
+\emph{A single homogeneous relation.} Production detectors operate on
+heterogeneous graphs with several edge types. The analysis extends per-relation,
+and the interesting question---how an adversary should allocate a fixed camouflage
+budget across relations---follows naturally from~\eqref{eq:critical} but is beyond
+the present scope.
+
+\subsection{An adversarial reading}
+
+Finally, the theory can be read from the attacker's side, which we think is the
+more useful test of it. Corollary~\ref{cor:critical} tells an adversary exactly how
+much camouflage is needed to neutralise a homophilic detector, and
+Theorem~\ref{thm:sgtr} tells them how much more is needed against a pruning
+defence. That the achievable tie score is far weaker than a flawless one on the networks we
+measure---moving the tolerance by less than $0.01$ on one of them---means no realistic
+pruning rule is a permanent fix; the defence buys operating range, and an adversary
+willing to spend ties can exceed it. Treating $\rho$ as a
+strategic variable rather than a nuisance parameter---and analysing the resulting
+game between detector and adversary---strikes us as the most promising direction
+this line of work opens.
+
+\section{Conclusion}
+
+We close by restating the priority position plainly, because it determines how this
+paper should be cited. That a crossover exists---a camouflage level beyond which mean
+aggregation is worse than discarding the graph---is due to Ma
+et al.~\citep{ma2022homophily}, and the fact that the harmful region is a bounded
+window rather than a half-line is the second root of their condition, discussed under
+the name mid-homophily pitfall by Luan et al.~\citep{luan2023when}. What we add is the
+class-imbalanced adversarial case: the edge-balance identity $\eta = c\rho$, which
+makes bot prevalence a robustness parameter and which we confirm on real data; a
+mixture-variance correction worth $11.5\%$ of the threshold; the observation that
+pruning trades bias against effective degree, so that a bound on achievable edge-score
+quality is needed before any tolerance claim means anything; and the finding that mean
+aggregation's backtracking term acts as an implicit residual connection, so that the
+crossover rises with depth rather than being invariant to it.
+
+\label{sec:conclusion}
+
+We have given an analytical account of relation camouflage in GNN-based bot
+detection. Modelling camouflage as an adversarial parameter in a contextual
+stochastic block model, we proved that mean aggregation deflates the class signal
+by exactly $1-(1+c)\rho$, derived the resulting Bayes error, and obtained a
+critical camouflage ratio $\rho^\star = (1-D^{-1/2})/(1+c)$ beyond which a
+homophilic GNN is provably worse than ignoring the graph---a result that recovers
+the known $1/\sqrt{D}$ separability gain of graph convolution at $\rho = 0$. All closed forms were verified numerically, with
+the predicted critical ratio falling inside the measured crossover bracket.
+
+The contribution is not a new detector but a criterion. Practitioners currently
+decide whether to trust a graph-based detector by running an ablation on a
+benchmark; the results here let them instead estimate three measurable quantities
+and compute the answer for their own deployment, per account cohort. Extending the
+analysis to multiple layers, to heterogeneous relations, and to a learned rather
+than assumed pruning quality would make that criterion sharper still.
+
+
+
+\backmatter
+
+\section*{Statements and Declarations}
+
+\subsection*{Funding}
+The authors declare that no funds, grants, or other support were received during the
+preparation of this manuscript.
+
+\subsection*{Conflict of interest/Competing interests}
+The authors declare that they have no known competing financial interests or personal
+relationships that could have appeared to influence the work reported in this paper.
+
+\subsection*{Ethics approval and consent to participate}
+Not applicable. This study analyses publicly released, third-party, de-identified
+social-media account data; it did not involve new data collection from human
+participants.
+
+\subsection*{Consent for publication}
+Not applicable.
+
+\subsection*{Data availability}
+All data analysed in this study are third-party datasets that are publicly available
+and were not generated by the authors. The Twitter account data are from MGTAB
+\citep{shi2023mgtab}, distributed by its authors under a Creative Commons
+Attribution--NonCommercial--NoDerivatives 4.0 licence; we analysed the released
+tensors without modification and redistribute no derivative of them. The two review
+networks are those of \citet{dou2020caregnn} and are openly downloadable. The
+cresci-2015 and cresci-2017 collections referred to in
+Section~\ref{sec:measuring} are likewise public. TwiBot-20 and TwiBot-22 require
+permission from their authors, which we did not obtain and which is why they are not
+analysed here.
+
+\subsection*{Materials availability}
+Not applicable.
+
+\subsection*{Code availability}
+Code to reproduce the reported simulations, closed-form checks, and MGTAB
+measurements is available from the corresponding author upon reasonable request.
+%% TODO(authors): replace with a public repository URL if/when one is released.
+
+\subsection*{Author contribution}
+Quang-Vinh Dang: conceptualization, methodology, formal analysis, software,
+validation, writing -- original draft, writing -- review and editing. Phuong-Lan
+Nguyen: methodology, formal analysis, investigation, validation, writing -- review
+and editing.
+
+\begin{appendices}
+
+\section{Deferred proofs}
+\label{app:proofs}
+
+This appendix gives in full the proofs that are compressed or omitted in the main
+text. Throughout, $\pi_B$ is the bot prevalence, $c = \pi_B/(1-\pi_B)$,
+$\eta = c\rho$, $\lambda = 1-(1+c)\rho$, features are $\mathbf{x}_v \sim
+\mathcal{N}(\boldsymbol\mu_{y_v}, \sigma^2 I_d)$ with
+$\Delta = \boldsymbol\mu_B - \boldsymbol\mu_H$, and $D$ is the neighbourhood size.
+
+\subsection{The edge-balance identity}
+\label{app:balance}
+
+\begin{lemma}
+Let camouflage edges be those joining a bot to a human, and suppose each bot directs
+a fraction $\rho$ of its $D$ edges to humans. Then the expected fraction of a
+human's neighbourhood that is composed of bots is $\eta = c\rho$.
+\end{lemma}
+
+\begin{proof}
+Let $n$ be the number of nodes, so there are $\pi_B n$ bots and $(1-\pi_B)n$ humans.
+Each bot contributes $\rho D$ camouflage edge-endpoints, giving
+$\pi_B n \rho D$ endpoints in total. Every such endpoint lands on a human, and the
+humans collectively expose $(1-\pi_B) n D$ endpoints. Hence the expected bot fraction
+of a human neighbourhood is
+\[
+    \eta \;=\; \frac{\pi_B n \rho D}{(1-\pi_B) n D}
+        \;=\; \frac{\pi_B}{1-\pi_B}\,\rho \;=\; c\rho .
+\]
+The identity is a conservation statement about edge endpoints and is independent of
+how bots choose \emph{which} humans to attach to; only the aggregate count matters.
+It presumes $\eta \leq 1$, i.e.\ $\rho \leq 1/c$, which is automatic when
+$\pi_B \leq 1/2$.
+\end{proof}
+
+The asymmetry is the point: the adversary sets $\rho$ directly but induces $\eta$ on
+the other class, and the two coincide only when the classes are balanced ($c=1$).
+
+\subsection{Proof of the depth result (Theorem~\ref{thm:depth})}
+\label{app:depth}
+
+\begin{proof}
+Project onto $\hat{\mathbf{u}} = \Delta/\|\Delta\|$. Write $P = D^{-1}A$ for the
+simple-random-walk operator on the $D$-regular tree, so that $L$ rounds of mean
+aggregation produce $\mathbf{h}^{(L)} = P^{L}\mathbf{x}$. Crucially $P$ is
+\emph{not} supported on the $L$-sphere: since $v \in \mathcal{N}(u)$ whenever
+$u \in \mathcal{N}(v)$, the walk backtracks, and $P^L e_v$ places mass at every
+distance $j \le L$ of the same parity as $L$, together with $j=0$ when $L$ is even.
+
+\emph{Weights.} By symmetry all nodes at distance $j$ carry equal weight, so if
+$q^{(L)}_j$ denotes the probability that an $L$-step walk ends at distance $j$, each
+such node has weight $q^{(L)}_j/N_j$ with $N_j = D(D-1)^{j-1}$ and $N_0 = 1$. The
+distance process is the birth--death chain that steps outward with probability
+$(D-1)/D$ and inward with probability $1/D$ from any $j\ge1$, and outward with
+certainty from $j=0$; iterating it gives $q^{(L)}$.
+
+\emph{Signal.} Along a path in the tree the labels form a two-state Markov chain with
+transition matrix $\begin{pmatrix} 1-\rho & \rho\\ \eta & 1-\eta\end{pmatrix}$, whose
+eigenvalues are $1$ and $\lambda = 1-\rho-\eta = 1-(1+c)\rho$. Hence for a node at
+distance $j$,
+$\mathbb{E}[s_w \mid y_v = B] - \mathbb{E}[s_w \mid y_v = H] = \lambda^{j}\|\Delta\|$,
+and summing against the weights gives
+$\Delta_L = \|\Delta\|\sum_j q^{(L)}_j \lambda^{j}$. Note this is \emph{not}
+$\lambda^L\|\Delta\|$: the $j<L$ terms are deflated less, and the $j=0$ term not at
+all.
+
+\emph{Noise.} For independent $\mathcal{N}(0,\sigma^2)$ noise,
+\[
+  \operatorname{Var}\bigl(\mathbf{h}^{(L)}_v\bigr)
+  = \sigma^2\bigl\|P^Le_v\bigr\|^2
+  = \sigma^2\sum_j N_j \bigl(q^{(L)}_j/N_j\bigr)^2
+  = \sigma^2\sum_j \bigl(q^{(L)}_j\bigr)^2 / N_j .
+\]
+Dividing signal by noise and normalising by
+$\mathrm{SNR}_{\mathrm{raw}} = \|\Delta\|/(2\sigma)$ gives~\eqref{eq:depth-exact};
+the absolute value is required because $\sum_j q_j\lambda^j$ can be negative.
+At $L=1$, $q_1=1$ and $N_1=D$, recovering $|\lambda|\sqrt{D}$.
+\end{proof}
+
+\begin{remark}[Why the naive recursion fails, and by how much]
+Propagating the deflation as $\Delta_{l+1} = \lambda\Delta_l$ and the variance as
+$V_{l+1} = V_l/D$ describes the \emph{non-backtracking} walk, and yields
+$\mathrm{SNR}_L/\mathrm{SNR}_{\mathrm{raw}} = (\lambda\sqrt D)^L$ and a
+depth-independent crossover. Both conclusions are artefacts. The true weight
+concentration $\sum_j (q^{(L)}_j)^2/N_j$ exceeds $D^{-L}$ by factors of $1.94$,
+$4.63$, $12.3$ and $35.0$ at $L = 2,3,4,5$ for $D = 16$, and the crossover moves from
+$0.525$ at $L=1$ to $0.587$ at $L=2$. The direction is intuitive once stated: mass retained at distance $j<L$ is deflated
+only by $\lambda^{j}$, so backtracking raises the crossover. It does so at a cost,
+however: at $\rho=0$ the same retained mass is over-weighted noise, and the
+non-backtracking walk attains a strictly higher SNR ($60.0$ against $29.7$ at $L=3$,
+$D=16$). Backtracking trades separability in the homophilous regime for tolerance in
+the camouflaged one. A
+simulation that averages over the $D^L$ leaves of a tree reproduces the naive
+recursion exactly and therefore cannot detect this error; one must simulate $P^L$.
+\end{remark}
+
+\subsection{Exact law of the edge score}
+\label{app:score}
+
+\begin{lemma}
+For an edge $(u,v)$ let $s_{uv} = \|\mathbf{x}_u - \mathbf{x}_v\|^2$. Then
+$s \sim 2\sigma^2\chi^2_d$ if $y_u = y_v$, and
+$s \sim 2\sigma^2\chi^2_d(r^2/2)$ with $r = \|\Delta\|/\sigma$ otherwise. In
+particular $\mathbb{E}[s \mid \text{camouflage}] - \mathbb{E}[s \mid \text{within}]
+= \|\Delta\|^2$, and the ratio of the gap to the within-class standard deviation is
+$\kappa = r^2/(2\sqrt{2d})$.
+\end{lemma}
+
+\begin{proof}
+Write $\mathbf{z} = \mathbf{x}_u - \mathbf{x}_v$. If $y_u = y_v$ then
+$\mathbf{z} \sim \mathcal{N}(0, 2\sigma^2 I_d)$, so
+$\|\mathbf{z}\|^2/(2\sigma^2) \sim \chi^2_d$. If $y_u \neq y_v$ then
+$\mathbf{z} \sim \mathcal{N}(\pm\Delta, 2\sigma^2 I_d)$ and
+$\|\mathbf{z}\|^2/(2\sigma^2)$ is noncentral chi-square with $d$ degrees of freedom
+and noncentrality $\|\Delta\|^2/(2\sigma^2) = r^2/2$.
+
+For the moments, $\mathbb{E}[\chi^2_d] = d$ and
+$\mathbb{E}[\chi^2_d(\nu)] = d + \nu$, so the means are $2\sigma^2 d$ and
+$2\sigma^2 d + \|\Delta\|^2$, giving the stated gap. Since
+$\operatorname{Var}(\chi^2_d) = 2d$, the within-class variance of $s$ is
+$4\sigma^4\cdot 2d$, whose square root is $2\sigma^2\sqrt{2d}$; dividing the gap by
+it gives $\kappa = \|\Delta\|^2/(2\sigma^2\sqrt{2d}) = r^2/(2\sqrt{2d})$.
+
+The $d^{-1/2}$ dependence is the concentration phenomenon: the gap between the two
+score distributions grows like $\|\Delta\|^2$ while their spread grows like
+$\sqrt{d}$, so a fixed feature separation becomes progressively harder to detect
+from raw squared distances as the ambient dimension increases.
+\end{proof}
+
+\section{Computational details}
+\label{app:repro}
+
+Every closed form reported in the paper is checked against Monte-Carlo simulation of
+Definition~\ref{def:ccsbm}, and every empirical quantity is computed directly from the
+released data. For completeness we record the numerical choices.
+
+Simulations draw $4\times10^{5}$ nodes per class per configuration, raised to
+$1.5\times10^{6}$ for the crossover sweep, and errors are obtained by exhaustive
+threshold search over the empirical distributions rather than by a plug-in formula, so
+the reported values are attained minima. Edge-score laws are evaluated exactly from the
+central and non-central $\chi^2$ distributions rather than by their Gaussian
+approximation, which is used only where stated. The depth quantities require the
+distance profile of an $L$-step walk on the $D$-regular tree; we obtain it by iterating
+the birth--death recursion of Appendix~\ref{app:depth} to the required depth, which is
+exact for the values of $L$ reported. Optimisations over a pruning operating point are
+solved by bounded scalar minimisation on the logit of $\bar e_w$, and we verify that the
+optimum is interior by re-solving on progressively wider domains; the reported values
+are stable under that enlargement.
+
+For the empirical networks, ties are treated as undirected and deduplicated, and
+self-loops are removed. The camouflage ratio for an actor is the share of its labelled
+alters belonging to the other class, and the reported $\hat\rho$ is the mean of that
+share over strategic actors having at least one labelled tie; $\tilde D$ is the median
+degree over the same set. Where a ratio of sums is compared against a prediction
+derived from sums, both sides use the ratio-of-sums estimator, for the reason set out
+in Section~\ref{sec:measuring}. The attribute separation $r$ is calibrated, for every dataset, from the
+balanced error of a linear discriminant fitted on a random $70\%$ of accounts and
+evaluated on the remainder, rather than from the moments of the attribute
+distributions, for the reason given in Section~\ref{sec:r-estimate}. The decision
+threshold is selected on the training split, not the evaluation split. Because the
+estimate varies with the split, we average over repeated random splits and report the
+spread.
+
+All computations use double-precision floating point and standard scientific Python
+libraries, and run to completion in a few minutes on a single CPU core.
+
+\end{appendices}
+
+\begin{thebibliography}{99}
+
+\bibitem[Ajorlou et al.(2025)]{ajorlou2025dirichlet}
+Ajorlou, H., Mateos, G., Ruiz, L., 2025. Dirichlet meets Horvitz and Thompson: estimating homophily in large networks via sampling. In: 2025 59th Asilomar Conference on Signals, Systems, and Computers. IEEE, pp. 1109-1113. doi:10.1109/IEEECONF67917.2025.11443313
+
+\bibitem[An et al.(2026)]{an2026estimating}
+An, W., Estrada, P., Estrada, J., Jacho-Chavez, D., 2026. Estimating peer influence in multilayer networks. Soc Networks.86:252-65. doi:10.1016/j.socnet.2026.03.003
+
+\bibitem[Anderson et al.(1999)]{anderson1999interaction}
+Anderson, B.S., Butts, C., Carley, K., 1999. The interaction of size and density with graph-level indices. Soc Networks.21(3):239-67. doi:10.1016/S0378-8733(99)00011-8
+
+\bibitem[Ariyarathne et al.(2026)]{ariyarathne2026behavior}
+Ariyarathne, I., Ariyarathne, G., Flammini, A., Menczer, F., Nwala, A., 2026. Behavior change as a signal for identifying social media manipulation. In: Proceedings of the 18th ACM Web Science Conference (WebSci '26). ACM, pp. 349-358. doi:10.1145/3795766.3799748
+
+\bibitem[Baranwal et al.(2021)]{baranwal2021graph}
+Baranwal, A., Fountoulakis, K., Jagannath, A., 2021. Graph convolution for semi-supervised classification: improved linear separability and out-of-distribution generalization. In: Proceedings of the 38th International Conference on Machine Learning (ICML 2021). PMLR.139:684-93.
+
+\bibitem[Baranwal et al.(2023a)]{baranwal2023effects}
+Baranwal, A., Fountoulakis, K., Jagannath, A., 2023a. Effects of graph convolutions in multi-layer networks. In: Proceedings of the 11th International Conference on Learning Representations (ICLR 2023).
+
+\bibitem[Baranwal et al.(2023b)]{baranwal2023optimality}
+Baranwal, A., Fountoulakis, K., Jagannath, A., 2023b. Optimality of message-passing architectures for sparse graphs. In: Advances in Neural Information Processing Systems 36 (NeurIPS 2023).
+
+\bibitem[Baranwal(2026)]{baranwal2026depth}
+Baranwal, A.R., 2026. The value of depth in message passing on sparse graphs: a Kesten--Stigum dichotomy. arXiv preprint arXiv:2607.16676.
+
+\bibitem[Barone and Coscia(2018)]{barone2018birds}
+Barone, M., Coscia, M., 2018. Birds of a feather scam together: trustworthiness homophily in a business network. Soc Networks.54:228-37. doi:10.1016/j.socnet.2018.01.009
+
+\bibitem[Blanchard et al.(2017)]{blanchard2017machine}
+Blanchard, P., El Mhamdi, E.M., Guerraoui, R., Stainer, J., 2017. Machine learning with adversaries: Byzantine tolerant gradient descent. In: Advances in Neural Information Processing Systems 30 (NeurIPS 2017). p. 118-28.
+
+\bibitem[Bojanowski and Corten(2014)]{bojanowski2014measuring}
+Bojanowski, M., Corten, R., 2014. Measuring segregation in social networks. Soc Networks.39:14-32. doi:10.1016/j.socnet.2014.04.001
+
+\bibitem[Bojchevski and G\"unnemann(2019)]{bojchevski2019certifiable}
+Bojchevski, A., G\"unnemann, S., 2019. Certifiable robustness to graph perturbations. In: Advances in Neural Information Processing Systems 32 (NeurIPS 2019).
+
+\bibitem[Burt et al.(2021)]{burt2021network}
+Burt, R.S., Reagans, R.E., Volvovsky, H.C., 2021. Network brokerage and the perception of leadership. Soc Networks.65:33-50. doi:10.1016/j.socnet.2020.09.002
+
+\bibitem[Chandrasekhar et al.(2026)]{chandrasekhar2026multiplexing}
+Chandrasekhar, A.G., Chaudhary, V., Golub, B., Jackson, M.O., 2026. Multiplexing in networks and diffusion. Proc. Natl. Acad. Sci. U.S.A. 123, e2534923123. doi:10.1073/pnas.2534923123
+
+\bibitem[Chen et al.(2021)]{chen2021understanding}
+Chen, L., Li, J., Peng, Q., Liu, Y., Zheng, Z., Yang, C., 2021. Understanding structural vulnerability in graph convolutional networks. In: Proceedings of the 30th International Joint Conference on Artificial Intelligence (IJCAI 2021). p. 2249-55. doi:10.24963/ijcai.2021/310
+
+\bibitem[Choi and Young(2026)]{choi2026who}
+Choi, E.C., Young, L.E., 2026. Who you know, what you believe, what you share: personal networks and health misinformation susceptibility. Soc Networks.87:163-72. doi:10.1016/j.socnet.2026.06.008
+
+\bibitem[Cresci(2020)]{cresci2020decade}
+Cresci, S., 2020. A decade of social bot detection. Commun ACM.63(10):72-83. doi:10.1145/3409116
+
+\bibitem[Dang et al.(2026)]{dang2026xhbot}
+Dang, Q.-V., Nguyen, P.-L., Le, D., Dinh, M.N., 2026. XHBot: eXplainable heterophily-aware graph neural networks for social bot detection. EAI Endorsed Trans AI Robotics [Internet]. 2026 Jul 7 [cited 2026 Jul 31];5. Available from: \url{https://publications.eai.eu/index.php/airo/article/view/12969}
+
+\bibitem[Deshpande et al.(2018)]{deshpande2018contextual}
+Deshpande, Y., Sen, S., Montanari, A., Mossel, E., 2018. Contextual stochastic block models. In: Advances in Neural Information Processing Systems 31 (NeurIPS 2018). p. 8590-602.
+
+\bibitem[Dou et al.(2020)]{dou2020caregnn}
+Dou, Y., Liu, Z., Sun, L., Deng, Y., Peng, H., Yu, P.S., 2020. Enhancing graph neural network-based fraud detectors against camouflaged fraudsters. In: Proceedings of the 29th ACM International Conference on Information and Knowledge Management (CIKM 2020). ACM. doi:10.1145/3340531.3411903
+
+\bibitem[Duranthon and Zdeborov\'a(2025)]{duranthon2025statistical}
+Duranthon, O., Zdeborov\'a, L., 2025. Statistical physics analysis of graph neural networks: approaching optimality in the contextual stochastic block model. Phys. Rev. X 15, 041026. doi:10.1103/lfxj-hbsk
+
+\bibitem[Espinosa-Rada et al.(2026)]{espinosarada2026socioeconomic}
+Espinosa-Rada, A., Bargsted, M., Ortiz Ruiz, F., 2026. Socioeconomic homogeneity in acquaintance networks: occupational prestige, education, and intergenerational mobility. Soc. Networks 86, 342-353. doi:10.1016/j.socnet.2026.04.012
+
+\bibitem[Everett and Borgatti(2026)]{everett2026alter}
+Everett, M.G., Borgatti, S.P., 2026. Alter composition with overlapping group memberships. Soc Networks.85:80-8. doi:10.1016/j.socnet.2025.12.001
+
+\bibitem[Fluer et al.(2026)]{fluer2026survey}
+Fluer, A., Laga, I., Graham, L., Almirol, E., Meyer, M., Schneider, J.A., Cummins, B., 2026. From survey data to social multiplex models: incorporating interlayer correlation from multiple data sources. Soc. Networks 86, 104-119. doi:10.1016/j.socnet.2026.01.005
+
+\bibitem[Fountoulakis et al.(2023)]{fountoulakis2023graph}
+Fountoulakis, K., Levi, A., Yang, S., Baranwal, A., Jagannath, A., 2023. Graph attention retrospective. J Mach Learn Res.24(246):1-52. Available from: \url{https://jmlr.org/papers/volume24/22-125/22-125.pdf}
+
+\bibitem[Geisler et al.(2020)]{geisler2020reliable}
+Geisler, S., Z\"ugner, D., G\"unnemann, S., 2020. Reliable graph neural networks via robust aggregation. In: Advances in Neural Information Processing Systems 33 (NeurIPS 2020).
+
+\bibitem[Gosch et al.(2023)]{gosch2023revisiting}
+Gosch, L., Geisler, S., Sturm, D., Charpentier, B., Z\"ugner, D., G\"unnemann, S., 2023. Revisiting robustness in graph machine learning. In: Proceedings of the 11th International Conference on Learning Representations (ICLR 2023).
+
+\bibitem[He et al.(2025)]{he2025bothp}
+He, B., Jiang, X., Wu, Q., Liu, H., Yang, Y., Liao, Y., 2025. Boosting bot detection via heterophily-aware representation learning and prototype-guided cluster discovery. In: Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2025). ACM. doi:10.1145/3711896.3736862
+
+\bibitem[Holland et al.(1983)]{holland1983stochastic}
+Holland, P.W., Laskey, K.B., Leinhardt, S., 1983. Stochastic blockmodels: first steps. Soc Networks.5(2):109-37. doi:10.1016/0378-8733(83)90021-7
+
+\bibitem[Jin et al.(2020)]{jin2020graph}
+Jin, W., Ma, Y., Liu, X., Tang, X., Wang, S., Tang, J., 2020. Graph structure learning for robust graph neural networks. In: Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD 2020). ACM. p. 66-74. doi:10.1145/3394486.3403049
+
+\bibitem[Kami\'nski et al.(2026)]{kaminski2026relationships}
+Kami\'nski, B., Pra{\l}at, P., Wojnarowicz, A., Zawisza, M., 2026. Relationships between node degrees and hyperedge sizes in empirical hypergraphs. Soc. Networks 87, 119-134. doi:10.1016/j.socnet.2026.06.004
+
+\bibitem[Krivitsky et al.(2009)]{krivitsky2009representing}
+Krivitsky, P.N., Handcock, M.S., Raftery, A.E., Hoff, P.D., 2009. Representing degree distributions, clustering, and homophily in social networks with latent cluster random effects models. Soc Networks.31(3):204-13. doi:10.1016/j.socnet.2009.04.001
+
+\bibitem[Lakdawala et al.(2026)]{lakdawala2026bonds}
+Lakdawala, R., Leenders, R., Mulder, J., 2026. Not all bonds are created equal: dyadic latent class models for relational event data. Soc. Networks 87, 135-151. doi:10.1016/j.socnet.2026.06.006
+
+\bibitem[Lazega and Pattison(1999)]{lazega1999multiplexity}
+Lazega, E., Pattison, P.E., 1999. Multiplexity, generalized exchange and cooperation in organizations: a case study. Soc Networks.21(1):67-90. doi:10.1016/S0378-8733(99)00002-7
+
+\bibitem[Leenders(2002)]{leenders2002modeling}
+Leenders, R.T.h.A.J., 2002. Modeling social influence through network autocorrelation: constructing the weight matrix. Soc Networks.24(1):21-47. doi:10.1016/S0378-8733(01)00049-1
+
+\bibitem[Li et al.(2018)]{li2018deeper}
+Li, Q., Han, Z., Wu, X.M., 2018. Deeper insights into graph convolutional networks for semi-supervised learning. In: Proceedings of the 32nd AAAI Conference on Artificial Intelligence (AAAI 2018). p. 3538-45. doi:10.1609/aaai.v32i1.11604
+
+\bibitem[Luan et al.(2022)]{luan2022revisiting}
+Luan, S., Hua, C., Lu, Q., Zhu, J., Zhao, M., Zhang, S., et al., 2022. Revisiting heterophily for graph neural networks. In: Advances in Neural Information Processing Systems 35 (NeurIPS 2022).
+
+\bibitem[Luan et al.(2023)]{luan2023when}
+Luan, S., Hua, C., Lu, Q., Zhu, J., Zhao, M., Zhang, S., et al., 2023. When do graph neural networks help with node classification? Investigating the impact of homophily principle on node distinguishability. In: Advances in Neural Information Processing Systems 36 (NeurIPS 2023).
+
+\bibitem[Ma et al.(2022)]{ma2022homophily}
+Ma, Y., Liu, X., Shah, N., Tang, J., 2022. Is homophily a necessity for graph neural networks? In: International Conference on Learning Representations (ICLR 2022).
+
+\bibitem[Ma et al.(2025)]{ma2025attention}
+Ma, Z., Zhang, Q., Zhou, B., Zhang, Y., Hu, S., Wang, Z., 2025. Graph attention is not always beneficial: a theoretical analysis of graph attention mechanisms via contextual stochastic block models. In: Proceedings of the 42nd International Conference on Machine Learning (ICML 2025). arXiv:2412.15496.
+
+\bibitem[Macdonald(2026)]{macdonald2026wiretap}
+Macdonald, M., 2026. Wiretap surveillance of criminal networks does not resemble other types of collaborative networks. Soc. Networks 87, 12-23. doi:10.1016/j.socnet.2026.05.002
+
+\bibitem[Mao et al.(2023)]{mao2023demystifying}
+Mao, H., Chen, Z., Jin, W., Han, H., Ma, Y., Zhao, T., et al., 2023. Demystifying structural disparity in graph neural networks: can one size fit all? In: Advances in Neural Information Processing Systems 36 (NeurIPS 2023).
+
+\bibitem[McMillan(2022)]{mcmillan2022worth}
+McMillan, C., 2022. Worth the weight: conceptualizing and measuring strong versus weak tie homophily. Soc Networks.68:139-47. doi:10.1016/j.socnet.2021.06.003
+
+\bibitem[Mujkanovic et al.(2022)]{mujkanovic2022are}
+Mujkanovic, F., Geisler, S., G\"unnemann, S., Bojchevski, A., 2022. Are defenses for graph neural networks robust? In: Advances in Neural Information Processing Systems 35 (NeurIPS 2022).
+
+\bibitem[Mukherjee et al.(2026)]{mukherjee2026optimal}
+Mukherjee, K., Alom, Z., Ngo, T.G.B., Akcora, C.G., Kantarcioglu, M., 2026. Optimal transport-guided adversarial attacks on graph neural network-based bot detection. arXiv preprint arXiv:2602.00318. To appear, Proceedings of the 43rd International Conference on Machine Learning (ICML 2026).
+
+\bibitem[Nguyen(2026)]{nguyen2026agency}
+Nguyen, Q.T., 2026. Agency within structure: strategic behavior and network position in explaining premium buyer access in global buyer--seller networks. Soc. Networks 87, 188-209. doi:10.1016/j.socnet.2026.07.004
+
+\bibitem[Noel and Nyhan(2011)]{noel2011unfriending}
+Noel, H., Nyhan, B., 2011. The `unfriending' problem: the consequences of homophily in friendship retention for causal estimates of social influence. Soc Networks.33(3):211-8. doi:10.1016/j.socnet.2011.05.003
+
+\bibitem[NT and Maehara(2019)]{nt2019revisiting}
+NT, H., Maehara, T., 2019. Revisiting graph neural networks: all we have is low-pass filters. arXiv preprint. doi:10.48550/arXiv.1905.09550
+
+\bibitem[Oono and Suzuki(2020)]{oono2020graph}
+Oono, K., Suzuki, T., 2020. Graph neural networks exponentially lose expressive power for node classification. In: International Conference on Learning Representations (ICLR 2020).
+
+\bibitem[Pan et al.(2026)]{pan2026camera}
+Pan, J., Liu, Y., Zheng, Y., Chi, L., Liew, A.W.C., Pan, S., 2026. CAMERA: adapting to semantic camouflage in unsupervised text-attributed graph fraud detection. arXiv preprint arXiv:2605.20032. Accepted, IJCAI 2026.
+
+\bibitem[Ran et al.(2025)]{ran2025identifying}
+Ran, Y., Xiao, J., Xu, X.K., 2025. Identifying social bots via heterogeneous motifs based on na\"ive Bayes model. IEEE Trans. Inf. Forensics Secur. 20, 12754-12766. doi:10.1109/TIFS.2025.3635006
+
+\bibitem[Roeling and Nicholls(2020)]{roeling2020imputation}
+Roeling, M.P., Nicholls, G.K., 2020. Imputation of attributes in networked data using Bayesian autocorrelation regression models. Soc Networks.62:24-32. doi:10.1016/j.socnet.2020.02.005
+
+\bibitem[Sch\"u{\ss}ler and Fuhse(2025)]{schussler2025duality}
+Sch\"u{\ss}ler, A., Fuhse, J.A., 2025. The duality of network ties and attributes. Soc. Networks 83, 186-198. doi:10.1016/j.socnet.2025.07.002
+
+\bibitem[Shea et al.(2019)]{shea2019cheater}
+Shea, C.T., Lee, J., Menon, T., Im, D.-K., 2019. Cheater's hide and seek: strategic cognitive network activation during ethical decision making. Soc Networks.58:143-55. doi:10.1016/j.socnet.2019.03.005
+
+\bibitem[Shi et al.(2025)]{shi2023mgtab}
+Shi, S., Qiao, K., Liu, Z., Yang, J., Chen, C., Chen, J., et al., 2025. MGTAB: a multi-relational graph-based Twitter account detection benchmark. Neurocomputing.647:130490. doi:10.1016/j.neucom.2025.130490
+
+\bibitem[Snijders et al.(2013)]{snijders2013model}
+Snijders, T.A.B., Lomi, A., Torl\'o, V.J., 2013. A model for the multiplex dynamics of two-mode and one-mode networks, with an application to employment preference, friendship, and advice. Soc Networks.35(2):265-76. doi:10.1016/j.socnet.2012.05.005
+
+\bibitem[Snijders(1981)]{snijders1981degree}
+Snijders, T.A.B., 1981. The degree variance: an index of graph heterogeneity. Soc Networks.3(3):163-74. doi:10.1016/0378-8733(81)90014-9
+
+\bibitem[Tang et al.(2026)]{tang2026twomode}
+Tang, H., Mi, M., Ma, Y., Yang, H., Wang, F., 2026. Two-mode network autoregressive model for network analysis with core nodes. Soc. Networks 86, 75-87. doi:10.1016/j.socnet.2026.01.004
+
+\bibitem[V\"or\"os and Snijders(2017)]{voros2017cluster}
+V\"or\"os, A., Snijders, T.A.B., 2017. Cluster analysis of multiplex networks: defining composite network measures. Soc Networks.49:93-112. doi:10.1016/j.socnet.2017.01.002
+
+\bibitem[V\"or\"os et al.(2019)]{voros2019limits}
+V\"or\"os, A., Block, P., Boda, Z., 2019. Limits to inferring status from friendship relations. Soc Networks.59:77-97. doi:10.1016/j.socnet.2019.05.007
+
+\bibitem[Weiss(2026)]{weiss2026cost}
+Weiss, E., 2026. Cost-sensitive neighborhood aggregation for heterophilous graphs: when does per-edge routing help? arXiv preprint. doi:10.48550/arXiv.2603.24291
+
+\bibitem[Yin et al.(2018)]{yin2018byzantine}
+Yin, D., Chen, Y., Kannan, R., Bartlett, P., 2018. Byzantine-robust distributed learning: towards optimal statistical rates. In: Proceedings of the 35th International Conference on Machine Learning (ICML 2018). PMLR 80. p. 5650-9.
+
+\bibitem[Yu et al.(2018)]{yu2018detecting}
+Yu, L., Woodall, W.H., Tsui, K.-L., 2018. Detecting node propensity changes in the dynamic degree corrected stochastic block model. Soc Networks.54:209-27. doi:10.1016/j.socnet.2018.03.004
+
+\bibitem[Z\"ugner and G\"unnemann(2019)]{zugner2019adversarial}
+Z\"ugner, D., G\"unnemann, S., 2019. Adversarial attacks on graph neural networks via meta learning. In: Proceedings of the 7th International Conference on Learning Representations (ICLR 2019).
+
+\bibitem[Z\"ugner et al.(2018)]{zugner2018adversarial}
+Z\"ugner, D., Akbarnejad, A., G\"unnemann, S., 2018. Adversarial attacks on neural networks for graph data. In: Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD 2018). ACM. p. 2847-56. doi:10.1145/3219819.3220078
+
+\bibitem[Zhang and Zitnik(2020)]{zhang2020gnnguard}
+Zhang, X., Zitnik, M., 2020. GNNGuard: defending graph neural networks against adversarial attacks. In: Advances in Neural Information Processing Systems 33 (NeurIPS 2020).
+
+\bibitem[Zhu et al.(2020)]{zhu2020beyond}
+Zhu, J., Yan, Y., Zhao, L., Heimann, M., Akoglu, L., Koutra, D., 2020. Beyond homophily in graph neural networks: current limitations and effective designs. In: Advances in Neural Information Processing Systems 33 (NeurIPS 2020).
+
+\bibitem[Zhu et al.(2022)]{zhu2022how}
+Zhu, J., Jin, J., Loveland, D., Schaub, M.T., Koutra, D., 2022. How does heterophily impact the robustness of graph neural networks? Theoretical connections and practical implications. In: Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2022). ACM. p. 2637-47. doi:10.1145/3534678.3539418
+
+\end{thebibliography}
+
+\end{document}
