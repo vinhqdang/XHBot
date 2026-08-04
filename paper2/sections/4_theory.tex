@@ -176,15 +176,16 @@ in~\eqref{eq:balance} is what couples the two, and it is what makes bot
 prevalence a robustness parameter rather than a training-time nuisance. (iii) The
 mixture-variance term $\rho(1-\rho)\|\Delta\|^2$ is absent from the covariance
 $I/\sqrt{\deg(i)}$ reported in~\citep{ma2022homophily}; including it moves
-$\rho^\star$ from $0.53$ to $0.46$ in the configuration of
+$\rho^\star$ from $0.5250$ to $0.4644$ in the configuration of
 Remark~\ref{rem:practical}, an $11.5\%$ correction to the threshold.
 \end{remark}
 
 \begin{remark}[Practical reading]
 \label{rem:practical}
 For a detector with typical $D = 16$ and bot prevalence $\pi_B = 0.3$
-($c \approx 0.43$), \eqref{eq:critical} gives $\rho^\star \approx 0.53$ in the
-noise-dominated regime and $0.46$ once the mixture variance is included. A bot that
+($c \approx 0.43$), \eqref{eq:critical} gives $\rho^\star \approx 0.5250$ in the
+noise-dominated regime and $0.4644$ once the mixture variance is included---an
+$11.5\%$ correction. A bot that
 directs roughly half its edges at genuine users has therefore neutralised the graph
 entirely. This is not an extreme adversary; it is a modest one, which is why
 architectural mitigation is necessary rather than optional.
@@ -570,8 +571,14 @@ mid-homophily pitfall named by Luan et al.~\citeyearpar{luan2023when}. We record
 it identifies the dangerous adversarial strategy as \emph{intermediate} rather than
 maximal camouflage, and because the upper edge exceeds $1$---so that the window
 degenerates to a one-sided threshold and no ``helps again'' regime exists---whenever
-$c < D^{-1/2}$, which is the case for all of the real graphs measured in
-Section~\ref{sec:measuring}.
+$c < D^{-1/2}$. Among the relations measured in Section~\ref{sec:measuring}
+($c = 0.369$), this holds for the sparser social ties (following, mention, quote,
+reply, all $\tilde D \le 4$), but not for friendship or for the denser
+content-coordination relations, where $D^{-1/2} < c$ and a finite upper edge
+survives instead; Section~\ref{sec:r-estimate} reports that edge directly, under
+the exact criterion, for shared URL and shared hashtag, and finds the measured
+$\hat\rho$ still inside the harmful, non-reversed part of the window in both
+cases.
 
 \subsection{Implications for automated detection}
 \label{sec:implications}
