@@ -976,14 +976,13 @@ which is $\rho = 0.897$ at $D=16$ and $0.974$ at $D=64$.
 It remains to bound $\theta$ from below. The spectral rule scores an edge by the feature
 discrepancy $s_{uv} = \|\mathbf{x}_u - \mathbf{x}_v\|^2$, whose law under the CSBM
 is exactly
-\begin{equation}
-    s \sim 2\sigma^2\chi^2_{d}
-    \quad\text{(within class)},
-    \qquad
-    s \sim 2\sigma^2\chi^2_{d}\!\left(\tfrac{r^2}{2}\right)
+\begin{align}
+    s &\sim 2\sigma^2\chi^2_{d}
+    \quad\text{(within class)}, \nonumber\\
+    s &\sim 2\sigma^2\chi^2_{d}\!\left(\tfrac{r^2}{2}\right)
     \quad\text{(camouflage)},
     \label{eq:scorelaw}
-\end{equation}
+\end{align}
 with $r = \|\Delta\|/\sigma$ and $\chi^2_d(\lambda)$ the noncentral chi-square. Any
 threshold rule therefore has an operating point $(\bar e_w, \bar e_c)$ on the ROC
 of~\eqref{eq:scorelaw}, and $\theta$ is the ratio of its complements. In the
@@ -1200,8 +1199,7 @@ Figure~\ref{fig:deflation} shows the same agreement graphically.
 \caption{Theory versus simulation for signal deflation and balanced error
 ($\pi_B = 0.3$, $\|\Delta\|=2$, $\sigma=1$, $D=16$).}
 \label{tab:deflation}
-\small
-\resizebox{\columnwidth}{!}{%
+\scriptsize
 \begin{tabular}{@{}ccccccc@{}}
 \toprule
 & & \multicolumn{2}{c}{separation $\delta$} & \multicolumn{2}{c}{$s_{\mathrm{B}}$} & error \\
@@ -1216,8 +1214,7 @@ $\rho$ & $\eta$ & theory & sim. & theory & sim. & thy / sim. \\
 0.50 & 0.214 & 0.5714 & 0.5696 & 0.3536 & 0.3528 & 0.19898 / 0.19974 \\
 0.60 & 0.257 & 0.2857 & 0.2864 & 0.3500 & 0.3500 & 0.33734 / 0.33680 \\
 \botrule
-\end{tabular}%
-}
+\end{tabular}
 \end{table}
 
 \begin{figure}[t]
@@ -1255,7 +1252,7 @@ exact SNR crossover, at moderate and low SNR.}
 \small
 \begin{tabular}{@{}cccc@{}}
 \toprule
-$D$ & closed form~\eqref{eq:critical} & exact ($\|\Delta\|/\sigma = 2$) & exact (low SNR) \\
+$D$ & closed form & exact ($r=2$) & exact (low SNR) \\
 \midrule
 4  & 0.3500 & 0.2604 & 0.3488 \\
 9  & 0.4667 & 0.3913 & 0.4657 \\
@@ -1411,7 +1408,7 @@ For each relation we compute $\rho$ as the mean over automated accounts of the
 fraction of their alters that are genuine, and $\eta$ symmetrically.
 Table~\ref{tab:real} reports the result.
 
-\begin{table}[t]
+\begin{sidewaystable}
 \centering
 \small
 \caption{Camouflage measured on MGTAB ($10{,}199$ Twitter accounts, all labelled;
@@ -1429,12 +1426,11 @@ smaller because automated accounts have much lower degree
 (Section~\ref{sec:balance-check}). The verdict is unchanged either way; the magnitude is
 not.}
 \label{tab:real}
-\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrrrrrrr}
 \toprule
 Relation & ties & $\hat\rho$ & $\tilde\rho$ & $\hat\eta$ & $\tilde D$
  & $\rho_{\mathrm{cross}}$
- & $\frac{\mathrm{SNR}_{\mathrm{agg}}}{\mathrm{SNR}_{\mathrm{raw}}}$
+ & SNR$_{\mathrm{agg}}$/SNR$_{\mathrm{raw}}$
  & \,''\,($\hat\eta$) \\
 \midrule
 \multicolumn{9}{@{}l}{\emph{social layer}}\\
@@ -1449,9 +1445,8 @@ reply       & 20{,}700  & 0.991 & 1.00 & 0.009 & 1  & ---   & 0.28 & 0.00 \\
 shared URL     & 263{,}800 & 0.595 & 0.62 & 0.195 & 12 & 0.432 & 0.44 & 0.51 \\
 shared hashtag & 300{,}000 & 0.627 & 0.65 & 0.279 & 53 & 0.585 & 0.71 & 0.47 \\
 \botrule
-\end{tabular}%
-}
-\end{table}
+\end{tabular}
+\end{sidewaystable}
 
 \subsection{Estimating the attribute separation}
 \label{sec:r-estimate}
@@ -1743,8 +1738,8 @@ Not applicable.
 
 \subsection*{Code availability}
 Code to reproduce the reported simulations, closed-form checks, and MGTAB
-measurements is available from the corresponding author upon reasonable request.
-%% TODO(authors): replace with a public repository URL if/when one is released.
+measurements is available at \url{https://github.com/vinhqdang/XHBot}
+(directory \texttt{paper2/theory}).
 
 \subsection*{Author contribution}
 Quang-Vinh Dang: conceptualization, methodology, formal analysis, software,
@@ -1820,12 +1815,12 @@ $\lambda^L\|\Delta\|$: the $j<L$ terms are deflated less, and the $j=0$ term not
 all.
 
 \emph{Noise.} For independent $\mathcal{N}(0,\sigma^2)$ noise,
-\[
+\begin{align*}
   \operatorname{Var}\bigl(\mathbf{h}^{(L)}_v\bigr)
-  = \sigma^2\bigl\|P^Le_v\bigr\|^2
-  = \sigma^2\sum_j N_j \bigl(q^{(L)}_j/N_j\bigr)^2
-  = \sigma^2\sum_j \bigl(q^{(L)}_j\bigr)^2 / N_j .
-\]
+  &= \sigma^2\bigl\|P^Le_v\bigr\|^2
+  = \sigma^2\sum_j N_j \bigl(q^{(L)}_j/N_j\bigr)^2 \\
+  &= \sigma^2\sum_j \bigl(q^{(L)}_j\bigr)^2 / N_j .
+\end{align*}
 Dividing signal by noise and normalising by
 $\mathrm{SNR}_{\mathrm{raw}} = \|\Delta\|/(2\sigma)$ gives~\eqref{eq:depth-exact};
 the absolute value is required because $\sum_j q_j\lambda^j$ can be negative.
